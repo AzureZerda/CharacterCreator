@@ -1,65 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Weapon Proficiencies</title>
+{% extends "skill_selector.html" %}
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            padding: 20px;
-        }
+{% block title %}Weapon Proficiencies{% endblock %}
+{% block header %}Weapon Proficiencies{% endblock %}
 
-        .top-bar {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .table {
-            max-width: 600px;
-            margin-top: 40px;
-        }
-
-        .row {
-            display: flex;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #ccc;
-        }
-
-        .header {
-            font-weight: bold;
-            border-bottom: 2px solid #000;
-        }
-
-        .skill { flex: 2; }
-        .quantity, .cost { flex: 1; text-align: right; }
-        .action { flex: 1; text-align: right; }
-
-        button {
-            padding: 4px 10px;
-            cursor: pointer;
-        }
-    </style>
-</head>
-
-<body>
-
-<div class="top-bar">
-    <div>
-        Points: <span id="points-display">{{ points }}</span>
-    </div>
-
-    <form method="POST" action="{{ url_for('reset') }}">
-        <button type="submit">Reset</button>
-    </form>
-</div>
-
-<h1>Weapon Proficiencies</h1>
+{% block content %}
 
 <div class="table">
 
@@ -70,126 +14,91 @@
         <span class="action">Action</span>
     </div>
 
-    <!-- SHORT WEAPONS -->
-    <div class="row">
-        <span class="skill">Short Weapons</span>
-        <span class="quantity">1</span>
-        <span class="cost">1</span>
-        <span class="action">
-            <button data-skill="Short Weapons" data-state="add" onclick="toggleSkill(this)">Add</button>
-        </span>
-    </div>
+    {% for name, data in skills.items() %}
 
-    <!-- ONE-HANDED -->
-    <div class="row">
-        <span class="skill">One-Handed Weapons</span>
-        <span class="quantity">1</span>
-        <span class="cost">2</span>
-        <span class="action">
-            <button data-skill="One-Handed Weapons" data-state="add" onclick="toggleSkill(this)">Add</button>
-        </span>
-    </div>
+    <form class="row skill-form">
 
-    <!-- TWO-HANDED -->
-    <div class="row">
-        <span class="skill">Two-Handed Weapons</span>
-        <span class="quantity">1</span>
-        <span class="cost">3</span>
-        <span class="action">
-            <button data-skill="Two-Handed Weapons" data-state="add" onclick="toggleSkill(this)">Add</button>
-        </span>
-    </div>
+        <input type="hidden" name="skill" value="{{ name }}">
+        <input type="hidden" name="cost" value="{{ data['Cost'] }}">
 
-    <!-- OVERSIZED -->
-    <div class="row">
-        <span class="skill">Oversized Weapon Use</span>
-        <span class="quantity">1</span>
-        <span class="cost">2</span>
-        <span class="action">
-            <button data-skill="Oversized Weapon Use" data-state="add" onclick="toggleSkill(this)">Add</button>
-        </span>
-    </div>
+        <span class="skill">{{ name }}</span>
 
-    <!-- THROWN -->
-    <div class="row">
-        <span class="skill">Thrown Weapons</span>
-        <span class="quantity">1</span>
-        <span class="cost">2</span>
-        <span class="action">
-            <button data-skill="Thrown Weapons" data-state="add" onclick="toggleSkill(this)">Add</button>
-        </span>
-    </div>
+        <span class="quantity">
 
-    <!-- BOW -->
-    <div class="row">
-        <span class="skill">Bow and Arrow</span>
-        <span class="quantity">1</span>
-        <span class="cost">3</span>
-        <span class="action">
-            <button data-skill="Bow and Arrow" data-state="add" onclick="toggleSkill(this)">Add</button>
-        </span>
-    </div>
+            {% if data['Max'] == 1 %}
+                <input type="hidden" name="quantity" value="1">
+                1
 
-    <!-- TWO-WEAPON -->
-    <div class="row">
-        <span class="skill">Two-Weapon Fighting</span>
-        <span class="quantity">1</span>
-        <span class="cost">6</span>
-        <span class="action">
-            <button data-skill="Two-Weapon Fighting" data-state="add" onclick="toggleSkill(this)">Add</button>
+            {% elif data['Max'] is not none %}
+                <select name="quantity">
+                    {% for i in range(1, data['Max'] + 1) %}
+                        <option value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
+                </select>
+
+            {% else %}
+                <select name="quantity">
+                    {% for i in range(0, 11) %}
+                        <option value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+
         </span>
-    </div>
+
+        <span class="cost">{{ data['Cost'] }}</span>
+
+        <span class="action">
+            <button type="button" class="toggle-btn" data-state="add">Add</button>
+        </span>
+
+    </form>
+
+    {% endfor %}
 
 </div>
 
 <script>
-function toggleSkill(btn) {
+document.querySelectorAll(".toggle-btn").forEach(btn => {
 
-    const skill = btn.dataset.skill;
-    const state = btn.dataset.state;
+    btn.addEventListener("click", async function () {
 
-    const url = state === "add" ? "/add_skill" : "/remove_skill";
+        const form=this.closest("form");
 
-    fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: new URLSearchParams({
-            skill: skill,
-            quantity: 1,
-            cost: 1
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
+        const formData=new FormData(form);
+        const state=this.dataset.state;
 
-        if (!data.success) {
-            alert(data.error || "Action failed");
-            return;
+        const url=state==="add" ? "/add_skill" : "/remove_skill";
+
+        try {
+            const res=await fetch(url,{
+                method:"POST",
+                body:new URLSearchParams(formData)
+            });
+
+            const data=await res.json();
+
+            if (!data.success) {
+                alert(data.error || "Action failed");
+                return;
+            }
+
+            // toggle UI ONLY on success
+            if (state==="add") {
+                this.textContent="Remove";
+                this.dataset.state="remove";
+            } else {
+                this.textContent="Add";
+                this.dataset.state="add";
+            }
+
+        } catch (err) {
+            console.error(err);
+            alert("Request failed");
         }
-
-        // update points display live
-        if (data.points !== undefined) {
-            document.getElementById("points-display").textContent = data.points;
-        }
-
-        // toggle button state
-        if (state === "add") {
-            btn.textContent = "Remove";
-            btn.dataset.state = "remove";
-        } else {
-            btn.textContent = "Add";
-            btn.dataset.state = "add";
-        }
-
-    })
-    .catch(err => {
-        console.error(err);
-        alert("Request failed");
     });
-}
+
+});
 </script>
 
-</body>
-</html>
+{% endblock %}

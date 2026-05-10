@@ -33,26 +33,77 @@
     <h1>Skill Categories</h1>
 
     <div class="button-container">
-        <a href="{{ url_for('weapon_proficiencies') }}">
-            <button>Weapon Proficiencies</button>
+        <a href="{{ url_for('skills_page', category='weapon') }}">
+            <button type="button">Weapon Proficiencies</button>
         </a>
-        <button>Armor Proficencies</button>
-        <button>General Combat Skills</button>
-        <button>Archery</button>
-        <button>Officer Training</button>
-        <button>The Art of Dueling</button>
-        <button>The School of Suffering</button>
-        <button>The Assassin's Art</button>
-        <button>The Honoured Path of the Berserker</button>
-        <button>Mundane Healing</button>
-        <button>Religious Worship</button>
-        <button>The Bardic Arts</button>
-        <button>Magical Arts</button>
-        <button>Skullduggery</button>
-        <button>Knowledge</button>
-        <button>Gathering</button>
-        <button>Crafting Skills</button>
-        <button>Crafting Circles</button>
+
+        <a href="{{ url_for('skills_page', category='armor') }}">
+            <button type="button">Armor Proficiencies</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='general') }}">
+            <button type="button">General Combat Skills</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='archery') }}">
+            <button type="button">Archery</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='officer_training') }}">
+            <button type="button">Officer Training</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='the_art_of_dueling') }}">
+            <button type="button">The Art of Dueling</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='the_school_of_suffering') }}">
+            <button type="button">The School of Suffering</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='the_assasins_art') }}">
+            <button type="button">The Assassin's Art</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='berserker') }}">
+            <button type="button">The Honoured Path of the Berserker</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='mundane_healing') }}">
+            <button type="button">Mundane Healing</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='religious_worship') }}">
+            <button type="button">Religious Worship</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='bardic_arts') }}">
+            <button type="button">The Bardic Arts</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='magical_arts') }}">
+            <button type="button">Magical Arts</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='skullduggery') }}">
+            <button type="button">Skullduggery</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='knowledge') }}">
+            <button type="button">Knowledge</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='gathering') }}">
+            <button type="button">Gathering</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='crafting_skills') }}">
+            <button type="button">Crafting Skills</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='crafting') }}">
+            <button type="button">Crafting Circles</button>
+        </a>
     </div>
 
 </body>

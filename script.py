@@ -1,6 +1,5 @@
 from abc import ABC
 import json
-from app import session
 
 with open("skills.json","r",encoding="utf-8") as f:
     skills=json.load(f)

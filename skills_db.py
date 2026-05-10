@@ -1,89 +1,91 @@
-{
-"Short Weapons": {
-  "Max": 1,
-  "Cost": 1
-},
-
-"One-Handed Weapons": {
-  "Max": 1,
-  "Cost": 2,
-  "Prereq": {
-    "Short Weapons": 1
-  }
-},
-
-"Two-Handed Weapons": {
-  "Max": 1,
-  "Cost": 3,
-  "Prereq": {
-    "One-Handed Weapons": 1
-  }
-},
-
-"Oversized Weapon Use": {
-  "Max": 1,
-  "Cost": 2,
-  "Prereq": {
-    "Two-Handed Weapons": 1
-  }
-},
-
-"Thrown Weapons": {
-  "Max": 1,
-  "Cost": 2
-},
-
-"Bow and Arrow": {
-  "Max": 1,
-  "Cost": 3
-},
-
-"Two-Weapon Fighting": {
-  "Max": 1,
-  "Cost": 6
-},
-"Armor Proficencies":{
-  "Armor Training: Light": {
+WEAPON_PROFICIENCIES = {
+    "Short Weapons": {
     "Max": 1,
-    "Cost": 2
-  },
+    "Cost": 1
+    },
 
-  "Armor Training: Heavy": {
+    "One-Handed Weapons": {
     "Max": 1,
-    "Cost": 6,
+    "Cost": 2,
     "Prereq": {
-      "Armor Training: Light": 1
+        "Short Weapons": 1
     }
-  },
+    },
 
-  "Shield Use": {
+    "Two-Handed Weapons": {
+    "Max": 1,
+    "Cost": 3,
+    "Prereq": {
+        "One-Handed Weapons": 1
+    }
+    },
+
+    "Oversized Weapon Use": {
+    "Max": 1,
+    "Cost": 2,
+    "Prereq": {
+        "Two-Handed Weapons": 1
+    }
+    },
+
+    "Thrown Weapons": {
     "Max": 1,
     "Cost": 2
-  },
+    },
 
-  "Helmet Mastery": {
+    "Bow and Arrow": {
+    "Max": 1,
+    "Cost": 3
+    },
+
+    "Two-Weapon Fighting": {
+    "Max": 1,
+    "Cost": 6
+    }}
+
+ARMOR_PROFICIENCIES = {
+
+    "Armor Training: Light": {
     "Max": 1,
     "Cost": 2
-  }
-},
-"General Combat Skills":{
+    },
+
+    "Armor Training: Heavy": {
+    "Max": 1,
+    "Cost": 2,
+    "Prereq": {
+        "Armor Training: Light": 1
+    }
+    },
+
+    "Shield Use": {
+    "Max": 1,
+    "Cost": 2
+    },
+
+    "Helmet Mastery": {
+    "Max": 1,
+    "Cost": 2
+    }}
+
+GENERAL_COMBAT_SKILLS={
   "Toughness": {
     "Max": 5,
-    "Cost": 6
+    "Cost": 3
   },
 
   "Dodge": {
-    "Max": null,
+    "Max": None,
     "Cost": 6
   },
 
   "Willpower": {
-    "Max": null,
-    "Cost": 4
+    "Max": None,
+    "Cost": 6
   },
 
   "Parry": {
-    "Max": null,
+    "Max": None,
     "Cost": 4
   },
 
@@ -109,7 +111,7 @@
   },
 
   "Great Strike": {
-    "Max": null,
+    "Max": None,
     "Cost": 3
   },
 
@@ -122,11 +124,12 @@
     }
   },
   "Stun": {
-    "Max": null,
+    "Max": None,
     "Cost": 3
   }
-},
-"Archery":{
+}
+
+ARCHERY={
   "Precision": {
     "Max": 1,
     "Cost": 7,
@@ -144,7 +147,7 @@
   },
 
   "Disarming Shot": {
-    "Max": null,
+    "Max": None,
     "Cost": 4,
     "Prereq": {
       "Precision": 1
@@ -152,7 +155,7 @@
   },
 
   "Pinning Shot": {
-    "Max": null,
+    "Max": None,
     "Cost": 2,
     "Prereq": {
       "Precision": 1
@@ -160,7 +163,7 @@
   },
 
   "Repelling Shot": {
-    "Max": null,
+    "Max": None,
     "Cost": 2,
     "Prereq": {
       "Pinning Shot": 1
@@ -168,7 +171,7 @@
   },
 
   "One Shot, One Kill": {
-    "Max": null,
+    "Max": None,
     "Cost": 5,
     "Prereq": {
       "Master Precision": 1,
@@ -192,20 +195,21 @@
       "Stealth Attack": 1
     }
   }
-},
-"Officer Training":{
+}
+
+OFFICER_TRAINING={
   "Sudden Motivation": {
-    "Max": null,
+    "Max": None,
     "Cost": 1
   },
 
   "Inspirational Speech": {
-    "Max": null,
+    "Max": None,
     "Cost": 2
   },
 
   "Defensive Instruction": {
-    "Max": null,
+    "Max": None,
     "Cost": 4,
     "Prereq": {
       "Parry": 1
@@ -213,7 +217,7 @@
   },
 
   "Evasive Instruction": {
-    "Max": null,
+    "Max": None,
     "Cost": 6,
     "Prereq": {
       "Dodge": 1
@@ -221,7 +225,7 @@
   },
 
   "Offensive Instruction": {
-    "Max": null,
+    "Max": None,
     "Cost": 3,
     "Prereq": {
       "Great Strike": 1
@@ -239,15 +243,16 @@
     "Cost": 4,
     "Prereq": {"can_instruct":1}
   }
-},
-"The Art of Dueling":{
+}
+
+THE_ART_OF_DUELING={
   "Disarm": {
-    "Max": null,
+    "Max": None,
     "Cost": 4
   },
 
   "Feint": {
-    "Max": null,
+    "Max": None,
     "Cost": 1
   },
 
@@ -275,7 +280,7 @@
   },
 
   "Blade Dance": {
-    "Max": null,
+    "Max": None,
     "Cost": 5,
     "Prereq": {
       "Great Strike": 1,
@@ -287,8 +292,9 @@
     "Max": 1,
     "Cost": 3
   }
-},
-"The School of Suffering":{
+}
+
+THE_SCHOOL_OF_SUFFERING={
   "Armored Forearms": {
     "Max": 1,
     "Cost": 6
@@ -324,7 +330,7 @@
   },
 
   "Torture Resistance": {
-    "Max": null,
+    "Max": None,
     "Cost": 3
   },
 
@@ -335,8 +341,9 @@
       "Torture Resistance": 3
     }
   }
-},
-"The Assassin's Art":{
+}
+
+THE_ASSASSINS_ARTS={
   "Stealth Attack": {
     "Max": 1,
     "Cost": 6,
@@ -344,7 +351,7 @@
   },
 
   "10-Damage Strike": {
-    "Max": null,
+    "Max": None,
     "Cost": 8,
     "Prereq": {"can_assassinate":1}
   },
@@ -366,7 +373,7 @@
   },
 
   "Shin Kick": {
-    "Max": null,
+    "Max": None,
     "Cost": 3,
     "Prereq": {
       "Stun": 1
@@ -374,7 +381,7 @@
   },
 
   "Sand in Your Eyes": {
-    "Max": null,
+    "Max": None,
     "Cost": 3,
     "Prereq": {
       "Stun": 1
@@ -390,12 +397,12 @@
   },
 
   "Leap": {
-    "Max": null,
+    "Max": None,
     "Cost": 2
   },
 
   "Leap Attack": {
-    "Max": null,
+    "Max": None,
     "Cost": 3,
     "Prereq": {
       "Leap": 1
@@ -415,8 +422,9 @@
     "Max": 1,
     "Cost": 3
   }
-},
-"The Honoured Path of the Berserker":{
+}
+
+THE_HONOURED_PATH_OF_THE_BERSERKER={
   "Battle Rage": {
     "Max": 1,
     "Cost": 0
@@ -444,7 +452,7 @@
   },
 
   "Break Limb": {
-    "Max": null,
+    "Max": None,
     "Cost": 5
   },
 
@@ -456,8 +464,9 @@
       "Two-Handed Weapons": 1
     }
   }
-},
-"Mundane Healing":{
+}
+
+MUNDANE_HEALING={
   "Examine Wounds": {
     "Max": 1,
     "Cost": 2
@@ -472,7 +481,7 @@
   },
 
   "Administer Antidote": {
-    "Max": null,
+    "Max": None,
     "Cost": 2,
     "Prereq": {
       "Detect Poison": 1
@@ -512,7 +521,7 @@
   },
 
   "Trauma Patch": {
-    "Max": null,
+    "Max": None,
     "Cost": 4,
     "Prereq": {
       "Bandage": 1
@@ -535,8 +544,9 @@
       "Surgery": 1
     }
   }
-},
-"Religious Worship":{
+}
+
+RELIGIOUS_WORSHIP={
     "Prayer":{
         "Max":1,
         "Cost":4
@@ -568,15 +578,16 @@
         "Max":1,
         "Cost":2
     }
-},
-"The Bardic Arts":{
+}
+
+THE_BARDIC_ARTS={
   "Commanding Presence": {
-    "Max": null,
+    "Max": None,
     "Cost": 3
   },
 
   "Serenade": {
-    "Max": null,
+    "Max": None,
     "Cost": 8,
     "Prereq": {
       "Willpower": 1
@@ -584,7 +595,7 @@
   },
 
   "Dance Lesson": {
-    "Max": null,
+    "Max": None,
     "Cost": 8,
     "Prereq": {
       "Dodge": 1
@@ -592,7 +603,7 @@
   },
 
   "True Greatness": {
-    "Max": null,
+    "Max": None,
     "Cost": 4
   },
 
@@ -602,7 +613,7 @@
   },
 
   "Meditative Song": {
-    "Max": null,
+    "Max": None,
     "Cost": 10,
     "Prereq": {
       "Mana Focus": 3
@@ -618,10 +629,11 @@
     "Max": 1,
     "Cost": 3
   }
-},
-"Magical Arts":{
+}
+
+MAGICAL_ARTS={
     "Mana Focus":{
-        "Max":null,
+        "Max":None,
         "Cost":1,
         "Prereq":{"Magical Aptitude":1}
     },
@@ -661,7 +673,7 @@
         "Prereq":{"Magical Aptitude":1}
     },
     "Combat Mimic":{
-        "Max":null,
+        "Max":None,
         "Cost":4,
         "Prereq":{"Weapon Casting":1}
     },
@@ -685,8 +697,9 @@
         "Cost":2,
         "Prereq":{"gm_mage":1,"research":1}
     }
-},
-"Skullduggery":{
+}
+
+SKULLDUGGERY={
   "Disguise": {
     "Max": 1,
     "Cost": 4
@@ -706,12 +719,12 @@
   },
 
   "Escape": {
-    "Max": null,
+    "Max": None,
     "Cost": 3
   },
 
   "Poison Resistance": {
-    "Max": null,
+    "Max": None,
     "Cost": 2
   },
 
@@ -727,15 +740,16 @@
     "Cost": 4
   },
   "Gambling": {
-    "Max": null,
+    "Max": None,
     "Cost": 2
   },
   "Torture": {
-    "Max": null,
+    "Max": None,
     "Cost": 2
   }
-},
-"Knowledge":{
+}
+
+KNOWLEDGE={
     "Lore":{
         "Max":1,
         "Cost":4
@@ -750,8 +764,9 @@
         "Cost":3,
         "Prereq":{"Lore: Alchemy":1}
     }
-},
-"Gathering":{
+}
+
+GATHERING={
     "Academic Standing":{
         "Max":4,
         "Cost":4
@@ -796,15 +811,16 @@
         "Max":4,
         "Cost":4
     }
-},
-"Crafting Skills":{
+}
+
+CRAFTING_SKILLS={
     "Fortify Armor":{
         "Max":1,
         "Cost":3,
         "Prereq":{"can_fortify":1}
     },
     "Field Repair":{
-        "Max":null,
+        "Max":None,
         "Cost":2,
         "Prereq":{"can_field_repair":1}
     },
@@ -838,8 +854,20 @@
         "Cost":2,
         "Prereq":{"can_invent":1,"research":1}
     }
-},
-"Crafting Circles":{
-    "Crafts":["Blacksmithing","Weaponsmithing","Armorsmithing","Shieldsmithing","Locksmithing","Enchanting","Scroll Scribing","Artificing","Cooking","Stable Alchemy","Tailoring","Fletching","Engineering"]
 }
+
+CRAFTING_CIRCLES = {
+    "Blacksmithing": {"Max": 4, "Cost": 6},
+    "Weaponsmithing": {"Max": 4, "Cost": 6},
+    "Armorsmithing": {"Max": 4, "Cost": 6},
+    "Shieldsmithing": {"Max": 4, "Cost": 6},
+    "Locksmithing": {"Max": 4, "Cost": 6},
+    "Enchanting": {"Max": 4, "Cost": 6},
+    "Scroll Scribing": {"Max": 4, "Cost": 6},
+    "Artificing": {"Max": 4, "Cost": 6},
+    "Cooking": {"Max": 4, "Cost": 6},
+    "Stable Alchemy": {"Max": 4, "Cost": 6},
+    "Tailoring": {"Max": 4, "Cost": 6},
+    "Fletching": {"Max": 4, "Cost": 6},
+    "Engineering": {"Max": 4, "Cost": 6}
 }

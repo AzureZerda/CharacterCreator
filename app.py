@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, session, jsonify, redirect, url_for, flash
 from abc import ABC
 import json
+import skills_db
 
 app=Flask(__name__)
 app.secret_key="fennec"
@@ -8,7 +9,7 @@ app.secret_key="fennec"
 def Construct_Skill(data):
     route=Determine_Route(data['skill'].lower())
     try:
-        prereqs=skills[data['skill']]['Prereq']
+        prereqs=skills_db[data['skill']]['Prereq']
     except:
         prereqs=None
     if route==0:
@@ -58,12 +59,45 @@ def init_session():
 def home():
     return render_template("landing_page.html")
 
-@app.route("/weapon_proficiencies")
-def weapon_proficiencies():
-    return render_template("weapon_proficiencies.html")
+@app.route("/skills/<category>")
+def skills_page(category):
+    all_skills={
+        "weapon":skills_db.WEAPON_PROFICIENCIES,
+        "armor":skills_db.ARMOR_PROFICIENCIES,
+        "general":skills_db.GENERAL_COMBAT_SKILLS,
+        "archery":skills_db.ARCHERY,
+        "officer_training":skills_db.OFFICER_TRAINING,
+        'the_art_of_dueling':skills_db.THE_ART_OF_DUELING,
+        'the_school_of_suffering':skills_db.THE_SCHOOL_OF_SUFFERING,
+        'the_assasins_art':skills_db.THE_ASSASSINS_ARTS,
+        'berserker':skills_db.THE_HONOURED_PATH_OF_THE_BERSERKER,
+        'mundane_healing':skills_db.MUNDANE_HEALING,
+        'religious_worship':skills_db.RELIGIOUS_WORSHIP,
+        'bardic_arts':skills_db.THE_BARDIC_ARTS,
+        'magical_arts':skills_db.MAGICAL_ARTS,
+        'skullduggery':skills_db.SKULLDUGGERY,
+        'knowledge':skills_db.KNOWLEDGE,
+        'gathering':skills_db.GATHERING,
+        'crafting_skills':skills_db.CRAFTING_SKILLS,
+        'crafting':skills_db.CRAFTING_CIRCLES
+    }
+
+    skills=all_skills.get(category)
+
+    if skills is None:
+        return "Invalid category", 404
+
+    print(skills)
+
+    return render_template(
+        "skill_page.html",
+        skills=skills,
+        category=category
+    )
 
 @app.route("/add_skill",methods=["POST"])
 def add_skill():
+    print(session['character_details']['points'])
     skill=request.form.get("skill")
     quantity=int(request.form.get("quantity"))
     cost=int(request.form.get("cost"))
@@ -80,6 +114,7 @@ def add_skill():
         skill.add()
         session["skills_added"][skill.name]=quantity
         session.modified=True
+        print(session['character_details']['points'])
         return jsonify({'success':True,"message":"Added Skill","points": session["character_details"]["points"]})
     except Prereq_Not_Met:
        return jsonify({"success":False,"error":"Prerequisite not met"})
@@ -87,7 +122,7 @@ def add_skill():
 @app.route("/reset", methods=["POST"])
 def reset():
     session.clear()
-    return redirect(url_for("weapon_proficiencies"))
+    return redirect(request.referrer or url_for("home"))
 
 @app.route("/remove_skill", methods=["POST"])
 def remove_skill():
@@ -110,8 +145,7 @@ def remove_skill():
 
     return jsonify({"success": True,"points": session["character_details"]["points"]})
 
-with open("skills.json","r",encoding="utf-8") as f:
-    skills=json.load(f)
+skill_reference=None
 
 skills_added={}
 
@@ -146,16 +180,17 @@ class Skill_Not_Exist(Exception):
 class Skill(ABC):   
     def __init__(self, name: str, cost: int, quantity=1, max_quant=None, prereqs: dict = None):
         self.name = name
-        self.cost = skills[name]['Cost']*quantity
+        self.cost = SKILL_REF[name]['Cost']*quantity
         self.quantity = quantity
-        self.prereqs = prereqs if prereqs is not None else {}
+        try:
+            self.prereqs = SKILL_REF[name]['Prereq']
+        except KeyError:
+            self.prereqs=None
         self.max_quant = max_quant
 
     def add(self):
         self.validate()
         session['character_details']['points']-=self.cost*self.quantity
-        print(self.quantity)
-        print(self.cost)
 
     def remove(self):
         new_skills = dict(session["skills_added"])
@@ -167,7 +202,7 @@ class Skill(ABC):
     def check_reliance(self,skill_check):
         for skill,quantity in skill_check.items():
             try:
-                skill_cost=skills[skill]['Cost']
+                skill_cost=SKILL_REF[skill]['Cost']
             except KeyError:
                 continue
             cost=skill_cost*quantity
@@ -177,13 +212,15 @@ class Skill(ABC):
                 'cost':cost
             }
             current_skill=Construct_Skill(data)
-            current_skill.check_prereqs(check_dict=skill_check)
+            if current_skill.prereqs is not None:
+                current_skill.check_prereqs(check_dict=skill_check)
 
     def validate(self):
         self.check_points()
         if self.max_quant is not None:
             self.check_quantity()
-        self.check_prereqs(check_dict=session)
+        if self.prereqs is not None:
+            self.check_prereqs(check_dict=session)
 
     def check_points(self):
         current_points=session['character_details']['points']
@@ -272,6 +309,18 @@ class Field_Repair_Skill(Skill):
     def __init__(self, name, cost, prereqs):
         session.skills_added['can_field_repair']=1
         super().__init__(name, cost, prereqs=prereqs)
+
+all_skill_sets = {
+    k: v
+    for k, v in vars(skills_db).items()
+    if isinstance(v, dict)
+}
+
+SKILL_REF = {}
+
+for skills in all_skill_sets.values():
+    for skill_name, skill_details in skills.items():
+        SKILL_REF[skill_name] = skill_details
 
 if __name__=="__main__":
     app.run(debug=True)
