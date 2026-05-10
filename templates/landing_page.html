@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Skill Categories</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .button-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        a {
+            text-decoration: none;
+        }
+        button {
+            padding: 10px 15px;
+            font-size: 14px;
+            cursor: pointer;
+            border: 1px solid #333;
+            background-color: #f0f0f0;
+        }
+        button:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Skill Categories</h1>
+
+    <div class="button-container">
+        <a href="{{ url_for('weapon_proficiencies') }}">
+            <button>Weapon Proficiencies</button>
+        </a>
+        <button>Armor Proficencies</button>
+        <button>General Combat Skills</button>
+        <button>Archery</button>
+        <button>Officer Training</button>
+        <button>The Art of Dueling</button>
+        <button>The School of Suffering</button>
+        <button>The Assassin's Art</button>
+        <button>The Honoured Path of the Berserker</button>
+        <button>Mundane Healing</button>
+        <button>Religious Worship</button>
+        <button>The Bardic Arts</button>
+        <button>Magical Arts</button>
+        <button>Skullduggery</button>
+        <button>Knowledge</button>
+        <button>Gathering</button>
+        <button>Crafting Skills</button>
+        <button>Crafting Circles</button>
+    </div>
+
+</body>
+</html>

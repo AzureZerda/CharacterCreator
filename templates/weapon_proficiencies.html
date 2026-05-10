@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Weapon Proficiencies</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        .top-bar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .table {
+            max-width: 600px;
+            margin-top: 40px;
+        }
+
+        .row {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .header {
+            font-weight: bold;
+            border-bottom: 2px solid #000;
+        }
+
+        .skill { flex: 2; }
+        .quantity, .cost { flex: 1; text-align: right; }
+        .action { flex: 1; text-align: right; }
+
+        button {
+            padding: 4px 10px;
+            cursor: pointer;
+        }
+
+        form {
+            display: contents;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- RESET BUTTON -->
+<div class="top-bar">
+    <form method="POST" action="{{ url_for('reset') }}">
+        <button type="submit">Reset</button>
+    </form>
+</div>
+
+<h1>Weapon Proficiencies</h1>
+
+<div class="table">
+
+    <div class="row header">
+        <span class="skill">Skill</span>
+        <span class="quantity">Quantity</span>
+        <span class="cost">Cost</span>
+        <span class="action">Action</span>
+    </div>
+
+    <!-- SHORT WEAPONS -->
+    <div class="row">
+        <form onsubmit="return addSkill(event,this)">
+            <input type="hidden" name="skill" value="Short Weapons">
+            <input type="hidden" name="quantity" value="1">
+            <input type="hidden" name="cost" value="1">
+
+            <span class="skill">Short Weapons</span>
+            <span class="quantity">1</span>
+            <span class="cost">1</span>
+            <span class="action"><button type="submit">Add</button></span>
+        </form>
+    </div>
+
+    <!-- ONE-HANDED -->
+    <div class="row">
+        <form onsubmit="return addSkill(event,this)">
+            <input type="hidden" name="skill" value="One-Handed Weapons">
+            <input type="hidden" name="quantity" value="1">
+            <input type="hidden" name="cost" value="2">
+
+            <span class="skill">One-Handed Weapons</span>
+            <span class="quantity">1</span>
+            <span class="cost">2</span>
+            <span class="action"><button type="submit">Add</button></span>
+        </form>
+    </div>
+
+    <!-- TWO-HANDED -->
+    <div class="row">
+        <form onsubmit="return addSkill(event,this)">
+            <input type="hidden" name="skill" value="Two-Handed Weapons">
+            <input type="hidden" name="quantity" value="1">
+            <input type="hidden" name="cost" value="3">
+
+            <span class="skill">Two-Handed Weapons</span>
+            <span class="quantity">1</span>
+            <span class="cost">3</span>
+            <span class="action"><button type="submit">Add</button></span>
+        </form>
+    </div>
+
+    <!-- OVERSIZED -->
+    <div class="row">
+        <form onsubmit="return addSkill(event,this)">
+            <input type="hidden" name="skill" value="Oversized Weapon Use">
+            <input type="hidden" name="quantity" value="1">
+            <input type="hidden" name="cost" value="2">
+
+            <span class="skill">Oversized Weapon Use</span>
+            <span class="quantity">1</span>
+            <span class="cost">2</span>
+            <span class="action"><button type="submit">Add</button></span>
+        </form>
+    </div>
+
+    <!-- THROWN -->
+    <div class="row">
+        <form onsubmit="return addSkill(event,this)">
+            <input type="hidden" name="skill" value="Thrown Weapons">
+            <input type="hidden" name="quantity" value="1">
+            <input type="hidden" name="cost" value="2">
+
+            <span class="skill">Thrown Weapons</span>
+            <span class="quantity">1</span>
+            <span class="cost">2</span>
+            <span class="action"><button type="submit">Add</button></span>
+        </form>
+    </div>
+
+    <!-- BOW -->
+    <div class="row">
+        <form onsubmit="return addSkill(event,this)">
+            <input type="hidden" name="skill" value="Bow and Arrow">
+            <input type="hidden" name="quantity" value="1">
+            <input type="hidden" name="cost" value="3">
+
+            <span class="skill">Bow and Arrow</span>
+            <span class="quantity">1</span>
+            <span class="cost">3</span>
+            <span class="action"><button type="submit">Add</button></span>
+        </form>
+    </div>
+
+    <!-- TWO-WEAPON -->
+    <div class="row">
+        <form onsubmit="return addSkill(event,this)">
+            <input type="hidden" name="skill" value="Two-Weapon Fighting">
+            <input type="hidden" name="quantity" value="1">
+            <input type="hidden" name="cost" value="6">
+
+            <span class="skill">Two-Weapon Fighting</span>
+            <span class="quantity">1</span>
+            <span class="cost">6</span>
+            <span class="action"><button type="submit">Add</button></span>
+        </form>
+    </div>
+
+</div>
+
+<script>
+function addSkill(event, form) {
+
+    event.preventDefault();
+
+    fetch("/add_skill", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams(new FormData(form))
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (data.success) {
+            alert("Skill added");
+        } else {
+            alert(data.error || "Prerequisite not met");
+        }
+
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Request failed");
+    });
+
+    return false;
+}
+</script>
+
+</body>
+</html>
