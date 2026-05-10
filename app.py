@@ -31,6 +31,12 @@ def Determine_Route(skill):
     
     return route
 
+@app.context_processor
+def inject_globals():
+    return {
+        "points": session.get("character_details", {}).get("points", 0)
+    }
+
 @app.before_request
 def init_session():
     if "skills_added" not in session:
@@ -74,7 +80,7 @@ def add_skill():
         skill.add()
         session["skills_added"][skill.name]=quantity
         session.modified=True
-        return jsonify({'success':True,"message":"Added Skill"})
+        return jsonify({'success':True,"message":"Added Skill","points": session["character_details"]["points"]})
     except Prereq_Not_Met:
        return jsonify({"success":False,"error":"Prerequisite not met"})
 
@@ -102,7 +108,7 @@ def remove_skill():
         return jsonify({'success':False,'error':'Reliant skill must be removed'})
     session.modified=True
 
-    return jsonify({"success": True})
+    return jsonify({"success": True,"points": session["character_details"]["points"]})
 
 with open("skills.json","r",encoding="utf-8") as f:
     skills=json.load(f)
@@ -137,22 +143,26 @@ class Max_Quantity_Exceeded(Exception):
 class Skill_Not_Exist(Exception):
     pass
 
-class Skill(ABC):
+class Skill(ABC):   
     def __init__(self, name: str, cost: int, quantity=1, max_quant=None, prereqs: dict = None):
         self.name = name
-        self.cost = cost
+        self.cost = skills[name]['Cost']*quantity
         self.quantity = quantity
         self.prereqs = prereqs if prereqs is not None else {}
         self.max_quant = max_quant
 
     def add(self):
         self.validate()
+        session['character_details']['points']-=self.cost*self.quantity
+        print(self.quantity)
+        print(self.cost)
 
     def remove(self):
         new_skills = dict(session["skills_added"])
         del new_skills[self.name]
         self.check_reliance(new_skills)
         session['skills_added']=new_skills
+        session['character_details']['points']+=self.cost*self.quantity
     
     def check_reliance(self,skill_check):
         for skill,quantity in skill_check.items():

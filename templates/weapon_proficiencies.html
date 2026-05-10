@@ -14,6 +14,9 @@
             position: absolute;
             top: 10px;
             right: 10px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
         }
 
         .table {
@@ -47,6 +50,10 @@
 <body>
 
 <div class="top-bar">
+    <div>
+        Points: <span id="points-display">{{ points }}</span>
+    </div>
+
     <form method="POST" action="{{ url_for('reset') }}">
         <button type="submit">Reset</button>
     </form>
@@ -162,7 +169,12 @@ function toggleSkill(btn) {
             return;
         }
 
-        // toggle UI state ONLY on success
+        // update points display live
+        if (data.points !== undefined) {
+            document.getElementById("points-display").textContent = data.points;
+        }
+
+        // toggle button state
         if (state === "add") {
             btn.textContent = "Remove";
             btn.dataset.state = "remove";
