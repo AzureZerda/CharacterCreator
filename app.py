@@ -62,8 +62,6 @@ def add_skill():
     quantity=int(request.form.get("quantity"))
     cost=int(request.form.get("cost"))
 
-    print('\ncalled\n')
-
     data={
         "skill":skill,
         "quantity":quantity,
@@ -98,7 +96,10 @@ def remove_skill():
 
     skill=Construct_Skill(data)
 
-    skill.remove()
+    try:
+        skill.remove()
+    except Prereq_Not_Met:
+        return jsonify({'success':False,'error':'Reliant skill must be removed'})
     session.modified=True
 
     return jsonify({"success": True})
@@ -148,34 +149,45 @@ class Skill(ABC):
         self.validate()
 
     def remove(self):
-        print('\nremoving\n')
-        print(session)
-        del session['skills_added'][self.name]
-        print(session)
+        new_skills = dict(session["skills_added"])
+        del new_skills[self.name]
+        self.check_reliance(new_skills)
+        session['skills_added']=new_skills
     
+    def check_reliance(self,skill_check):
+        for skill,quantity in skill_check.items():
+            try:
+                skill_cost=skills[skill]['Cost']
+            except KeyError:
+                continue
+            cost=skill_cost*quantity
+            data={
+                'skill':skill,
+                'quantity':quantity,
+                'cost':cost
+            }
+            current_skill=Construct_Skill(data)
+            current_skill.check_prereqs(check_dict=skill_check)
+
     def validate(self):
         self.check_points()
-        self.check_eligiblity()
         if self.max_quant is not None:
             self.check_quantity()
-        self.check_prereqs()
+        self.check_prereqs(check_dict=session)
 
     def check_points(self):
         current_points=session['character_details']['points']
         new_points=current_points-self.cost
     
-    def check_eligiblity(self):
-        if self.max_quant is not None:
-            self.check_quantity()
-        self.check_prereqs()
-    
     def check_quantity(self):
         if self.quantity >= self.max_quant:
             raise Max_Quantity_Exceeded("Quantity exceeds maximum allowed")
 
-    def check_prereqs(self):
+    def check_prereqs(self, check_dict):
+        if 'skills_added' in check_dict:
+            check_dict=check_dict['skills_added']
         for skill, quant in self.prereqs.items():
-            if skill not in session['skills_added'] or session['skills_added'][skill] < quant:
+            if skill not in check_dict or check_dict[skill] < quant:
                 raise Prereq_Not_Met("Prerequisite not met")
 
 class Quad_Level_Skill(Skill):
@@ -236,6 +248,10 @@ class Assassin_Eligibility_Skill(Skill):
     def add(self):
         session['skills_added']['can_assassinate']+=1
         super().add()
+    
+    def remove(self):
+        session['skills_added']['can_assassinate']-=1
+        super().remove()
 
 class Fortification_Skill(Skill):
     def __init__(self, name, cost, quantity, prereqs):
