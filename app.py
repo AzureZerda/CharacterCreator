@@ -48,22 +48,21 @@ def init_session():
             'points':40
         }
 
-
 @app.route("/")
 def home():
     return render_template("landing_page.html")
 
-
 @app.route("/weapon_proficiencies")
 def weapon_proficiencies():
     return render_template("weapon_proficiencies.html")
-
 
 @app.route("/add_skill",methods=["POST"])
 def add_skill():
     skill=request.form.get("skill")
     quantity=int(request.form.get("quantity"))
     cost=int(request.form.get("cost"))
+
+    print('\ncalled\n')
 
     data={
         "skill":skill,
@@ -85,6 +84,24 @@ def add_skill():
 def reset():
     session.clear()
     return redirect(url_for("weapon_proficiencies"))
+
+@app.route("/remove_skill", methods=["POST"])
+def remove_skill():
+    skill=request.form.get("skill")
+    quantity=int(request.form.get("quantity"))
+    cost=int(request.form.get("cost"))
+    data={
+        "skill":skill,
+        "quantity":quantity,
+        "cost":cost
+    }
+
+    skill=Construct_Skill(data)
+
+    skill.remove()
+    session.modified=True
+
+    return jsonify({"success": True})
 
 with open("skills.json","r",encoding="utf-8") as f:
     skills=json.load(f)
@@ -130,6 +147,12 @@ class Skill(ABC):
     def add(self):
         self.validate()
 
+    def remove(self):
+        print('\nremoving\n')
+        print(session)
+        del session['skills_added'][self.name]
+        print(session)
+    
     def validate(self):
         self.check_points()
         self.check_eligiblity()
