@@ -14,6 +14,18 @@ def Construct_Skill(data):
         prereqs=None
     if route==0:
         choice=Assassin_Eligibility_Skill(data['skill'],data['cost'])
+    elif route==1:
+        choice=Lockpicking(data['skill'],data['quantity'])
+    elif route==2:
+        choice=Magic(data['skill'],data['quantity'])
+    elif route==3:
+        Priest_Level(data['quantity'],session['character_details']['faith'])
+    elif route==4:
+        choice=Craft(data['skill'],data['quantity'])
+    elif route==5:
+        choice=Instruction_Ability(data['skill'],data['quantity'],SKILL_REF[data['skill']]['Cost'],SKILL_REF[data['skill']]['Prereq'])
+    elif route==6:
+        choice=Field_Repair_Skill(data['skill'],SKILL_REF[data['skill']]['Cost'],SKILL_REF[data['skill']]['Prereqs'])
     else:
         choice=Skill(data['skill'],data['cost'],prereqs=prereqs)
     return choice
@@ -22,7 +34,31 @@ def Determine_Route(skill):
     router={
         'short weapons':0,
         'thrown weapons':0,
-        'bow and arrow':0
+        'bow and arrow':0,
+        'lockpicking':1,
+        'alchemy':2,
+        'channeling':2,
+        'divination':2,
+        'sorcery':2,
+        'warding':2,
+        'priesthood':3,
+        'blacksmithing':4,
+        'armorsmithing':4,
+        'weaponsmithing':4,
+        'shieldsmithing':4,
+        'enchanting':4,
+        'scroll scribing':4,
+        'artificing':4,
+        'cooking':4,
+        'stable alchemy':4,
+        'tailoring':4,
+        'fletching':4,
+        'engineering':4,
+        'defensive instruction':5,
+        'offensive instruction':5,
+        'evasive instruction':5,
+        'repair shield':6,
+        'fortify armor':6
         }
     
     try:
@@ -182,10 +218,11 @@ class Skill(ABC):
         self.name = name
         self.cost = SKILL_REF[name]['Cost']*quantity
         self.quantity = quantity
-        try:
-            self.prereqs = SKILL_REF[name]['Prereq']
-        except KeyError:
-            self.prereqs=None
+        if prereqs is None:
+            try:
+                self.prereqs = SKILL_REF[name]['Prereq']
+            except KeyError:
+                self.prereqs=None
         self.max_quant = max_quant
 
     def add(self):
@@ -255,6 +292,7 @@ class Lockpicking(Quad_Level_Skill):
 
 class Magic(Quad_Level_Skill):
     def __init__(self, school, level):
+        print('\ncumdump\n')
         self.prereqs={}
         min_mana=level*5
         self.prereqs['mana_focus']=min_mana
@@ -262,6 +300,7 @@ class Magic(Quad_Level_Skill):
         self.prereqs[f'lore: {school}']=1
         if level==4:
             session.skills_added['gm_mage']=1
+        print(self.prereqs)
         super().__init__(school,level,self.prereqs)
 
 class Priest_Level(Quad_Level_Skill):
@@ -276,6 +315,8 @@ class Craft(Quad_Level_Skill):
         session.skills_added['is_crafter']=1
         if level==4:
             session.skills_added['can_invent']+=1
+        if name.lower()=='armorsmithing' or name.lower()=='tailoring':
+            session.skills_added['can_fortify']=1
         super().__init__(name, level,prereqs=self.prereqs)
 
 class Lore(Skill):
