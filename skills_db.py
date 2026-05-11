@@ -28,28 +28,19 @@ BACKGROUND_FLAWS={
 
     "Clouded Memory": {
         "Max": 1,
-        "Cost": -2,
-        "Prereq": {
-            'Memory Flaws':0
-        }
+        "Cost": -2
     },
 
     "Fractured Memory": {
         "Max": 1,
-        "Cost": -4,
-        "Prereq": {
-            'Memory Flaws':0
-        }
+        "Cost": -4
     },
 
     "Fading Memory": {
         "Max": 1,
-        "Cost": -4,
-        "Prereq": {
-            'Memory Flaws':0
-        }
+        "Cost": -4
     },
-    "Illiterate": {"Max": 1, "Cost": -4}}
+    "Illiterate": {"Max": 1, "Cost": -4, 'Prereq':{'Literate':0}}}
 
 WEAPON_PROFICIENCIES = {
     "Short Weapons": {
@@ -741,7 +732,7 @@ MAGICAL_ARTS={
     "Arcane Tutelage":{
         "Max":1,
         "Cost":10,
-        "Prereq":{"gm_mage":1,"research":1}
+        "Prereq":{"gm_mage":1,"Research":1}
     },
     "Arcane Observation":{
         "Max":1,
@@ -751,7 +742,7 @@ MAGICAL_ARTS={
     "Spellwright":{
         "Max":1,
         "Cost":2,
-        "Prereq":{"gm_mage":1,"research":1}
+        "Prereq":{"gm_mage":1,"Research":1}
     }
 }
 
@@ -813,7 +804,7 @@ KNOWLEDGE={
     "Research":{
         "Max":1,
         "Cost":6,
-        "Prereq":{"Literate":1}
+        "Prereq":{"Literate":0}
     },
     "Alchemical Examination":{
         "Max":1,
@@ -908,7 +899,7 @@ CRAFTING_SKILLS={
     "Inventor":{
         "Max":1,
         "Cost":2,
-        "Prereq":{"can_invent":1,"research":1}
+        "Prereq":{"can_invent":1,"Research":1}
     }
 }
 

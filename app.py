@@ -94,7 +94,8 @@ def init_session():
             "is_crafter":0,
             "can_invent":0,
             "can_instruct":0,
-            "can_assassinate":0
+            "can_assassinate":0,
+            'Literate':0
         }
         session.modified=True
     
@@ -276,15 +277,20 @@ class Skill(ABC):
             except KeyError:
                 self.prereqs=None
         self.max_quant = max_quant
+        if self.name=='Research':
+            self.flags=['Literate']
 
     def add(self):
-        print(session)
         self.validate()
+        if hasattr(self, "flags") and self.flags is not None:
+            self.modify_flags(1,session['skills_added'])
         session['character_details']['points']-=self.cost
 
     def remove(self):
         new_skills = dict(session["skills_added"])
         del new_skills[self.name]
+        if hasattr(self, "flags") and self.flags is not None:
+            self.modify_flags(-1,flag_location=new_skills)
         self.check_reliance(new_skills)
         session['skills_added']=new_skills
         session['character_details']['points']+=self.cost
@@ -310,7 +316,6 @@ class Skill(ABC):
         if self.max_quant is not None:
             self.check_quantity()
         if self.prereqs is not None:
-            print('\nfenc\n')
             self.check_prereqs(check_dict=session)
 
     def check_points(self):
@@ -326,11 +331,13 @@ class Skill(ABC):
     def check_prereqs(self, check_dict):
         if 'skills_added' in check_dict:
             check_dict=check_dict['skills_added']
-        print(self.prereqs)
         for skill, quant in self.prereqs.items():
-            print(check_dict)
             if skill not in check_dict or check_dict[skill] < quant:
                 raise Prereq_Not_Met("Prerequisite not met")
+    
+    def modify_flags(self,modification,flag_location):
+        for flag in self.flags:
+            flag_location[flag]+=modification
 
 class Quad_Level_Skill(Skill):
     def __init__(self, name, level, prereqs,cost_per_level=6):
@@ -342,35 +349,35 @@ class Quad_Level_Skill(Skill):
 class Lockpicking(Quad_Level_Skill):
     def __init__(self,name,level):
         self.prereqs={}
-        if level != 1:
-            self.prereqs['lockpicking']=level-1
         super().__init__(name,level=level,prereqs=self.prereqs,cost_per_level=4)
 
 class Magic(Quad_Level_Skill):
     def __init__(self, school, level):
+        self.flags=[]
         self.prereqs={}
         min_mana=level*5
         self.prereqs['Mana Focus']=min_mana
         self.prereqs['Magical Aptitude']=1
         self.prereqs[f'Lore: {school}']=1
         if level==4:
-            session.skills_added['gm_mage']=1
+            self.flags.append('gm_mage')
         super().__init__(school,level,self.prereqs)
 
 class Priest_Level(Quad_Level_Skill):
     def __init__(self, level, faith):
         prereqs={}
-        prereqs[f'lore: {faith}']=1
+        if session['character_details']=='':
+            raise Prereq_Not_Met
         super().__init__(name=f'Priesthood', level=level, prereqs=prereqs)
 
 class Craft(Quad_Level_Skill):
     def __init__(self, name, level):
         self.prereqs={}
-        session['skills_added']['is_crafter']=1
+        self.flags=['is_crafter',]
         if level==4:
-            session['skills_added']['can_invent']+=1
+            self.flags.append('can_invent')
         if name.lower()=='armorsmithing' or name.lower()=='tailoring':
-            session['skills_added']['can_fortify']=1
+            self.flags.append('can_fortify')
         super().__init__(name, level,prereqs=self.prereqs)
 
 class Lore(Skill):
@@ -380,29 +387,22 @@ class Lore(Skill):
 class Instruction_Ability(Skill):
     def __init__(self, name, quantity,cost_per,prereqs):
         cost=quantity*cost_per
-        session.skills_added['can_instruct']+=1
+        self.flags=['can_instruct']
         super().__init__(name, cost,quantity=quantity,prereqs=prereqs)
 
 class Assassin_Eligibility_Skill(Skill):
     def __init__(self, name,cost):
+        self.flags=['can_assassinate']
         super().__init__(name, cost)
     
-    def add(self):
-        session['skills_added']['can_assassinate']+=1
-        super().add()
-    
-    def remove(self):
-        session['skills_added']['can_assassinate']-=1
-        super().remove()
-
 class Fortification_Skill(Skill):
     def __init__(self, name, cost, quantity, prereqs):
-        session.skills_added['can_fortify']=1
+        self.flags=['can_fortify']
         super().__init__(name, cost, quantity=quantity, prereqs=prereqs)
 
 class Field_Repair_Skill(Skill):
     def __init__(self, name, cost, prereqs):
-        session.skills_added['can_field_repair']=1
+        self.flags=['can_field_repair']
         super().__init__(name, cost, prereqs=prereqs)
 
 class Background_Flaw(Skill):
@@ -410,14 +410,27 @@ class Background_Flaw(Skill):
         self.name=name
         self.quantity=quantity
         self.max_quant=None
-        self.prereqs=None
+        try:
+            self.prereqs=SKILL_REF[name]['Prereq']
+        except KeyError:
+            pass
         self.cost=SKILL_REF[name]['Cost']*quantity
+
+    def check_prereqs(self, check_dict):
+        if 'skills_added' in check_dict:
+            check_dict=check_dict['skills_added']
+        for skill, quant in self.prereqs.items():
+            if skill not in check_dict or check_dict[skill] > quant:
+                raise Prereq_Not_Met("Prerequisite not met")
     
     def remove(self):
         session['character_details']['points']+=session['character_details']['flaws_added'][self.name]
         session['character_details']['flaw_points']-=session['character_details']['flaws_added'][self.name]
+        if self.name=='Illiterate':
+            session['skills_added']['Literate']+=1
         del session['character_details']['flaws_added'][self.name]
-    
+        del session['skills_added'][self.name]
+
     def check_flaw_count(self):
         current_flaw_points=session['character_details']['flaw_points']
         new_total=self.cost+current_flaw_points
@@ -431,6 +444,10 @@ class Background_Flaw(Skill):
     
     def add(self):
         flaw_points_added=self.check_flaw_count()
+        if hasattr(self, "prereqs") and self.prereqs is not None:
+            self.check_prereqs(session)
+        if self.name=='Illiterate':
+            session['skills_added']['Literate']-=1
         session['character_details']['flaws_added'][self.name]=flaw_points_added
         session['character_details']['flaw_points']+=flaw_points_added
         session['character_details']['points']+=flaw_points_added*-1
