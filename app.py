@@ -354,6 +354,9 @@ class Skill(ABC):
         if hasattr(self, "flags") and self.flags is not None:
             self.modify_flags(1,session['skills_added'])
         session['character_details']['points']-=self.cost
+        if self.name=='Toughness':
+            session['character_details']['health points']+=self.quantity
+        session.modified=True
 
     def remove(self):
         new_skills = dict(session["skills_added"])
@@ -363,6 +366,8 @@ class Skill(ABC):
         self.check_reliance(new_skills)
         session['skills_added']=new_skills
         session['character_details']['points']+=self.cost
+        if self.name=='Toughness':
+            session['character_details']['health points']-=self.quantity
         session.modified=True
     
     def check_reliance(self,skill_check):
