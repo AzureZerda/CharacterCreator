@@ -11,6 +11,10 @@
             font-family: Arial, sans-serif;
         }
 
+        body {
+            padding-top: 50px; /* prevents content hiding under top bar */
+        }
+
         .page-wrapper {
             min-height: 100%;
             display: flex;
@@ -18,21 +22,64 @@
         }
 
         .content {
-            flex: 1; /* pushes footer down */
+            flex: 1;
             padding: 40px;
         }
 
         .footer {
-            background: #00bcd4; /* softer aqua / cyan */
+            background: #00bcd4;
             color: white;
             text-align: center;
             padding: 10px 0;
+        }
+
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #222;
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .top-left, .top-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        button {
+            padding: 5px 10px;
+            cursor: pointer;
         }
     </style>
 </head>
 
 <body>
 
+<!-- TOP BAR -->
+<div class="top-bar">
+
+    <div class="top-left">
+        Points: {{ points }} | HP: {{ HP }} | Name: {{ name }} | Culture: {{ culture }} | Bloodline: {{ bloodline }} | Faith: {{ faith }}
+    </div>
+
+    <div class="top-right">
+
+        <form method="POST" action="{{ url_for('reset') }}">
+            <button type="submit">Reset</button>
+        </form>
+
+    </div>
+
+</div>
+
+<!-- PAGE CONTENT -->
 <div class="page-wrapper">
 
     <div class="content">
@@ -40,7 +87,12 @@
     </div>
 
     <div class="footer">
-        made by Azure | This is a prototype | <a href="https://github.com/AzureZerda/CharacterCreator" target="_blank" rel="noopener noreferrer">code</a>
+        made by Azure | This is a prototype |
+        <a href="https://github.com/AzureZerda/CharacterCreator"
+           target="_blank"
+           rel="noopener noreferrer">
+            code
+        </a>
     </div>
 
 </div>

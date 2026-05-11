@@ -86,9 +86,14 @@ def inject_globals():
     flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter']
     for flag in flags:
         del display_dict[flag]
-    print(display_dict)
     return {
-        "points": session.get("character_details", {}).get("points", 0), 'display_dict': display_dict
+        "points": session.get("character_details", {}).get("points", 0), 
+        'display_dict': display_dict, 
+        'HP': session.get("character_details", {}).get("health points", 2),
+        'name': session.get("character_details", {}).get("name", 'no name selected'),
+        'culture': session.get("character_details", {}).get("culture", 'no culture selected'),
+        'bloodline': session.get("character_details", {}).get("bloodline", 'no bloodline selected'),
+        'faith': session.get("character_details", {}).get("faith", 'no faith selected')
     }
 
 @app.before_request
@@ -110,6 +115,7 @@ def init_session():
             'points':40,
             'flaw_points':0,
             'memory_flaws':0,
+            'health points':5,
             'flaws_added':{}
         }
 
@@ -117,9 +123,25 @@ def init_session():
 def confirm():
     return render_template('confirm_character.html')
 
+@app.route("/all_skills")
+def maliks_idea():
+    skills_db_dict = {
+        k: v
+        for k, v in vars(skills_db).items()
+        if isinstance(v, dict)
+    }
+    del skills_db_dict['__builtins__']
+    return render_template('all_skills.html', skills_db=skills_db_dict)
+
 @app.route("/")
 def home():
-    return render_template("landing_page.html")
+    skills_db_dict = {
+        k: v
+        for k, v in vars(skills_db).items()
+        if isinstance(v, dict)
+    }
+    del skills_db_dict['__builtins__']
+    return render_template('all_skills.html', skills_db=skills_db_dict)
 
 @app.route("/set_character/<category>")
 def set_character(category):
@@ -241,6 +263,25 @@ def remove_skill():
 
     return jsonify({"success": True,"points": session["character_details"]["points"]})
 
+@app.route("/create_character", methods=["POST"])
+def create_character():
+
+    session["character_details"].update({
+    "name": request.form.get("name"),
+    "culture": request.form.get("culture"),
+    "bloodline": request.form.get("bloodline"),
+    "faith": request.form.get("faith")
+    })
+
+    forty_points=['human','effendal']
+
+    if session['character_details']['bloodline'].lower() not in forty_points:
+        session['character_details']['points']=20
+
+    session.modified = True
+
+    return redirect(url_for("home"))  # or wherever your main UI is
+
 skill_reference=None
 
 skills_added={}
@@ -354,7 +395,6 @@ class Quad_Level_Skill(Skill):
         if level>4:
             raise Skill_Not_Exist('This skill maxes out at level 4.')
         cost=level*cost_per_level
-        print(cost)
         super().__init__(name,cost,prereqs=prereqs,quantity=level)
 
 class Lockpicking(Quad_Level_Skill):
