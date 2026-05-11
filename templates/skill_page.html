@@ -56,6 +56,11 @@
         select {
             width: 70px;
         }
+
+        .locked {
+            pointer-events: none;
+            background-color: #eee;
+        }
     </style>
 </head>
 
@@ -63,14 +68,14 @@
 
 <div class="top-bar">
 
-    <!-- LEFT SIDE: BACK BUTTON -->
+    <!-- BACK BUTTON -->
     <div class="left-controls">
         <a href="{{ url_for('home') }}">
             <button type="button">Back</button>
         </a>
     </div>
 
-    <!-- RIGHT SIDE: POINTS + RESET -->
+    <!-- POINTS + RESET -->
     <div class="right-controls">
         <div>
             Points: <span id="points-value">{{ points }}</span>
@@ -149,6 +154,7 @@ function toggleSkill(btn) {
     const form = btn.closest("form");
     const formData = new FormData(form);
 
+    const select = form.querySelector("select[name='quantity']");
     const state = btn.dataset.state || "add";
     const url = state === "add" ? "/add_skill" : "/remove_skill";
 
@@ -164,14 +170,31 @@ function toggleSkill(btn) {
             return;
         }
 
+        // update points
         if (data.points !== undefined) {
             document.getElementById("points-value").textContent = data.points;
         }
 
         if (state === "add") {
+
+            if (select) {
+                select.dataset.lockedValue = select.value;
+                select.classList.add("locked");
+            }
+
             btn.textContent = "Remove";
             btn.dataset.state = "remove";
+
         } else {
+
+            if (select) {
+                select.classList.remove("locked");
+
+                if (select.dataset.lockedValue) {
+                    select.value = select.dataset.lockedValue;
+                }
+            }
+
             btn.textContent = "Add";
             btn.dataset.state = "add";
         }
