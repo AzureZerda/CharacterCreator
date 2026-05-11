@@ -46,28 +46,30 @@
         gap: 10px;
     }
 
+    .skill-button-wrapper {
+        display: inline-block;
+    }
+
     .skill-button {
         padding: 8px 12px;
         border: 1px solid #333;
         background: #f5f5f5;
-        cursor: default;
+        cursor: pointer;
         border-radius: 4px;
     }
 </style>
 
-<!-- CHARACTER SETUP BOX -->
+<!-- CHARACTER SETUP -->
 <form method="POST" action="{{ url_for('create_character') }}">
 <div class="setup-box">
 
     <h2>Character Setup</h2>
 
-    <!-- Name -->
     <div class="field">
         <label>Name</label>
         <input type="text" name="name" placeholder="Enter name">
     </div>
 
-    <!-- Culture -->
     <div class="field">
         <label>Culture</label>
         <select name="culture">
@@ -75,7 +77,6 @@
         </select>
     </div>
 
-    <!-- Bloodline -->
     <div class="field">
         <label>Bloodline</label>
         <select name="bloodline">
@@ -83,7 +84,6 @@
         </select>
     </div>
 
-    <!-- Faith -->
     <div class="field">
         <label>Faith</label>
         <select name="faith">
@@ -92,15 +92,14 @@
         </select>
     </div>
 
-    <!-- SUBMIT BUTTON -->
     <button type="submit">Create Character</button>
 
 </div>
 </form>
 
-<!-- SKILLS DISPLAY -->
 <h1>Skill Database</h1>
 
+<!-- SKILLS -->
 {% for category_name, category_data in skills_db.items() %}
 
 <div class="section">
@@ -112,9 +111,23 @@
     <div class="button-grid">
 
         {% for skill_name in category_data.keys() %}
-            <div class="skill-button">
-                {{ skill_name }}
-            </div>
+
+        <div class="skill-button-wrapper">
+
+            <button
+                type="button"
+                class="skill-button"
+                data-skill="{{ skill_name }}"
+                data-state="add"
+                onclick="toggleSkill(this)">
+
+                <span class="label">{{ skill_name }}</span>
+                <span class="action">+</span>
+
+            </button>
+
+        </div>
+
         {% endfor %}
 
     </div>
@@ -122,5 +135,57 @@
 </div>
 
 {% endfor %}
+
+<!-- JS (single global handler) -->
+<script>
+function toggleSkill(btn) {
+
+    const skill = btn.dataset.skill;
+    const state = btn.dataset.state;
+
+    const url = state === "add" ? "/add_skill" : "/remove_skill";
+
+    fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({
+            skill: skill,
+            quantity: 1,
+            cost: 0
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        console.log("SERVER RESPONSE:", data);
+
+        if (!data.success) {
+            alert(data.error || "Action failed");
+            return;
+        }
+
+        // toggle UI only if backend succeeds
+        if (state === "add") {
+            btn.dataset.state = "remove";
+            btn.querySelector(".action").textContent = "-";
+        } else {
+            btn.dataset.state = "add";
+            btn.querySelector(".action").textContent = "+";
+        }
+
+        // update points if returned
+        if (data.points !== undefined) {
+            const el = document.querySelector("#points-value");
+            if (el) el.textContent = data.points;
+        }
+    })
+    .catch(err => {
+        console.error("REQUEST FAILED:", err);
+        alert("Request failed (check console)");
+    });
+}
+</script>
 
 {% endblock %}
