@@ -46,16 +46,35 @@
         gap: 10px;
     }
 
-    .skill-button-wrapper {
-        display: inline-block;
-    }
+    .skill-tile {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
 
-    .skill-button {
         padding: 8px 12px;
         border: 1px solid #333;
         background: #f5f5f5;
-        cursor: pointer;
         border-radius: 4px;
+        min-width: 240px;
+    }
+
+    .skill-tile.locked {
+        background: #ddd;
+        opacity: 0.7;
+    }
+
+    .skill-name {
+        flex: 1;
+    }
+
+    .qty-input {
+        width: 60px;
+    }
+
+    .plus-btn {
+        padding: 4px 8px;
+        cursor: pointer;
     }
 </style>
 
@@ -67,7 +86,7 @@
 
     <div class="field">
         <label>Name</label>
-        <input type="text" name="name" placeholder="Enter name">
+        <input type="text" name="name">
     </div>
 
     <div class="field">
@@ -99,7 +118,7 @@
 
 <h1>Skill Database</h1>
 
-<!-- SKILLS -->
+<!-- 🔥 CATEGORY LOOP RESTORED -->
 {% for category_name, category_data in skills_db.items() %}
 
 <div class="section">
@@ -110,20 +129,53 @@
 
     <div class="button-grid">
 
-        {% for skill_name in category_data.keys() %}
+        {% for skill_name, data in category_data.items() %}
 
-        <div class="skill-button-wrapper">
+        {% set maxv = data['Max'] %}
+
+        <div class="skill-tile">
+
+            <div class="skill-name">{{ skill_name }}</div>
+
+            {% if maxv is none %}
+
+                <!-- FREE INPUT -->
+                <input
+                    type="number"
+                    class="qty-input"
+                    min="0"
+                    value="0"
+                    data-skill-input="{{ skill_name }}">
+
+            {% elif maxv > 1 %}
+
+                <!-- DROPDOWN 0 → MAX -->
+                <select class="qty-input" data-skill-input="{{ skill_name }}">
+
+                    {% for i in range(0, maxv + 1) %}
+                        <option value="{{ i }}">{{ i }}</option>
+                    {% endfor %}
+
+                </select>
+
+            {% else %}
+
+                <!-- fallback (Max = 1 or weird edge case) -->
+                <input
+                    type="hidden"
+                    value="1"
+                    data-skill-input="{{ skill_name }}">
+
+            {% endif %}
 
             <button
                 type="button"
-                class="skill-button"
+                class="plus-btn"
                 data-skill="{{ skill_name }}"
+                data-max="{{ maxv }}"
                 data-state="add"
                 onclick="toggleSkill(this)">
-
-                <span class="label">{{ skill_name }}</span>
-                <span class="action">+</span>
-
+                +
             </button>
 
         </div>
@@ -136,56 +188,65 @@
 
 {% endfor %}
 
-<!-- JS (single global handler) -->
 <script>
+
 function toggleSkill(btn) {
 
     const skill = btn.dataset.skill;
+    const maxv = btn.dataset.max === "None" ? null : parseInt(btn.dataset.max);
     const state = btn.dataset.state;
+
+    const tile = btn.closest(".skill-tile");
+    const input = tile.querySelector(`[data-skill-input="${skill}"]`);
+
+    let quantity = 0;
+
+    if (maxv === null) {
+        quantity = parseInt(input.value || "0");
+    } else {
+        quantity = (state === "add") ? 1 : 0;
+    }
+
+    const formData = new URLSearchParams();
+    formData.append("skill", skill);
+    formData.append("quantity", quantity);
 
     const url = state === "add" ? "/add_skill" : "/remove_skill";
 
     fetch(url, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: new URLSearchParams({
-            skill: skill,
-            quantity: 1,
-            cost: 0
-        })
+        body: formData
     })
     .then(res => res.json())
     .then(data => {
-
-        console.log("SERVER RESPONSE:", data);
 
         if (!data.success) {
             alert(data.error || "Action failed");
             return;
         }
 
-        // toggle UI only if backend succeeds
         if (state === "add") {
             btn.dataset.state = "remove";
-            btn.querySelector(".action").textContent = "-";
+            btn.textContent = "-";
+            tile.classList.add("locked");
+            input?.classList.add("locked");
+            input?.setAttribute("readonly", true);
+
         } else {
             btn.dataset.state = "add";
-            btn.querySelector(".action").textContent = "+";
+            btn.textContent = "+";
+            tile.classList.remove("locked");
+            input?.classList.remove("locked");
+            input?.removeAttribute("readonly");
         }
 
-        // update points if returned
-        if (data.points !== undefined) {
-            const el = document.querySelector("#points-value");
-            if (el) el.textContent = data.points;
-        }
     })
     .catch(err => {
-        console.error("REQUEST FAILED:", err);
-        alert("Request failed (check console)");
+        console.error(err);
+        alert("Request failed");
     });
 }
+
 </script>
 
 {% endblock %}
