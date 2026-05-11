@@ -53,9 +53,14 @@
             cursor: pointer;
         }
 
-        select.locked {
+        select.locked,
+        input.locked {
             pointer-events: none;
             background-color: #eee;
+        }
+
+        input[type="number"] {
+            width: 70px;
         }
     </style>
 </head>
@@ -106,10 +111,12 @@
 
         <span class="quantity">
 
+            {# FIXED: MAX = 1 #}
             {% if data['Max'] == 1 %}
                 <input type="hidden" name="quantity" value="1">
                 1
 
+            {# FIXED: NORMAL SELECT #}
             {% elif data['Max'] is not none %}
                 <select name="quantity" {% if is_added %}class="locked"{% endif %}>
                     {% for i in range(1, data['Max'] + 1) %}
@@ -120,15 +127,14 @@
                     {% endfor %}
                 </select>
 
+            {# ✅ NEW: FREEFORM INPUT WHEN MAX IS NONE #}
             {% else %}
-                <select name="quantity" {% if is_added %}class="locked"{% endif %}>
-                    {% for i in range(0, 11) %}
-                        <option value="{{ i }}"
-                            {% if skills_added.get(name, 0) == i %}selected{% endif %}>
-                            {{ i }}
-                        </option>
-                    {% endfor %}
-                </select>
+                <input
+                    type="number"
+                    name="quantity"
+                    min="0"
+                    value="{{ skills_added.get(name, 0) }}"
+                    {% if is_added %}class="locked" readonly{% endif %}>
             {% endif %}
 
         </span>
@@ -171,13 +177,10 @@ function toggleSkill(btn) {
             return;
         }
 
-        // update points
         if (data.points !== undefined) {
             document.getElementById("points-value").textContent = data.points;
         }
 
-        // simplest correct approach:
-        // reload page state from server to avoid desync bugs
         location.reload();
     })
     .catch(err => {

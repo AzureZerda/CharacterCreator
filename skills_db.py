@@ -479,8 +479,8 @@ THE_ASSASSINS_ARTS={
 
 THE_HONOURED_PATH_OF_THE_BERSERKER={
   "Battle Rage": {
-    "Max": 1,
-    "Cost": 0
+    "Max": None,
+    "Cost": 7
   },
 
   "Enduring Rage": {
