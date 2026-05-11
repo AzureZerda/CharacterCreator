@@ -1,6 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Your Page Title{% endblock %}
+
+{% block content %}
 <!DOCTYPE html>
-<html lang="en">
-<head>
+
+
     <meta charset="UTF-8">
     <title>{{ category|title }} Skills</title>
 
@@ -63,9 +68,9 @@
             width: 70px;
         }
     </style>
-</head>
 
-<body>
+
+
 
 <div class="top-bar">
 
@@ -227,5 +232,4 @@ function toggleSkill(btn) {
 }
 </script>
 
-</body>
-</html>
+{% endblock %}

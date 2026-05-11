@@ -1,6 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Your Page Title{% endblock %}
+
+{% block content %}
+
 <!DOCTYPE html>
 <html lang="en">
-<head>
+
     <meta charset="UTF-8">
     <title>Display Dict</title>
 
@@ -35,9 +41,9 @@
             cursor: pointer;
         }
     </style>
-</head>
 
-<body>
+
+
 
 <div class="top-bar">
     <a href="{{ url_for('home') }}">
@@ -63,5 +69,4 @@
 
 </div>
 
-</body>
-</html>
+{% endblock %}

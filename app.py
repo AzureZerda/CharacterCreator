@@ -117,7 +117,7 @@ def init_session():
 def confirm():
     return render_template('confirm_character.html')
 
-@app.route("/c")
+@app.route("/")
 def home():
     return render_template("landing_page.html")
 
