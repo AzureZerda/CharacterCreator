@@ -602,7 +602,10 @@ MUNDANE_HEALING={
 RELIGIOUS_WORSHIP={
     "Prayer":{
         "Max":1,
-        "Cost":4
+        "Cost":4,
+        'Prereq':{
+            'has_faith':1
+        }
     },
     "Secondary Prayer":{
         "Max":1,
@@ -907,6 +910,54 @@ CRAFTING_SKILLS={
         "Cost":2,
         "Prereq":{"can_invent":1,"research":1}
     }
+}
+
+LORE={
+    "Lore: Alchemy": {"Max": 1, "Cost": 4},
+    "Lore: Celestials": {"Max": 1, "Cost": 4},
+    "Lore: Church of Chorus": {"Max": 1, "Cost": 4},
+    "Lore: War of Wine": {"Max": 1, "Cost": 4},
+    "Lore: Rules of Society": {"Max": 1, "Cost": 4},
+
+    "Lore: Blood Magic": {"Max": 1, "Cost": 4},
+    "Lore: Amalgamation": {"Max": 1, "Cost": 4},
+    "Lore: Demons": {"Max": 1, "Cost": 4},
+    "Lore: Old Ways": {"Max": 1, "Cost": 4},
+    "Lore: Purges": {"Max": 1, "Cost": 4},
+    "Lore: Nature": {"Max": 1, "Cost": 4},
+
+    "Lore: Channeling": {"Max": 1, "Cost": 4},
+    "Lore: Fae": {"Max": 1, "Cost": 4},
+    "Lore: Dragon Worship": {"Max": 1, "Cost": 4},
+    "Lore: The First Crusade": {"Max": 1, "Cost": 4},
+    "Lore: Anatomy": {"Max": 1, "Cost": 4},
+
+    "Lore: Divination": {"Max": 1, "Cost": 4},
+    "Lore: Dragons": {"Max": 1, "Cost": 4},
+    "Lore: The Celestine Faith": {"Max": 1, "Cost": 4},
+    "Lore: The War Of Radiance": {"Max": 1, "Cost": 4},
+    "Lore: Medicine": {"Max": 1, "Cost": 4},
+
+    "Lore: Dream": {"Max": 1, "Cost": 4},
+    "Lore: Undead": {"Max": 1, "Cost": 4},
+    "Lore: The Lady of the Mists": {"Max": 1, "Cost": 4},
+    "Lore: The Second Crusade": {"Max": 1, "Cost": 4},
+
+    "Lore: Necromancy": {"Max": 1, "Cost": 4},
+    "Lore: The Nameless Faith": {"Max": 1, "Cost": 4},
+    "Lore: The War of Giants": {"Max": 1, "Cost": 4},
+
+    "Lore: Sorcery": {"Max": 1, "Cost": 4},
+    "Lore: Trahazi Zodiac": {"Max": 1, "Cost": 4},
+
+    "Lore: Summoning": {"Max": 1, "Cost": 4},
+    "Lore: The Blood Cauldron": {"Max": 1, "Cost": 4},
+
+    "Lore: Warding": {"Max": 1, "Cost": 4},
+    "Lore: Demon Faiths": {"Max": 1, "Cost": 4},
+
+    "Lore: Rituals": {"Max": 1, "Cost": 4},
+    "Lore: Dace": {"Max": 1, "Cost": 4}
 }
 
 CRAFTING_CIRCLES = {

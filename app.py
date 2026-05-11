@@ -110,6 +110,33 @@ def init_session():
 def home():
     return render_template("landing_page.html")
 
+@app.route("/set_character/<category>")
+def set_character(category):
+    return render_template("set_character.html", category=category)
+
+@app.route("/submit_character", methods=["POST"])
+def submit_character():
+    data = {
+        "name": request.form.get("name"),
+        "culture": request.form.get("culture"),
+        "bloodline": request.form.get("bloodline"),
+        "faith": request.form.get("faith")
+    }
+
+    dic_ref=session['character_details']
+
+    dic_ref['Name']=data['name']
+    dic_ref['culture']=data['culture']
+    dic_ref['bloodline']=data['bloodline']
+    if data['faith']!='':
+        session['skills_added']['has_faith']=1
+    else:
+        session['skills_added']['has_faith']=0
+    session.modified=True
+    dic_ref['faith']=data['faith']
+
+    return redirect(url_for("home"))
+
 @app.route("/skills/<category>")
 def skills_page(category):
     all_skills={
@@ -132,7 +159,8 @@ def skills_page(category):
         'knowledge':skills_db.KNOWLEDGE,
         'gathering':skills_db.GATHERING,
         'crafting_skills':skills_db.CRAFTING_SKILLS,
-        'crafting':skills_db.CRAFTING_CIRCLES
+        'crafting':skills_db.CRAFTING_CIRCLES,
+        'lore':skills_db.LORE
     }
 
     skills=all_skills.get(category)
@@ -146,8 +174,6 @@ def skills_page(category):
     for flag in flags:
         display_dict.pop(flag, None)
 
-    print(display_dict)
-
     return render_template(
         "skill_page.html",
         skills=skills,
@@ -155,6 +181,7 @@ def skills_page(category):
         skills_added=session.get("skills_added", {}),
         display_dict=display_dict
     )
+
 @app.route("/add_skill",methods=["POST"])
 def add_skill():
     skill=request.form.get("skill")
@@ -240,10 +267,8 @@ class Max_Points_Spent(Exception):
 
 class Skill(ABC):   
     def __init__(self, name: str, cost: int, quantity=1, max_quant=None, prereqs: dict = None):
-        print(quantity)
         self.name = name
         self.cost = SKILL_REF[name]['Cost']*quantity
-        print(self.cost)
         self.quantity = quantity
         if prereqs is None:
             try:
@@ -253,6 +278,7 @@ class Skill(ABC):
         self.max_quant = max_quant
 
     def add(self):
+        print(session)
         self.validate()
         session['character_details']['points']-=self.cost
 
@@ -284,10 +310,10 @@ class Skill(ABC):
         if self.max_quant is not None:
             self.check_quantity()
         if self.prereqs is not None:
+            print('\nfenc\n')
             self.check_prereqs(check_dict=session)
 
     def check_points(self):
-        print('\ncumdump\n')
         current_points=session['character_details']['points']
         new_points=current_points-self.cost
         if new_points<0:
@@ -300,7 +326,9 @@ class Skill(ABC):
     def check_prereqs(self, check_dict):
         if 'skills_added' in check_dict:
             check_dict=check_dict['skills_added']
+        print(self.prereqs)
         for skill, quant in self.prereqs.items():
+            print(check_dict)
             if skill not in check_dict or check_dict[skill] < quant:
                 raise Prereq_Not_Met("Prerequisite not met")
 
@@ -308,8 +336,6 @@ class Quad_Level_Skill(Skill):
     def __init__(self, name, level, prereqs,cost_per_level=6):
         if level>4:
             raise Skill_Not_Exist('This skill maxes out at level 4.')
-        if level !=1:
-            prereqs[name]=level-1
         cost=level*cost_per_level
         super().__init__(name,cost,prereqs=prereqs)
 
@@ -324,9 +350,9 @@ class Magic(Quad_Level_Skill):
     def __init__(self, school, level):
         self.prereqs={}
         min_mana=level*5
-        self.prereqs['mana_focus']=min_mana
-        self.prereqs['magical_aptitude']=1
-        self.prereqs[f'lore: {school}']=1
+        self.prereqs['Mana Focus']=min_mana
+        self.prereqs['Magical Aptitude']=1
+        self.prereqs[f'Lore: {school}']=1
         if level==4:
             session.skills_added['gm_mage']=1
         super().__init__(school,level,self.prereqs)
@@ -340,11 +366,11 @@ class Priest_Level(Quad_Level_Skill):
 class Craft(Quad_Level_Skill):
     def __init__(self, name, level):
         self.prereqs={}
-        session.skills_added['is_crafter']=1
+        session['skills_added']['is_crafter']=1
         if level==4:
-            session.skills_added['can_invent']+=1
+            session['skills_added']['can_invent']+=1
         if name.lower()=='armorsmithing' or name.lower()=='tailoring':
-            session.skills_added['can_fortify']=1
+            session['skills_added']['can_fortify']=1
         super().__init__(name, level,prereqs=self.prereqs)
 
 class Lore(Skill):
@@ -393,19 +419,14 @@ class Background_Flaw(Skill):
         del session['character_details']['flaws_added'][self.name]
     
     def check_flaw_count(self):
-        print('\nrivers of cum!\n')
-        print(self.name)
         current_flaw_points=session['character_details']['flaw_points']
         new_total=self.cost+current_flaw_points
         if new_total>=-10:
-            print('\nblue\n')
             return self.cost
         else:
             if current_flaw_points==-10:
-                print('\nwhite\n')
                 return 0
             else:
-                print('\norange\n')
                 return -10+(current_flaw_points*-1)
     
     def add(self):
@@ -413,7 +434,6 @@ class Background_Flaw(Skill):
         session['character_details']['flaws_added'][self.name]=flaw_points_added
         session['character_details']['flaw_points']+=flaw_points_added
         session['character_details']['points']+=flaw_points_added*-1
-        print(session['character_details']['flaw_points'])
             
 class Memory_Flaw(Background_Flaw):
     def __init__(self, name):

@@ -33,6 +33,10 @@
     <h1>Skill Categories</h1>
 
     <div class="button-container">
+        <a href="{{ url_for('set_character', category='character') }}">
+            <button type="button">Character Details</button>
+        </a>
+        
         <a href="{{ url_for('skills_page', category='features') }}">
             <button type="button">Background Features</button>
         </a>
@@ -99,6 +103,10 @@
 
         <a href="{{ url_for('skills_page', category='knowledge') }}">
             <button type="button">Knowledge</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='lore') }}">
+            <button type="button">Lore</button>
         </a>
 
         <a href="{{ url_for('skills_page', category='gathering') }}">

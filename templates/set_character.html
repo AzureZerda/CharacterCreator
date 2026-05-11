@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Character Creation</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 40px;
+        }
+
+        .form-container {
+            max-width: 400px;
+            margin: auto;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 15px;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="form-container">
+
+    <h2>Character Setup</h2>
+
+    <form method="POST" action="{{ url_for('submit_character') }}">
+
+        <!-- Name -->
+        <div class="field">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name">
+        </div>
+
+        <!-- Culture -->
+        <div class="field">
+            <label for="culture">Culture</label>
+            <select id="culture" name="culture">
+                <option value="celestine">Celestine</option>
+            </select>
+        </div>
+
+        <!-- Bloodline -->
+        <div class="field">
+            <label for="bloodline">Bloodline</label>
+            <select id="bloodline" name="bloodline">
+                <option value="human">Human</option>
+            </select>
+        </div>
+
+        <!-- Faith -->
+        <div class="field">
+            <label for="faith">Faith</label>
+            <select id="faith" name="faith">
+                <option value=""></option>
+                <option value="celestine">Celestine</option>
+            </select>
+        </div>
+
+        <button type="submit">Create Character</button>
+
+    </form>
+
+</div>
+
+</body>
+</html>
