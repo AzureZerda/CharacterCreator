@@ -86,9 +86,17 @@ def inject_globals():
     flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter']
     for flag in flags:
         del display_dict[flag]
+    char_dict=dict(session['character_details'])
+    flags=['points','flaw_points','memory_flaws','health points','flaws_added']
+    for flag in flags:
+        try:
+            del char_dict[flag]
+        except KeyError:
+            continue
     return {
         "points": session.get("character_details", {}).get("points", 0), 
-        'display_dict': display_dict, 
+        'display_dict': display_dict,
+        'char_dict': char_dict,
         'HP': session.get("character_details", {}).get("health points", 2),
         'name': session.get("character_details", {}).get("name", 'no name selected'),
         'culture': session.get("character_details", {}).get("culture", 'no culture selected'),
@@ -118,6 +126,10 @@ def init_session():
             'health points':5,
             'flaws_added':{}
         }
+
+@app.route("/submit")
+def submit_page():
+    return render_template("submit_character.html")
 
 @app.route("/confirm_character")
 def confirm():
@@ -383,14 +395,14 @@ class Skill(ABC):
                 'cost':cost
             }
             current_skill=Construct_Skill(data)
-            if current_skill.prereqs is not None:
+            if hasattr(self, "prereqs") and self.prereqs is not None:
                 current_skill.check_prereqs(check_dict=skill_check)
 
     def validate(self):
         self.check_points()
         if self.max_quant is not None:
             self.check_quantity()
-        if self.prereqs is not None:
+        if hasattr(self, "prereqs") and self.prereqs is not None:
             self.check_prereqs(check_dict=session)
 
     def check_points(self):
@@ -406,9 +418,11 @@ class Skill(ABC):
     def check_prereqs(self, check_dict):
         if 'skills_added' in check_dict:
             check_dict=check_dict['skills_added']
-        for skill, quant in self.prereqs.items():
-            if skill not in check_dict or check_dict[skill] < quant:
-                raise Prereq_Not_Met("Prerequisite not met")
+        print(self.name)
+        if self.prereqs is not None:
+            for skill, quant in self.prereqs.items():
+                if skill not in check_dict or check_dict[skill] < quant:
+                    raise Prereq_Not_Met("Prerequisite not met")
     
     def modify_flags(self,modification,flag_location):
         for flag in self.flags:
@@ -494,9 +508,10 @@ class Background_Flaw(Skill):
     def check_prereqs(self, check_dict):
         if 'skills_added' in check_dict:
             check_dict=check_dict['skills_added']
-        for skill, quant in self.prereqs.items():
-            if skill not in check_dict or check_dict[skill] > quant:
-                raise Prereq_Not_Met("Prerequisite not met")
+        if hasattr(self, "prereqs") and self.prereqs is not None:
+            for skill, quant in self.prereqs.items():
+                if skill not in check_dict or check_dict[skill] > quant:
+                    raise Prereq_Not_Met("Prerequisite not met")
     
     def remove(self):
         session['character_details']['points']+=session['character_details']['flaws_added'][self.name]

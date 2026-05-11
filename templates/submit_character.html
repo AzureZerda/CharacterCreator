@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}Selected Skills{% endblock %}
+
+{% block content %}
+
+<style>
+    .container {
+        max-width: 600px;
+        margin: 20px auto;
+    }
+
+    .title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #000;
+        padding-bottom: 5px;
+    }
+
+    .box {
+        border: 1px solid #333;
+        border-radius: 6px;
+        padding: 10px;
+        background: #f9f9f9;
+        margin-bottom: 25px;
+    }
+
+    .item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 10px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .item:last-child {
+        border-bottom: none;
+    }
+
+    .item-name {
+        font-weight: bold;
+    }
+
+    .item-value {
+        color: #555;
+    }
+
+    .empty {
+        text-align: center;
+        color: #777;
+        padding: 20px;
+    }
+</style>
+
+<div class="container">
+
+    <!-- ✅ NEW CHARACTER BOX -->
+    <div class="title">Character Details</div>
+
+    <div class="box">
+
+        {% if char_dict and char_dict|length > 0 %}
+
+            {% for key, value in char_dict.items() %}
+
+                <div class="item">
+                    <div class="item-name">{{ key }}</div>
+                    <div class="item-value">{{ value }}</div>
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="empty">No character data</div>
+
+        {% endif %}
+
+    </div>
+
+    <!-- EXISTING SKILL BOX -->
+    <div class="title">Selected Skills</div>
+
+    <div class="box">
+
+        {% if display_dict and display_dict|length > 0 %}
+
+            {% for skill, qty in display_dict.items() %}
+
+                <div class="item">
+                    <div class="item-name">{{ skill }}</div>
+                    <div class="item-value">x{{ qty }}</div>
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <div class="empty">No skills selected</div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% endblock %}

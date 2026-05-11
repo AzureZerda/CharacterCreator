@@ -74,12 +74,20 @@
     </div>
 
     <div class="top-right">
+        <form method="GET" action="{{ url_for('submit_page') }}">
+            <button type="submit">Submit</button>
+        </form>
+
         <form method="POST" action="{{ url_for('reset') }}">
             <button type="submit">Reset</button>
         </form>
+
+        <form method="GET" action="{{ url_for('home') }}">
+            <button type="submit">Back</button>
+        </form>
     </div>
 
-</div>
+</div> <!-- ✅ THIS WAS MISSING -->
 
 <div class="page-wrapper">
 
