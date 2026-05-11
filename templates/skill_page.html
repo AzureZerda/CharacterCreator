@@ -89,6 +89,10 @@
 
 <h1>{{ category|title }} Skills</h1>
 
+<!-- ===================== -->
+<!-- MAIN SKILL SYSTEM (UNCHANGED) -->
+<!-- ===================== -->
+
 <div class="table">
 
     <div class="row header">
@@ -111,12 +115,10 @@
 
         <span class="quantity">
 
-            {# FIXED: MAX = 1 #}
             {% if data['Max'] == 1 %}
                 <input type="hidden" name="quantity" value="1">
                 1
 
-            {# FIXED: NORMAL SELECT #}
             {% elif data['Max'] is not none %}
                 <select name="quantity" {% if is_added %}class="locked"{% endif %}>
                     {% for i in range(1, data['Max'] + 1) %}
@@ -127,7 +129,6 @@
                     {% endfor %}
                 </select>
 
-            {# ✅ NEW: FREEFORM INPUT WHEN MAX IS NONE #}
             {% else %}
                 <input
                     type="number"
@@ -151,6 +152,42 @@
         </span>
 
     </form>
+
+    {% endfor %}
+
+</div>
+
+<hr>
+
+<h2>Display Dict (Raw)</h2>
+
+<!-- ===================== -->
+<!-- PURE DISPLAY_DICT DUMP -->
+<!-- ===================== -->
+
+<div class="table">
+
+    <div class="row header">
+        <span class="skill">Skill</span>
+        <span class="quantity">Quantity</span>
+        <span class="cost">Cost</span>
+    </div>
+
+    {% for name, qty in display_dict.items() %}
+
+        <div class="row">
+
+            <span class="skill">{{ name }}</span>
+
+            <span class="quantity">
+                {{ qty }}
+            </span>
+
+            <span class="cost">
+                -
+            </span>
+
+        </div>
 
     {% endfor %}
 

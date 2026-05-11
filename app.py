@@ -140,13 +140,21 @@ def skills_page(category):
     if skills is None:
         return "Invalid category", 404
 
+    flags = ['can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'is_crafter']
+
+    display_dict = dict(session.get("skills_added", {}))
+    for flag in flags:
+        display_dict.pop(flag, None)
+
+    print(display_dict)
+
     return render_template(
         "skill_page.html",
         skills=skills,
         category=category,
-        skills_added=session.get("skills_added", {})
+        skills_added=session.get("skills_added", {}),
+        display_dict=display_dict
     )
-
 @app.route("/add_skill",methods=["POST"])
 def add_skill():
     skill=request.form.get("skill")
