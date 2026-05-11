@@ -231,11 +231,20 @@ def add_skill():
 
     try:
         skill.add()
-        session["skills_added"][skill.name]=quantity
-        session.modified=True
-        return jsonify({'success':True,"message":"Added Skill","points": session["character_details"]["points"]})
+        session["skills_added"][skill.name] = quantity
+        session.modified = True
+        return jsonify({
+            'success': True,
+            "message": "Added Skill",
+            "points": session["character_details"]["points"],
+            "HP": session["character_details"]["health points"],
+            "name": session["character_details"].get("name", "no name selected"),
+            "culture": session["character_details"].get("culture", "no culture selected"),
+            "bloodline": session["character_details"].get("bloodline", "no bloodline selected"),
+            "faith": session["character_details"].get("faith", "no faith selected"),
+        })
     except Prereq_Not_Met:
-       return jsonify({"success":False,"error":"Prerequisite not met"})
+        return jsonify({"success": False, "error": "Prerequisite not met"})
 
 @app.route("/reset", methods=["POST"])
 def reset():
@@ -261,7 +270,16 @@ def remove_skill():
         return jsonify({'success':False,'error':'Reliant skill must be removed'})
     session.modified=True
 
-    return jsonify({"success": True,"points": session["character_details"]["points"]})
+    return jsonify({
+            'success': True,
+            "message": "Added Skill",
+            "points": session["character_details"]["points"],
+            "HP": session["character_details"]["health points"],
+            "name": session["character_details"].get("name", "no name selected"),
+            "culture": session["character_details"].get("culture", "no culture selected"),
+            "bloodline": session["character_details"].get("bloodline", "no bloodline selected"),
+            "faith": session["character_details"].get("faith", "no faith selected"),
+        })
 
 @app.route("/create_character", methods=["POST"])
 def create_character():

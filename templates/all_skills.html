@@ -182,26 +182,12 @@
 <script>
 
 function syncTopBar(data) {
-
-    const d=data.character_details || {};
-
-    document.getElementById("ui-points").textContent=
-        d.points ?? data.points ?? "";
-
-    document.getElementById("ui-hp").textContent=
-        d.HP ?? "";
-
-    document.getElementById("ui-name").textContent=
-        d.name ?? "";
-
-    document.getElementById("ui-culture").textContent=
-        d.culture ?? "";
-
-    document.getElementById("ui-bloodline").textContent=
-        d.bloodline ?? "";
-
-    document.getElementById("ui-faith").textContent=
-        d.faith ?? "";
+    document.getElementById("ui-points").textContent = data.points ?? "";
+    document.getElementById("ui-hp").textContent = data.HP ?? "";
+    document.getElementById("ui-name").textContent = data.name ?? "";
+    document.getElementById("ui-culture").textContent = data.culture ?? "";
+    document.getElementById("ui-bloodline").textContent = data.bloodline ?? "";
+    document.getElementById("ui-faith").textContent = data.faith ?? "";
 }
 
 function toggleSkill(btn) {
