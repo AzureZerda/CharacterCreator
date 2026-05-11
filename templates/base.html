@@ -12,7 +12,7 @@
         }
 
         body {
-            padding-top: 50px; /* prevents content hiding under top bar */
+            padding-top: 50px;
         }
 
         .page-wrapper {
@@ -62,24 +62,25 @@
 
 <body>
 
-<!-- TOP BAR -->
 <div class="top-bar">
 
     <div class="top-left">
-        Points: {{ points }} | HP: {{ HP }} | Name: {{ name }} | Culture: {{ culture }} | Bloodline: {{ bloodline }} | Faith: {{ faith }}
+        Points: <span id="ui-points">{{ points }}</span> |
+        HP: <span id="ui-hp">{{ HP }}</span> |
+        Name: <span id="ui-name">{{ name }}</span> |
+        Culture: <span id="ui-culture">{{ culture }}</span> |
+        Bloodline: <span id="ui-bloodline">{{ bloodline }}</span> |
+        Faith: <span id="ui-faith">{{ faith }}</span>
     </div>
 
     <div class="top-right">
-
         <form method="POST" action="{{ url_for('reset') }}">
             <button type="submit">Reset</button>
         </form>
-
     </div>
 
 </div>
 
-<!-- PAGE CONTENT -->
 <div class="page-wrapper">
 
     <div class="content">

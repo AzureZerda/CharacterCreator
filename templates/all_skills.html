@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+={% extends "base.html" %}
 
 {% block title %}Skills Database{% endblock %}
 
@@ -118,7 +118,6 @@
 
 <h1>Skill Database</h1>
 
-<!-- 🔥 CATEGORY LOOP RESTORED -->
 {% for category_name, category_data in skills_db.items() %}
 
 <div class="section">
@@ -139,7 +138,6 @@
 
             {% if maxv is none %}
 
-                <!-- FREE INPUT -->
                 <input
                     type="number"
                     class="qty-input"
@@ -149,22 +147,15 @@
 
             {% elif maxv > 1 %}
 
-                <!-- DROPDOWN 0 → MAX -->
                 <select class="qty-input" data-skill-input="{{ skill_name }}">
-
                     {% for i in range(0, maxv + 1) %}
                         <option value="{{ i }}">{{ i }}</option>
                     {% endfor %}
-
                 </select>
 
             {% else %}
 
-                <!-- fallback (Max = 1 or weird edge case) -->
-                <input
-                    type="hidden"
-                    value="1"
-                    data-skill-input="{{ skill_name }}">
+                <input type="hidden" value="1">
 
             {% endif %}
 
@@ -190,58 +181,85 @@
 
 <script>
 
+function syncTopBar(data) {
+
+    const d=data.character_details || {};
+
+    document.getElementById("ui-points").textContent=
+        d.points ?? data.points ?? "";
+
+    document.getElementById("ui-hp").textContent=
+        d.HP ?? "";
+
+    document.getElementById("ui-name").textContent=
+        d.name ?? "";
+
+    document.getElementById("ui-culture").textContent=
+        d.culture ?? "";
+
+    document.getElementById("ui-bloodline").textContent=
+        d.bloodline ?? "";
+
+    document.getElementById("ui-faith").textContent=
+        d.faith ?? "";
+}
+
 function toggleSkill(btn) {
 
-    const skill = btn.dataset.skill;
-    const maxv = btn.dataset.max === "None" ? null : parseInt(btn.dataset.max);
-    const state = btn.dataset.state;
+    const skill=btn.dataset.skill;
+    const maxv=btn.dataset.max==="None"?null:parseInt(btn.dataset.max);
+    const state=btn.dataset.state;
 
-    const tile = btn.closest(".skill-tile");
-    const input = tile.querySelector(`[data-skill-input="${skill}"]`);
+    const tile=btn.closest(".skill-tile");
+    const input=tile.querySelector(`[data-skill-input="${skill}"]`);
 
-    let quantity = 0;
+    // ✅ FIX: SAME quantity logic for add AND remove
+    let quantity=0;
 
-    if (maxv === null) {
-        quantity = parseInt(input.value || "0");
+    if(maxv===null){
+        quantity=parseInt(input.value||"0");
     } else {
-        quantity = (state === "add") ? 1 : 0;
+        quantity=1;
     }
 
-    const formData = new URLSearchParams();
-    formData.append("skill", skill);
-    formData.append("quantity", quantity);
+    const formData=new URLSearchParams();
+    formData.append("skill",skill);
+    formData.append("quantity",quantity);
 
-    const url = state === "add" ? "/add_skill" : "/remove_skill";
+    const url=state==="add"?"/add_skill":"/remove_skill";
 
-    fetch(url, {
-        method: "POST",
-        body: formData
+    fetch(url,{
+        method:"POST",
+        body:formData
     })
-    .then(res => res.json())
-    .then(data => {
+    .then(res=>res.json())
+    .then(data=>{
 
-        if (!data.success) {
-            alert(data.error || "Action failed");
+        if(!data.success){
+            alert(data.error||"Action failed");
             return;
         }
 
-        if (state === "add") {
-            btn.dataset.state = "remove";
-            btn.textContent = "-";
+        syncTopBar(data);
+
+        // UI toggle
+        if(state==="add"){
+            btn.dataset.state="remove";
+            btn.textContent="-";
             tile.classList.add("locked");
             input?.classList.add("locked");
-            input?.setAttribute("readonly", true);
+            input?.setAttribute("readonly",true);
 
         } else {
-            btn.dataset.state = "add";
-            btn.textContent = "+";
+            btn.dataset.state="add";
+            btn.textContent="+";
             tile.classList.remove("locked");
             input?.classList.remove("locked");
             input?.removeAttribute("readonly");
         }
 
     })
-    .catch(err => {
+    .catch(err=>{
         console.error(err);
         alert("Request failed");
     });

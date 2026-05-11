@@ -219,7 +219,7 @@ def skills_page(category):
 def add_skill():
     skill=request.form.get("skill")
     quantity=int(request.form.get("quantity"))
-    cost=int(request.form.get("cost"))
+    cost=SKILL_REF[skill]['Cost']
 
     data={
         "skill":skill,
@@ -246,7 +246,7 @@ def reset():
 def remove_skill():
     skill=request.form.get("skill")
     quantity=int(request.form.get("quantity"))
-    cost=int(request.form.get("cost"))
+    cost=SKILL_REF[skill]['Cost']
     data={
         "skill":skill,
         "quantity":quantity,
@@ -345,6 +345,7 @@ class Skill(ABC):
         self.check_reliance(new_skills)
         session['skills_added']=new_skills
         session['character_details']['points']+=self.cost
+        session.modified=True
     
     def check_reliance(self,skill_check):
         for skill,quantity in skill_check.items():
