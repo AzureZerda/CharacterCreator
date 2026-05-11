@@ -136,8 +136,10 @@
         {% for skill_name, data in category_data.items() %}
 
         {% set maxv = data['Max'] %}
+        {% set is_selected = skill_name in display_dict %}
+        {% set current_qty = display_dict.get(skill_name, 1) %}
 
-        <div class="skill-tile">
+        <div class="skill-tile {% if is_selected %}locked{% endif %}">
 
             <div class="skill-name">
                 <div>{{ skill_name }}</div>
@@ -150,20 +152,30 @@
                     type="number"
                     class="qty-input"
                     min="1"
-                    value="1"
-                    data-skill-input="{{ skill_name }}">
+                    value="{{ current_qty }}"
+                    data-skill-input="{{ skill_name }}"
+                    {% if is_selected %}disabled{% endif %}>
 
             {% elif maxv > 1 %}
 
-                <select class="qty-input" data-skill-input="{{ skill_name }}">
+                <select
+                    class="qty-input"
+                    data-skill-input="{{ skill_name }}"
+                    {% if is_selected %}disabled{% endif %}>
+
                     {% for i in range(1, maxv + 1) %}
-                        <option value="{{ i }}">{{ i }}</option>
+                        <option value="{{ i }}" {% if i == current_qty %}selected{% endif %}>
+                            {{ i }}
+                        </option>
                     {% endfor %}
+
                 </select>
 
             {% else %}
 
-                <input type="hidden" value="1" data-skill-input="{{ skill_name }}">
+                <input type="hidden"
+                       value="1"
+                       data-skill-input="{{ skill_name }}">
 
             {% endif %}
 
@@ -172,9 +184,9 @@
                 class="plus-btn"
                 data-skill="{{ skill_name }}"
                 data-max="{{ maxv }}"
-                data-state="add"
+                data-state="{{ 'remove' if is_selected else 'add' }}"
                 onclick="toggleSkill(this)">
-                +
+                {{ '-' if is_selected else '+' }}
             </button>
 
         </div>
@@ -207,17 +219,14 @@ function toggleSkill(btn) {
     let quantity;
 
     if (maxv === "None") {
-        // Free-text number input — read whatever the user typed
         quantity = parseInt(input?.value || "0");
         if (isNaN(quantity) || quantity < 1) {
             alert("Please enter a valid quantity.");
             return;
         }
     } else if (parseInt(maxv) > 1) {
-        // Select dropdown — read selected value
         quantity = parseInt(input?.value || "1");
     } else {
-        // maxv == 1, hidden input — always 1
         quantity = 1;
     }
 
