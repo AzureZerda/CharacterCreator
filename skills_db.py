@@ -1,3 +1,56 @@
+BACKGROUND_FEATURES= {
+    'Magical Aptitude':{
+        'Max':1,
+        'Cost':4
+    },
+    'Prophetic Dreamer':{
+        'Max':1,
+        'Cost':4
+    },
+    'Nobility':{
+        'Max':1,
+        'Cost':6
+    },
+    'Military Experience':{
+        'Max':None,
+        'Cost':4
+    },
+    'Bardic Knowledge':{
+        'Max':1,
+        'Cost':4
+    }}
+
+BACKGROUND_FLAWS={
+    "Sovereign Zeal": {"Max": 1, "Cost": -2},
+    "Religious Zeal": {"Max": 1, "Cost": -2},
+    "Corrupted": {"Max": 1, "Cost": -6},
+    "Frail": {"Max": None, "Cost": -3},
+
+    "Clouded Memory": {
+        "Max": 1,
+        "Cost": -2,
+        "Prereq": {
+            'Memory Flaws':0
+        }
+    },
+
+    "Fractured Memory": {
+        "Max": 1,
+        "Cost": -4,
+        "Prereq": {
+            'Memory Flaws':0
+        }
+    },
+
+    "Fading Memory": {
+        "Max": 1,
+        "Cost": -4,
+        "Prereq": {
+            'Memory Flaws':0
+        }
+    },
+    "Illiterate": {"Max": 1, "Cost": -4}}
+
 WEAPON_PROFICIENCIES = {
     "Short Weapons": {
     "Max": 1,

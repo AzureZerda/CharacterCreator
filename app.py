@@ -26,6 +26,10 @@ def Construct_Skill(data):
         choice=Instruction_Ability(data['skill'],data['quantity'],SKILL_REF[data['skill']]['Cost'],SKILL_REF[data['skill']]['Prereq'])
     elif route==6:
         choice=Field_Repair_Skill(data['skill'],SKILL_REF[data['skill']]['Cost'],SKILL_REF[data['skill']]['Prereqs'])
+    elif route==7:
+        choice=Memory_Flaw(data['skill'])
+    elif route==8:
+        choice=Background_Flaw(data['skill'],data['quantity'])
     else:
         choice=Skill(data['skill'],data['cost'],prereqs=prereqs)
     return choice
@@ -58,7 +62,15 @@ def Determine_Route(skill):
         'offensive instruction':5,
         'evasive instruction':5,
         'repair shield':6,
-        'fortify armor':6
+        'fortify armor':6,
+        'clouded memory':7,
+        'fractured memory':7,
+        'fading memory':7,
+        'sovereign zeal':8,
+        'religious zeal':8,
+        'corrupted':8,
+        'frail':8,
+        'illiterate':8
         }
     
     try:
@@ -88,7 +100,10 @@ def init_session():
     
     if 'character_details' not in session:
         session['character_details']={
-            'points':40
+            'points':40,
+            'flaw_points':0,
+            'memory_flaws':0,
+            'flaws_added':{}
         }
 
 @app.route("/")
@@ -98,6 +113,8 @@ def home():
 @app.route("/skills/<category>")
 def skills_page(category):
     all_skills={
+        'features':skills_db.BACKGROUND_FEATURES,
+        'flaws':skills_db.BACKGROUND_FLAWS,
         "weapon":skills_db.WEAPON_PROFICIENCIES,
         "armor":skills_db.ARMOR_PROFICIENCIES,
         "general":skills_db.GENERAL_COMBAT_SKILLS,
@@ -123,8 +140,6 @@ def skills_page(category):
     if skills is None:
         return "Invalid category", 404
 
-    print(skills)
-
     return render_template(
         "skill_page.html",
         skills=skills,
@@ -133,7 +148,6 @@ def skills_page(category):
 
 @app.route("/add_skill",methods=["POST"])
 def add_skill():
-    print(session['character_details']['points'])
     skill=request.form.get("skill")
     quantity=int(request.form.get("quantity"))
     cost=int(request.form.get("cost"))
@@ -150,7 +164,6 @@ def add_skill():
         skill.add()
         session["skills_added"][skill.name]=quantity
         session.modified=True
-        print(session['character_details']['points'])
         return jsonify({'success':True,"message":"Added Skill","points": session["character_details"]["points"]})
     except Prereq_Not_Met:
        return jsonify({"success":False,"error":"Prerequisite not met"})
@@ -264,7 +277,7 @@ class Skill(ABC):
         new_points=current_points-self.cost
     
     def check_quantity(self):
-        if self.quantity >= self.max_quant:
+        if self.quantity > self.max_quant:
             raise Max_Quantity_Exceeded("Quantity exceeds maximum allowed")
 
     def check_prereqs(self, check_dict):
@@ -292,7 +305,6 @@ class Lockpicking(Quad_Level_Skill):
 
 class Magic(Quad_Level_Skill):
     def __init__(self, school, level):
-        print('\ncumdump\n')
         self.prereqs={}
         min_mana=level*5
         self.prereqs['mana_focus']=min_mana
@@ -300,7 +312,6 @@ class Magic(Quad_Level_Skill):
         self.prereqs[f'lore: {school}']=1
         if level==4:
             session.skills_added['gm_mage']=1
-        print(self.prereqs)
         super().__init__(school,level,self.prereqs)
 
 class Priest_Level(Quad_Level_Skill):
@@ -350,6 +361,61 @@ class Field_Repair_Skill(Skill):
     def __init__(self, name, cost, prereqs):
         session.skills_added['can_field_repair']=1
         super().__init__(name, cost, prereqs=prereqs)
+
+class Background_Flaw(Skill):
+    def __init__(self, name, quantity):
+        self.name=name
+        self.quantity=quantity
+        self.max_quant=None
+        self.prereqs=None
+        self.cost=SKILL_REF[name]['Cost']*quantity
+    
+    def remove(self):
+        session['character_details']['points']+=session['character_details']['flaws_added'][self.name]
+        session['character_details']['flaw_points']-=session['character_details']['flaws_added'][self.name]
+        del session['character_details']['flaws_added'][self.name]
+    
+    def check_flaw_count(self):
+        print('\nrivers of cum!\n')
+        print(self.name)
+        current_flaw_points=session['character_details']['flaw_points']
+        new_total=self.cost+current_flaw_points
+        if new_total>=-10:
+            print('\nblue\n')
+            return self.cost
+        else:
+            if current_flaw_points==-10:
+                print('\nwhite\n')
+                return 0
+            else:
+                print('\norange\n')
+                return -10+(current_flaw_points*-1)
+    
+    def add(self):
+        flaw_points_added=self.check_flaw_count()
+        session['character_details']['flaws_added'][self.name]=flaw_points_added
+        session['character_details']['flaw_points']+=flaw_points_added
+        session['character_details']['points']+=flaw_points_added*-1
+        print(session['character_details']['flaw_points'])
+            
+class Memory_Flaw(Background_Flaw):
+    def __init__(self, name):
+        super().__init__(name,quantity=1)
+    
+    def add(self):
+        session['character_details']['memory_flaws']+=1
+        super().add()
+    
+    def validate(self):
+        self.check_mem()
+    
+    def check_mem(self):
+        if session['character_details']['memory_flaws']>0:
+            raise Prereq_Not_Met
+    
+    def remove(self):
+        session['character_details']['memory_flaws']-=1
+        super().remove()
 
 all_skill_sets = {
     k: v

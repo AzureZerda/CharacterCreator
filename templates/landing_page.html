@@ -33,6 +33,14 @@
     <h1>Skill Categories</h1>
 
     <div class="button-container">
+        <a href="{{ url_for('skills_page', category='features') }}">
+            <button type="button">Background Features</button>
+        </a>
+
+        <a href="{{ url_for('skills_page', category='flaws') }}">
+            <button type="button">Background Flaws</button>
+        </a>
+        
         <a href="{{ url_for('skills_page', category='weapon') }}">
             <button type="button">Weapon Proficiencies</button>
         </a>
