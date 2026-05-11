@@ -19,7 +19,7 @@ def Construct_Skill(data):
     elif route==2:
         choice=Magic(data['skill'],data['quantity'])
     elif route==3:
-        Priest_Level(data['quantity'],session['character_details']['faith'])
+        choice=Priest_Level(data['quantity'],session['character_details']['faith'])
     elif route==4:
         choice=Craft(data['skill'],data['quantity'])
     elif route==5:
@@ -82,8 +82,13 @@ def Determine_Route(skill):
 
 @app.context_processor
 def inject_globals():
+    display_dict=dict(session['skills_added'])
+    flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter']
+    for flag in flags:
+        del display_dict[flag]
+    print(display_dict)
     return {
-        "points": session.get("character_details", {}).get("points", 0)
+        "points": session.get("character_details", {}).get("points", 0), 'display_dict': display_dict
     }
 
 @app.before_request
@@ -95,7 +100,8 @@ def init_session():
             "can_invent":0,
             "can_instruct":0,
             "can_assassinate":0,
-            'Literate':0
+            'Literate':0,
+            'has_faith':0
         }
         session.modified=True
     
@@ -107,7 +113,11 @@ def init_session():
             'flaws_added':{}
         }
 
-@app.route("/")
+@app.route("/confirm_character")
+def confirm():
+    return render_template('confirm_character.html')
+
+@app.route("/c")
 def home():
     return render_template("landing_page.html")
 
@@ -169,7 +179,7 @@ def skills_page(category):
     if skills is None:
         return "Invalid category", 404
 
-    flags = ['can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'is_crafter']
+    flags = ['can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'is_crafter', 'Literate','has_faith']
 
     display_dict = dict(session.get("skills_added", {}))
     for flag in flags:
@@ -344,7 +354,8 @@ class Quad_Level_Skill(Skill):
         if level>4:
             raise Skill_Not_Exist('This skill maxes out at level 4.')
         cost=level*cost_per_level
-        super().__init__(name,cost,prereqs=prereqs)
+        print(cost)
+        super().__init__(name,cost,prereqs=prereqs,quantity=level)
 
 class Lockpicking(Quad_Level_Skill):
     def __init__(self,name,level):
@@ -365,10 +376,10 @@ class Magic(Quad_Level_Skill):
 
 class Priest_Level(Quad_Level_Skill):
     def __init__(self, level, faith):
-        prereqs={}
+        self.prereqs={'Prayer':1}
         if session['character_details']=='':
             raise Prereq_Not_Met
-        super().__init__(name=f'Priesthood', level=level, prereqs=prereqs)
+        super().__init__(name=f'Priesthood', level=level, prereqs=self.prereqs)
 
 class Craft(Quad_Level_Skill):
     def __init__(self, name, level):
