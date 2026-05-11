@@ -31,7 +31,7 @@ def Construct_Skill(data):
     elif route==8:
         choice=Background_Flaw(data['skill'],data['quantity'])
     else:
-        choice=Skill(data['skill'],data['cost'],prereqs=prereqs)
+        choice=Skill(data['skill'],data['cost'],quantity=data['quantity'],prereqs=prereqs)
     return choice
 
 def Determine_Route(skill):
@@ -226,10 +226,15 @@ class Max_Quantity_Exceeded(Exception):
 class Skill_Not_Exist(Exception):
     pass
 
+class Max_Points_Spent(Exception):
+    pass
+
 class Skill(ABC):   
     def __init__(self, name: str, cost: int, quantity=1, max_quant=None, prereqs: dict = None):
+        print(quantity)
         self.name = name
         self.cost = SKILL_REF[name]['Cost']*quantity
+        print(self.cost)
         self.quantity = quantity
         if prereqs is None:
             try:
@@ -240,14 +245,14 @@ class Skill(ABC):
 
     def add(self):
         self.validate()
-        session['character_details']['points']-=self.cost*self.quantity
+        session['character_details']['points']-=self.cost
 
     def remove(self):
         new_skills = dict(session["skills_added"])
         del new_skills[self.name]
         self.check_reliance(new_skills)
         session['skills_added']=new_skills
-        session['character_details']['points']+=self.cost*self.quantity
+        session['character_details']['points']+=self.cost
     
     def check_reliance(self,skill_check):
         for skill,quantity in skill_check.items():
@@ -273,8 +278,11 @@ class Skill(ABC):
             self.check_prereqs(check_dict=session)
 
     def check_points(self):
+        print('\ncumdump\n')
         current_points=session['character_details']['points']
         new_points=current_points-self.cost
+        if new_points<0:
+            raise Max_Points_Spent
     
     def check_quantity(self):
         if self.quantity > self.max_quant:
