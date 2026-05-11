@@ -53,11 +53,7 @@
             cursor: pointer;
         }
 
-        select {
-            width: 70px;
-        }
-
-        .locked {
+        select.locked {
             pointer-events: none;
             background-color: #eee;
         }
@@ -68,14 +64,12 @@
 
 <div class="top-bar">
 
-    <!-- BACK BUTTON -->
     <div class="left-controls">
         <a href="{{ url_for('home') }}">
             <button type="button">Back</button>
         </a>
     </div>
 
-    <!-- POINTS + RESET -->
     <div class="right-controls">
         <div>
             Points: <span id="points-value">{{ points }}</span>
@@ -101,6 +95,8 @@
 
     {% for name, data in skills.items() %}
 
+    {% set is_added = name in skills_added %}
+
     <form class="row">
 
         <input type="hidden" name="skill" value="{{ name }}">
@@ -115,16 +111,22 @@
                 1
 
             {% elif data['Max'] is not none %}
-                <select name="quantity">
+                <select name="quantity" {% if is_added %}class="locked"{% endif %}>
                     {% for i in range(1, data['Max'] + 1) %}
-                        <option value="{{ i }}">{{ i }}</option>
+                        <option value="{{ i }}"
+                            {% if skills_added.get(name, 1) == i %}selected{% endif %}>
+                            {{ i }}
+                        </option>
                     {% endfor %}
                 </select>
 
             {% else %}
-                <select name="quantity">
+                <select name="quantity" {% if is_added %}class="locked"{% endif %}>
                     {% for i in range(0, 11) %}
-                        <option value="{{ i }}">{{ i }}</option>
+                        <option value="{{ i }}"
+                            {% if skills_added.get(name, 0) == i %}selected{% endif %}>
+                            {{ i }}
+                        </option>
                     {% endfor %}
                 </select>
             {% endif %}
@@ -136,9 +138,9 @@
         <span class="action">
             <button
                 type="button"
-                data-state="add"
+                data-state="{% if is_added %}remove{% else %}add{% endif %}"
                 onclick="toggleSkill(this)">
-                Add
+                {% if is_added %}Remove{% else %}Add{% endif %}
             </button>
         </span>
 
@@ -154,7 +156,6 @@ function toggleSkill(btn) {
     const form = btn.closest("form");
     const formData = new FormData(form);
 
-    const select = form.querySelector("select[name='quantity']");
     const state = btn.dataset.state || "add";
     const url = state === "add" ? "/add_skill" : "/remove_skill";
 
@@ -175,30 +176,9 @@ function toggleSkill(btn) {
             document.getElementById("points-value").textContent = data.points;
         }
 
-        if (state === "add") {
-
-            if (select) {
-                select.dataset.lockedValue = select.value;
-                select.classList.add("locked");
-            }
-
-            btn.textContent = "Remove";
-            btn.dataset.state = "remove";
-
-        } else {
-
-            if (select) {
-                select.classList.remove("locked");
-
-                if (select.dataset.lockedValue) {
-                    select.value = select.dataset.lockedValue;
-                }
-            }
-
-            btn.textContent = "Add";
-            btn.dataset.state = "add";
-        }
-
+        // simplest correct approach:
+        // reload page state from server to avoid desync bugs
+        location.reload();
     })
     .catch(err => {
         console.error(err);

@@ -143,7 +143,8 @@ def skills_page(category):
     return render_template(
         "skill_page.html",
         skills=skills,
-        category=category
+        category=category,
+        skills_added=session.get("skills_added", {})
     )
 
 @app.route("/add_skill",methods=["POST"])
