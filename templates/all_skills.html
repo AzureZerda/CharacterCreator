@@ -192,13 +192,15 @@ function toggleSkill(btn) {
         quantity = 1;
     }
 
+    const modifier = state === "add" ? 1 : -1;
+
     const formData = new URLSearchParams();
     formData.append("skill", skill);
     formData.append("quantity", quantity);
+    formData.append("modifier", modifier);
 
-    const url = state === "add" ? "/add_skill" : "/remove_skill";
-
-    fetch(url, {
+    // 🔥 CHANGED: single endpoint
+    fetch("/modify_skill", {
         method: "POST",
         body: formData
     })

@@ -186,6 +186,28 @@ def Update_Points():
     if 'Weapon Master' in session['skills_added']:
         new_total-=13
 
+@app.route("/modify_skill", methods=["POST"])
+def modify_skill():
+    try:
+        skill_name=request.form.get("skill")
+        quantity=int(request.form.get("quantity",1))
+        modifier=int(request.form.get("modifier",0))
+
+        if modifier not in (1,-1):
+            return {"success":False,"error":"INVALID_MODIFIER"},400
+
+        if modifier==1:
+            return add_skill(skill_name,quantity)
+        else:
+            return remove_skill(skill_name,quantity)
+
+    except Exception as e:
+        return {
+            "success":False,
+            "error":type(e).__name__,
+            "message":str(e)
+        },400
+
 @app.route("/submit")
 def submit_page():
     display_dict=dict(session['skills_added'])
@@ -416,9 +438,7 @@ def submit_backstory():
     return render_template('all_skills.html',skills_db=skills_db_dict)
 
 @app.route("/add_skill",methods=["POST"])
-def add_skill():
-    skill=request.form.get("skill")
-    quantity=int(request.form.get("quantity"))
+def add_skill(skill,quantity):
     cost=SKILL_REF[skill]['Cost']
 
     data={
@@ -466,9 +486,7 @@ def reset():
     return render_template('all_skills.html',skills_db=skills_db_dict)
 
 @app.route("/remove_skill", methods=["POST"])
-def remove_skill():
-    skill=request.form.get("skill")
-    quantity=int(request.form.get("quantity"))
+def remove_skill(skill,quantity):
     cost=SKILL_REF[skill]['Cost']
     data={
         "skill":skill,
