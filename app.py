@@ -120,7 +120,7 @@ def inject_globals():
         "points": session.get("character_details", {}).get("points", 0), 
         'display_dict': display_dict,
         'char_dict': char_dict,
-        'HP': session.get("character_details", {}).get("health points", 2),
+        'HP': session.get("character_details", {}).get("health points", 5),
         'name': session.get("character_details", {}).get("name", 'no name selected'),
         'culture': session.get("character_details", {}).get("culture", 'no culture selected'),
         'bloodline': session.get("character_details", {}).get("bloodline", 'no bloodline selected'),

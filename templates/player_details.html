@@ -1,55 +1,65 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Submit Character</title>
 
-{% block title %}Submit Character{% endblock %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background: #f4f4f4;
+        }
 
-{% block content %}
+        .form-container {
+            max-width: 500px;
+            margin: 40px auto;
+            padding: 20px;
+            border: 2px solid #000;
+            border-radius: 6px;
+            background: #f9f9f9;
+        }
 
-<style>
-    .form-container {
-        max-width: 500px;
-        margin: 40px auto;
-        padding: 20px;
-        border: 2px solid #000;
-        border-radius: 6px;
-        background: #f9f9f9;
-    }
+        .form-title {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+        }
 
-    .form-title {
-        font-size: 22px;
-        font-weight: bold;
-        margin-bottom: 20px;
-        border-bottom: 2px solid #000;
-        padding-bottom: 5px;
-    }
+        .field {
+            margin-bottom: 15px;
+        }
 
-    .field {
-        margin-bottom: 15px;
-    }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
 
-    label {
-        display: block;
-        font-weight: bold;
-        margin-bottom: 5px;
-    }
+        input {
+            width: 100%;
+            padding: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
 
-    input {
-        width: 100%;
-        padding: 8px;
-        font-size: 14px;
-        box-sizing: border-box;
-    }
+        .required {
+            color: red;
+            margin-left: 4px;
+        }
 
-    .required {
-        color: red;
-        margin-left: 4px;
-    }
+        .submit-btn {
+            margin-top: 10px;
+            padding: 8px 12px;
+            cursor: pointer;
+            width: 100%;
+        }
+    </style>
+</head>
 
-    .submit-btn {
-        margin-top: 10px;
-        padding: 8px 12px;
-        cursor: pointer;
-    }
-</style>
+<body>
 
 <div class="form-container">
 
@@ -83,4 +93,5 @@
 
 </div>
 
-{% endblock %}
+</body>
+</html>
