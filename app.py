@@ -151,6 +151,9 @@ def init_session():
             'flaws_added':{}
         }
 
+    if 'flags' not in session:
+        session['flags']={'points_warning_given':False}
+
 @app.route("/submit")
 def submit_page():
     display_dict=dict(session['skills_added'])
@@ -204,6 +207,23 @@ def handle_missing_backstory(e):
 def handle_reliant_skills(e):
     return jsonify({'success':False,'error':'Reliant skill must be removed', 'message':'slimmery'}), 400
 
+@app.errorhandler(MissingBackstory)
+def handle_missing_backstory(e):
+    return {
+        "success": False,
+        "error": "MISSING_BACKSTORY",
+        "message": "Backstory is required before submission."
+    }, 400
+
+@app.errorhandler(UnspentPoints)
+def handle_missing_backstory(e):
+    return {
+        "success": False,
+        "error": "UNSPENT_POINTS",
+        "message": "Warning- you have unspent points.\n\nSubmit your character if you are okay with this."
+    }, 400
+
+
 @app.route('/confirm_submission', methods=['POST'])
 def confirm_submission():
     try:
@@ -213,6 +233,14 @@ def confirm_submission():
 
     points=session['character_details']['points']
 
+    print(session)
+
+    if points>0 and session['flags']['points_warning_given'] is False:
+        print('\ncreamy\n')
+        session['flags']['points_warning_given']=True
+        session.modified=True
+        raise UnspentPoints()
+    
     return "", 204
 
 @app.route("/character_setup", methods=["GET"])
@@ -346,7 +374,14 @@ def submit_backstory():
 
     session.modified=True
 
-    return "", 204
+    skills_db_dict = {
+        k: v
+        for k, v in vars(skills_db).items()
+        if isinstance(v, dict)
+    }
+    del skills_db_dict['__builtins__']
+
+    return render_template('all_skills.html',skills_db=skills_db_dict)
 
 @app.route("/add_skill",methods=["POST"])
 def add_skill():
@@ -414,7 +449,6 @@ def remove_skill():
     try:
         skill.remove()
     except ReliantSkills:
-        print(skill.reliant_skills)
         return jsonify({'success':False,'error':f'You must remove these skills first:\n\n{', '.join(skill.reliant_skills)}'})
     session.modified=True
 
