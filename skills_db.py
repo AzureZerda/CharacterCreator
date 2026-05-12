@@ -864,7 +864,7 @@ CRAFTING_SKILLS={
     "Fortify Armor":{
         "Max":1,
         "Cost":3,
-        "Prereq":{"can_fortify":1}
+        "Prereqs":{"can_fortify":1}
     },
     "Field Repair":{
         "Max":None,

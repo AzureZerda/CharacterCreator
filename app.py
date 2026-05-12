@@ -189,6 +189,9 @@ class UnspentPoints(Exception):
 class MissingBackstory(Exception):
     pass
 
+class ReliantSkills(Exception):
+    pass
+
 @app.errorhandler(MissingBackstory)
 def handle_missing_backstory(e):
     return {
@@ -196,6 +199,10 @@ def handle_missing_backstory(e):
         "error": "MISSING_BACKSTORY",
         "message": "Backstory is required before submission."
     }, 400
+
+@app.errorhandler(ReliantSkills)
+def handle_reliant_skills(e):
+    return jsonify({'success':False,'error':'Reliant skill must be removed', 'message':'slimmery'}), 400
 
 @app.route('/confirm_submission', methods=['POST'])
 def confirm_submission():
@@ -370,7 +377,10 @@ def add_skill():
             "faith": session["character_details"].get("faith", "no faith selected"),
         })
     except Prereq_Not_Met:
-        return jsonify({"success": False, "error": "Prerequisite not met"})
+        return jsonify({"success": False, "error": f"you need the following skills to add {skill.name}:\n\n{', '.join(skill.missing_prereqs)}", "message":"haahahahahahha"})
+    except Max_Points_Spent:
+        return jsonify({"success": False, "error": f"You do not have enough points."})
+        
 
 @app.route("/reset", methods=["POST"])
 def reset():
@@ -403,8 +413,9 @@ def remove_skill():
 
     try:
         skill.remove()
-    except Prereq_Not_Met:
-        return jsonify({'success':False,'error':'Reliant skill must be removed'})
+    except ReliantSkills:
+        print(skill.reliant_skills)
+        return jsonify({'success':False,'error':f'You must remove these skills first:\n\n{', '.join(skill.reliant_skills)}'})
     session.modified=True
 
     return jsonify({
@@ -515,6 +526,7 @@ class Skill(ABC):
         session.modified=True
     
     def check_reliance(self,skill_check):
+        self.reliant_skills=[]
         for skill,quantity in skill_check.items():
             try:
                 skill_cost=SKILL_REF[skill]['Cost']
@@ -528,13 +540,19 @@ class Skill(ABC):
             }
             current_skill=Construct_Skill(data)
             if hasattr(current_skill, "prereqs") and current_skill.prereqs is not None:
-                current_skill.check_prereqs(check_dict=skill_check)
+                try:
+                    current_skill.check_prereqs(check_dict=skill_check)
+                except Prereq_Not_Met:
+                    self.reliant_skills.append(current_skill.name)
+        if self.reliant_skills != []:
+            raise ReliantSkills
 
     def validate(self):
         self.check_points()
         if self.max_quant is not None:
             self.check_quantity()
         if hasattr(self, "prereqs") and self.prereqs is not None:
+            self.missing_prereqs=[]
             self.check_prereqs(check_dict=session)
 
     def check_points(self):
@@ -548,12 +566,18 @@ class Skill(ABC):
             raise Max_Quantity_Exceeded("Quantity exceeds maximum allowed")
 
     def check_prereqs(self, check_dict):
+        self.missing_prereqs=[]
         if 'skills_added' in check_dict:
             check_dict=check_dict['skills_added']
         if self.prereqs is not None:
             for skill, quant in self.prereqs.items():
                 if skill not in check_dict or check_dict[skill] < quant:
-                    raise Prereq_Not_Met("Prerequisite not met")
+                    if quant==1:
+                        self.missing_prereqs.append(skill)
+                    else:
+                        self.missing_prereqs.append(f'{skill} x {quant}')
+        if self.missing_prereqs != []:
+            raise Prereq_Not_Met("Prerequisite not met")
     
     def modify_flags(self,modification,flag_location):
         for flag in self.flags:
