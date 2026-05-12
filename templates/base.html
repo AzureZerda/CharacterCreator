@@ -51,6 +51,7 @@
             display: flex;
             align-items: center;
             gap: 15px;
+            padding-right: 30px;
         }
 
         button {
@@ -74,16 +75,24 @@
     </div>
 
     <div class="top-right">
-        <form method="GET" action="{{ url_for('submit_page') }}">
-            <button type="submit">Submit</button>
+        <form method="GET" action="{{ url_for('maliks_idea') }}">
+            <button type="submit">Skills</button>
+        </form>
+
+        <form method="POST" action="{{ url_for('trauma_dump_and_or_explode') }}">
+            <button type="submit">Backstory</button>
         </form>
 
         <form method="POST" action="{{ url_for('reset') }}">
-            <button type="submit">Reset</button>
+            <button type="submit">Reset Skills</button>
         </form>
 
-        <form method="GET" action="{{ url_for('home') }}">
-            <button type="submit">Back</button>
+        <form method="GET" action="{{ url_for('reset_character') }}">
+            <button type="submit">Reset Character</button>
+        </form>
+        
+        <form method="GET" action="{{ url_for('submit_page') }}">
+            <button type="submit">Submit</button>
         </form>
     </div>
 

@@ -89,8 +89,6 @@ def process_person():
 
     session['person_details']={'name':name,'email':email,'discord':discord}
 
-    print(session)
-
     skills_db_dict = {
         k: v
         for k, v in vars(skills_db).items()
@@ -155,7 +153,6 @@ def init_session():
 
 @app.route("/submit")
 def submit_page():
-    print(session)
     display_dict=dict(session['skills_added'])
     flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter']
     for flag in flags:
@@ -169,13 +166,19 @@ def submit_page():
 
     player_details={'name':player_ref['name'],'email':player_ref['email'],'discord':player_ref['discord']}
 
-    print(player_details)
+    print(session)
+
+    try:
+        backstory=session['character_details']['backstory']
+    except KeyError:
+        backstory='No backstory submitted...'
 
     return render_template(
     "submit_character.html",
     player_info=player_details,
     char_info=char_dict,
-    skill_info=display_dict)
+    skill_info=display_dict,
+    char_backstory=backstory)
 
 @app.route("/confirm_character")
 def confirm():
@@ -224,7 +227,14 @@ def submit_character():
     session.modified=True
     dic_ref['faith']=data['faith']
 
-    return redirect(url_for("home"))
+    skills_db_dict = {
+        k: v
+        for k, v in vars(skills_db).items()
+        if isinstance(v, dict)
+    }
+    del skills_db_dict['__builtins__']
+
+    return render_template('all_skills.html',skills_db=skills_db_dict)
 
 @app.route("/skills/<category>")
 def skills_page(category):
@@ -270,6 +280,42 @@ def skills_page(category):
         skills_added=session.get("skills_added", {}),
         display_dict=display_dict
     )
+
+@app.route("/reset_character", methods=["GET"])
+def reset_character():
+    back_to_the_death_realms_with_you()
+    return render_template('set_character.html')
+
+def back_to_the_death_realms_with_you():
+    session["skills_added"]={
+            "gm_mage":0,
+            "is_crafter":0,
+            "can_invent":0,
+            "can_instruct":0,
+            "can_assassinate":0,
+            'Literate':0,
+            'has_faith':0
+        }
+    session['character_details']['points']=40
+    try:
+        del session['character_details']['backstory']
+    except KeyError:
+        pass
+    session.modified=True
+
+@app.route("/enter_backstory", methods=["POST"])
+def trauma_dump_and_or_explode():
+    return render_template('submit_backstory.html')
+
+@app.route("/submit_backstory", methods=["POST"])
+def submit_backstory():
+    backstory=request.form.get("backstory")
+
+    session['character_details']['backstory']=backstory
+
+    session.modified=True
+
+    return "", 204
 
 @app.route("/add_skill",methods=["POST"])
 def add_skill():

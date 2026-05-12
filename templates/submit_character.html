@@ -74,6 +74,12 @@
             color: #777;
             padding: 15px;
         }
+
+        .backstory-text {
+            white-space: pre-wrap;
+            color: #333;
+            line-height: 1.5;
+        }
     </style>
 </head>
 
@@ -141,6 +147,24 @@
 
         {% else %}
             <div class="empty">No skills selected</div>
+        {% endif %}
+
+    </div>
+
+    <!-- BACKSTORY -->
+    <div class="title">Backstory</div>
+    <div class="box">
+
+        {% if char_backstory %}
+
+            <div class="backstory-text">
+                {{ char_backstory }}
+            </div>
+
+        {% else %}
+
+            <div class="empty">No backstory provided</div>
+
         {% endif %}
 
     </div>
