@@ -148,7 +148,7 @@ def init_session():
             'flaw_points':0,
             'memory_flaws':0,
             'health points':5,
-            'flaws_added':{}
+            'flaws_added':[]
         }
 
     if 'flags' not in session:
@@ -156,27 +156,65 @@ def init_session():
             'points_warning_given':False,
             'lore_score':0}
 
+def reset_session():
+    session["skills_added"]={
+        "gm_mage":0,
+        "is_crafter":0,
+        "can_invent":0,
+        "can_instruct":0,
+        "can_assassinate":0,
+        'Literate':0,
+        'has_faith':0,
+        'memory_flaws':0
+    }
+
+    session['character_details']={
+        'points':40,
+        'flaw_points':0,
+        'memory_flaws':0,
+        'health points':5,
+        'flaws_added':[]
+    }
+
+    session['flags']={
+        'points_warning_given':False,
+        'memory_flaws':0
+        }
+    
+    session['Point_Cats']={
+        'lore_score':0
+    }
+    
+    session.modified=True
+
 def Update_Points():
     new_total=40
     flaw_points=0
-    for flaw in session['character_details']['flaws_added']:
-        cost = -flaw.cost
-        flaw_points += cost
 
-        if flaw_points >= 10:
+    for flaw in session['character_details']['flaws_added']:
+        new_flaw_points = flaw_points + -SKILL_REF[flaw]['Cost']
+        
+        if new_flaw_points >= 10:
             flaw_points = 10
             break
+        elif new_flaw_points<10:
+            flaw_points=new_flaw_points
+
+    new_total+=flaw_points
     
     flaws=['Sovereign Zeal','Religious Zeal','Religious Zeal','Corrupted','Frail',
            'Clouded Memory','Fractured Memory','Fading Memory','Illiterate','Oath Bound',
            'Tethered']
 
     dict_ref=session['Point_Cats']
-    lore_score=dict_ref['Lore']
+    lore_score=dict_ref['lore_score']
     for skill,quantity in session['skills_added'].items():
         if skill in flaws:
             continue
-        skill_cost=SKILL_REF[skill]['Cost']
+        try:
+            skill_cost=SKILL_REF[skill]['Cost']
+        except KeyError:
+            continue
         new_total-=skill_cost*quantity
     if 'Pursuit of Knowledge' in session['skills_added']:
         if lore_score >= 12:
@@ -185,10 +223,12 @@ def Update_Points():
             new_total+=lore_score
     if 'Weapon Master' in session['skills_added']:
         new_total-=13
+    
+    session['character_details']['points']=new_total
+    return new_total
 
 @app.route("/modify_skill", methods=["POST"])
 def modify_skill():
-    try:
         skill_name=request.form.get("skill")
         quantity=int(request.form.get("quantity",1))
         modifier=int(request.form.get("modifier",0))
@@ -197,16 +237,16 @@ def modify_skill():
             return {"success":False,"error":"INVALID_MODIFIER"},400
 
         if modifier==1:
-            return add_skill(skill_name,quantity)
+            modification= add_skill(skill_name,quantity)
         else:
-            return remove_skill(skill_name,quantity)
+            modification= remove_skill(skill_name,quantity)
 
-    except Exception as e:
-        return {
-            "success":False,
-            "error":type(e).__name__,
-            "message":str(e)
-        },400
+        try:
+            modification['points']=Update_Points()
+        except TypeError:
+            pass
+
+        return modification
 
 @app.route("/submit")
 def submit_page():
@@ -287,10 +327,7 @@ def confirm_submission():
 
     points=session['character_details']['points']
 
-    print(session)
-
     if points>0 and session['flags']['points_warning_given'] is False:
-        print('\ncreamy\n')
         session['flags']['points_warning_given']=True
         session.modified=True
         raise UnspentPoints()
@@ -453,7 +490,7 @@ def add_skill(skill,quantity):
         skill.add()
         session["skills_added"][skill.name] = quantity
         session.modified = True
-        return jsonify({
+        return {
             'success': True,
             "message": "Added Skill",
             "points": session["character_details"]["points"],
@@ -462,19 +499,22 @@ def add_skill(skill,quantity):
             "culture": session["character_details"].get("culture", "no culture selected"),
             "bloodline": session["character_details"].get("bloodline", "no bloodline selected"),
             "faith": session["character_details"].get("faith", "no faith selected"),
-        })
+        }
+    
     except Prereq_Not_Met:
         return jsonify({"success": False, "error": f"you need the following skills to add {skill.name}:\n\n{', '.join(skill.missing_prereqs)}", "message":"haahahahahahha"})
     except Max_Points_Spent:
         return jsonify({"success": False, "error": f"You do not have enough points."})
+    except Memory_Flaw_Already_Added:
+        return jsonify({'success':False, 'error':'You have already added a memory flaw'})
         
 
 @app.route("/reset", methods=["POST"])
 def reset():
-    del session['skills_added']
-    session['character_details']['points']=40
-    session['character_details']['health points']=5
     init_session()
+
+    reset_session()
+
     session.modified=True
     skills_db_dict = {
         k: v
@@ -502,7 +542,7 @@ def remove_skill(skill,quantity):
         return jsonify({'success':False,'error':f'You must remove these skills first:\n\n{', '.join(skill.reliant_skills)}'})
     session.modified=True
 
-    return jsonify({
+    return {
             'success': True,
             "message": "Added Skill",
             "points": session["character_details"]["points"],
@@ -511,7 +551,7 @@ def remove_skill(skill,quantity):
             "culture": session["character_details"].get("culture", "no culture selected"),
             "bloodline": session["character_details"].get("bloodline", "no bloodline selected"),
             "faith": session["character_details"].get("faith", "no faith selected"),
-        })
+        }
 
 @app.route("/create_character", methods=["POST"])
 def create_character():
@@ -574,6 +614,9 @@ class Skill_Not_Exist(Exception):
 class Max_Points_Spent(Exception):
     pass
 
+class Memory_Flaw_Already_Added(Exception):
+    pass
+
 class Skill(ABC):   
     def __init__(self, name: str, cost: int, quantity=1, max_quant=None, prereqs: dict = None):
         self.name = name
@@ -594,7 +637,7 @@ class Skill(ABC):
             self.modify_flags(1,session['skills_added'])
         if 'lore' in self.name[:4].lower():
             session['flags']['lore_score']+=4
-        session['character_details']['points']-=self.cost
+        #session['character_details']['points']-=self.cost
         if self.name=='Toughness':
             session['character_details']['health points']+=self.quantity
         session.modified=True
@@ -608,7 +651,7 @@ class Skill(ABC):
         session['skills_added']=new_skills
         if 'lore' in self.name[:4].lower():
             session['flags']['lore_score']-=4
-        session['character_details']['points']+=self.cost
+        #session['character_details']['points']+=self.cost
         if self.name=='Toughness':
             session['character_details']['health points']-=self.quantity
         session.modified=True
@@ -742,27 +785,17 @@ class Background_Flaw(Skill):
         self.name=name
         self.quantity=quantity
         self.max_quant=None
+
         try:
             self.prereqs=SKILL_REF[name]['Prereq']
         except KeyError:
             pass
         self.cost=SKILL_REF[name]['Cost']*quantity
-
-    def check_prereqs(self, check_dict):
-        if 'skills_added' in check_dict:
-            check_dict=check_dict['skills_added']
-        if hasattr(self, "prereqs") and self.prereqs is not None:
-            for skill, quant in self.prereqs.items():
-                if skill not in check_dict or check_dict[skill] > quant:
-                    raise Prereq_Not_Met("Prerequisite not met")
     
     def remove(self):
-        session['character_details']['points']+=session['character_details']['flaws_added'][self.name]
-        session['character_details']['flaw_points']-=session['character_details']['flaws_added'][self.name]
         if self.name=='Illiterate':
             session['skills_added']['Literate']+=1
-        del session['character_details']['flaws_added'][self.name]
-        del session['skills_added'][self.name]
+        session['character_details']['flaws_added'].remove(self.name)
 
     def check_flaw_count(self):
         current_flaw_points=session['character_details']['flaw_points']
@@ -776,32 +809,29 @@ class Background_Flaw(Skill):
                 return -10+(current_flaw_points*-1)
     
     def add(self):
-        flaw_points_added=self.check_flaw_count()
         if hasattr(self, "prereqs") and self.prereqs is not None:
-            self.check_prereqs(session)
+            super().check_prereqs(session)
         if self.name=='Illiterate':
             session['skills_added']['Literate']-=1
-        session['character_details']['flaws_added'][self.name]=flaw_points_added
-        session['character_details']['flaw_points']+=flaw_points_added
-        session['character_details']['points']+=flaw_points_added*-1
+        session['character_details']['flaws_added'].append(self.name)
             
 class Memory_Flaw(Background_Flaw):
     def __init__(self, name):
         super().__init__(name,quantity=1)
     
     def add(self):
-        session['character_details']['memory_flaws']+=1
-        super().add()
-    
-    def validate(self):
-        self.check_mem()
-    
-    def check_mem(self):
-        if session['character_details']['memory_flaws']>0:
-            raise Prereq_Not_Met
+        self.check_prereq()
+        session['character_details']['flaws_added'].append(self.name)
+        session['skills_added']['memory_flaws']+=1
+        session.modifed=True
+
+    def check_prereq(self):
+        if session['skills_added']['memory_flaws']:
+            raise Memory_Flaw_Already_Added
     
     def remove(self):
-        session['character_details']['memory_flaws']-=1
+        session['skills_added']['memory_flaws']-=1
+        session.modifed=True
         super().remove()
 
 all_skill_sets = {
