@@ -966,3 +966,18 @@ CRAFTING_CIRCLES = {
     "Fletching": {"Max": 4, "Cost": 6},
     "Engineering": {"Max": 4, "Cost": 6}
 }
+
+BLOODLINE ={
+    'Human':{
+      'Unburdened':{'Max':1,'Cost':3},
+      'Good Enough':{'Max':1,'Cost':4},
+      'Pillar of the Community':{'Max':1,'Cost':2},
+      'Force of Will':{'Max':None,'Cost':4},
+      'Pursuit of Knowledge':{'Max':None,'Cost':4}},
+    'Effendal':{
+        'Effendal Sense':{'Max':1,'Cost':2},
+        'Effendal Agility':{'Max':1,'Cost':5},
+        'Patience':{'Max':1,'Cost':4},
+        'Weapon Master':{'Max':1, 'Cost':6},
+        'Scion of the Land':{'Max':1, 'Cost':4}}
+    }

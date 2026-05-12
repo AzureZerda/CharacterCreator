@@ -152,7 +152,39 @@ def init_session():
         }
 
     if 'flags' not in session:
-        session['flags']={'points_warning_given':False}
+        session['flags']={
+            'points_warning_given':False,
+            'lore_score':0}
+
+def Update_Points():
+    new_total=40
+    flaw_points=0
+    for flaw in session['character_details']['flaws_added']:
+        cost = -flaw.cost
+        flaw_points += cost
+
+        if flaw_points >= 10:
+            flaw_points = 10
+            break
+    
+    flaws=['Sovereign Zeal','Religious Zeal','Religious Zeal','Corrupted','Frail',
+           'Clouded Memory','Fractured Memory','Fading Memory','Illiterate','Oath Bound',
+           'Tethered']
+
+    dict_ref=session['Point_Cats']
+    lore_score=dict_ref['Lore']
+    for skill,quantity in session['skills_added'].items():
+        if skill in flaws:
+            continue
+        skill_cost=SKILL_REF[skill]['Cost']
+        new_total-=skill_cost*quantity
+    if 'Pursuit of Knowledge' in session['skills_added']:
+        if lore_score >= 12:
+            new_total+=12
+        else:
+            new_total+=lore_score
+    if 'Weapon Master' in session['skills_added']:
+        new_total-=13
 
 @app.route("/submit")
 def submit_page():
@@ -542,6 +574,8 @@ class Skill(ABC):
         self.validate()
         if hasattr(self, "flags") and self.flags is not None:
             self.modify_flags(1,session['skills_added'])
+        if 'lore' in self.name[:4].lower():
+            session['flags']['lore_score']+=4
         session['character_details']['points']-=self.cost
         if self.name=='Toughness':
             session['character_details']['health points']+=self.quantity
@@ -554,6 +588,8 @@ class Skill(ABC):
             self.modify_flags(-1,flag_location=new_skills)
         self.check_reliance(new_skills)
         session['skills_added']=new_skills
+        if 'lore' in self.name[:4].lower():
+            session['flags']['lore_score']-=4
         session['character_details']['points']+=self.cost
         if self.name=='Toughness':
             session['character_details']['health points']-=self.quantity
