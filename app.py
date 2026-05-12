@@ -80,6 +80,26 @@ def Determine_Route(skill):
     
     return route
 
+@app.route("/process_person", methods=["POST"])
+def process_person():
+    name = request.form.get("name")
+    email = request.form.get("email")
+    discord = request.form.get("discord")
+    character_name = request.form.get("character_name")
+
+    session['person_details']={'name':name,'email':email,'discord':discord}
+
+    print(session)
+
+    skills_db_dict = {
+        k: v
+        for k, v in vars(skills_db).items()
+        if isinstance(v, dict)
+    }
+    del skills_db_dict['__builtins__']
+
+    return render_template('character_setup.html',back_url=url_for("home"))
+
 @app.context_processor
 def inject_globals():
     display_dict=dict(session['skills_added'])
@@ -93,6 +113,11 @@ def inject_globals():
             del char_dict[flag]
         except KeyError:
             continue
+
+    try:
+        player_details=session['person_details']
+    except KeyError:
+        player_details={}
     return {
         "points": session.get("character_details", {}).get("points", 0), 
         'display_dict': display_dict,
@@ -101,7 +126,8 @@ def inject_globals():
         'name': session.get("character_details", {}).get("name", 'no name selected'),
         'culture': session.get("character_details", {}).get("culture", 'no culture selected'),
         'bloodline': session.get("character_details", {}).get("bloodline", 'no bloodline selected'),
-        'faith': session.get("character_details", {}).get("faith", 'no faith selected')
+        'faith': session.get("character_details", {}).get("faith", 'no faith selected'),
+        'player_info': player_details
     }
 
 @app.before_request
@@ -129,11 +155,35 @@ def init_session():
 
 @app.route("/submit")
 def submit_page():
-    return render_template("submit_character.html")
+    print(session)
+    display_dict=dict(session['skills_added'])
+    flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter']
+    for flag in flags:
+        del display_dict[flag]
+
+    char_ref=dict(session['character_details'])
+
+    char_dict={'name':char_ref['name'],'Culture':char_ref['culture'],'bloodline':char_ref['bloodline'],'faith':char_ref['faith'],'HP':char_ref['health points']}
+
+    player_ref=session['person_details']
+
+    player_details={'name':player_ref['name'],'email':player_ref['email'],'discord':player_ref['discord']}
+
+    print(player_details)
+
+    return render_template(
+    "submit_character.html",
+    player_info=player_details,
+    char_info=char_dict,
+    skill_info=display_dict)
 
 @app.route("/confirm_character")
 def confirm():
     return render_template('confirm_character.html')
+
+@app.route("/character_setup", methods=["GET"])
+def character_setup():
+    return render_template("character_setup.html")
 
 @app.route("/all_skills")
 def maliks_idea():
@@ -143,17 +193,11 @@ def maliks_idea():
         if isinstance(v, dict)
     }
     del skills_db_dict['__builtins__']
-    return render_template('all_skills.html', skills_db=skills_db_dict)
+    return render_template('all_skills.html', skills_db=skills_db_dict,back_url=url_for("character_setup"))
 
 @app.route("/")
 def home():
-    skills_db_dict = {
-        k: v
-        for k, v in vars(skills_db).items()
-        if isinstance(v, dict)
-    }
-    del skills_db_dict['__builtins__']
-    return render_template('all_skills.html', skills_db=skills_db_dict)
+    return render_template('player_details.html')
 
 @app.route("/set_character/<category>")
 def set_character(category):
@@ -260,8 +304,19 @@ def add_skill():
 
 @app.route("/reset", methods=["POST"])
 def reset():
-    session.clear()
-    return redirect(request.referrer or url_for("home"))
+    del session['skills_added']
+    session['character_details']['points']=40
+    session['character_details']['health points']=5
+    init_session()
+    session.modified=True
+    skills_db_dict = {
+        k: v
+        for k, v in vars(skills_db).items()
+        if isinstance(v, dict)
+    }
+    del skills_db_dict['__builtins__']
+
+    return render_template('all_skills.html',skills_db=skills_db_dict)
 
 @app.route("/remove_skill", methods=["POST"])
 def remove_skill():
@@ -310,7 +365,14 @@ def create_character():
 
     session.modified = True
 
-    return redirect(url_for("home"))  # or wherever your main UI is
+    skills_db_dict = {
+        k: v
+        for k, v in vars(skills_db).items()
+        if isinstance(v, dict)
+    }
+    del skills_db_dict['__builtins__']
+
+    return render_template('all_skills.html',skills_db=skills_db_dict)  # or wherever your main UI is
 
 skill_reference=None
 
@@ -418,7 +480,6 @@ class Skill(ABC):
     def check_prereqs(self, check_dict):
         if 'skills_added' in check_dict:
             check_dict=check_dict['skills_added']
-        print(self.name)
         if self.prereqs is not None:
             for skill, quant in self.prereqs.items():
                 if skill not in check_dict or check_dict[skill] < quant:

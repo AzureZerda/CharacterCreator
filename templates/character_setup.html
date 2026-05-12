@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Character Setup{% endblock %}
+
+{% block content %}
+
+<style>
+    .setup-box {
+        border: 2px solid #000;
+        padding: 20px;
+        max-width: 400px;
+        margin: 40px auto;
+        background: #f9f9f9;
+        border-radius: 6px;
+    }
+
+    .field {
+        margin-bottom: 15px;
+    }
+
+    label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    input, select {
+        width: 100%;
+        padding: 6px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+
+    button {
+        padding: 8px 12px;
+        cursor: pointer;
+        margin-top: 10px;
+    }
+
+    .title {
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #000;
+        padding-bottom: 5px;
+    }
+</style>
+
+<div class="setup-box">
+
+    <div class="title">Character Setup</div>
+
+    <form method="POST" action="{{ url_for('create_character') }}">
+
+        <div class="field">
+            <label>Name</label>
+            <input type="text" name="name" required>
+        </div>
+
+        <div class="field">
+            <label>Culture</label>
+            <select name="culture">
+                <option value="celestine">Celestine</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Bloodline</label>
+            <select name="bloodline">
+                <option value="human">Human</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Faith</label>
+            <select name="faith">
+                <option value=""></option>
+                <option value="celestine">Celestine</option>
+            </select>
+        </div>
+
+        <button type="submit">Create Character</button>
+
+    </form>
+
+</div>
+
+{% endblock %}

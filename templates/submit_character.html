@@ -1,107 +1,151 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Character Summary</title>
 
-{% block title %}Selected Skills{% endblock %}
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background: #f4f4f4;
+        }
 
-{% block content %}
+        .top-bar {
+            display: flex;
+            justify-content: flex-start;
+            margin-bottom: 20px;
+        }
 
-<style>
-    .container {
-        max-width: 600px;
-        margin: 20px auto;
-    }
+        .back-btn {
+            padding: 6px 12px;
+            cursor: pointer;
+            border: 1px solid #333;
+            background: white;
+            border-radius: 4px;
+        }
 
-    .title {
-        font-size: 24px;
-        font-weight: bold;
-        margin-bottom: 15px;
-        border-bottom: 2px solid #000;
-        padding-bottom: 5px;
-    }
+        .back-btn:hover {
+            background: #eaeaea;
+        }
 
-    .box {
-        border: 1px solid #333;
-        border-radius: 6px;
-        padding: 10px;
-        background: #f9f9f9;
-        margin-bottom: 25px;
-    }
+        .container {
+            max-width: 700px;
+            margin: auto;
+        }
 
-    .item {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 10px;
-        border-bottom: 1px solid #ddd;
-    }
+        .title {
+            font-size: 22px;
+            font-weight: bold;
+            margin: 20px 0 10px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 5px;
+        }
 
-    .item:last-child {
-        border-bottom: none;
-    }
+        .box {
+            background: white;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 25px;
+        }
 
-    .item-name {
-        font-weight: bold;
-    }
+        .item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-bottom: 1px solid #ddd;
+        }
 
-    .item-value {
-        color: #555;
-    }
+        .item:last-child {
+            border-bottom: none;
+        }
 
-    .empty {
-        text-align: center;
-        color: #777;
-        padding: 20px;
-    }
-</style>
+        .key {
+            font-weight: bold;
+        }
+
+        .value {
+            color: #555;
+        }
+
+        .empty {
+            text-align: center;
+            color: #777;
+            padding: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- BACK BUTTON -->
+<div class="top-bar">
+    <form method="GET" action="{{ url_for('maliks_idea') }}">
+        <button class="back-btn" type="submit">Back</button>
+    </form>
+</div>
 
 <div class="container">
 
-    <!-- ✅ NEW CHARACTER BOX -->
-    <div class="title">Character Details</div>
-
+    <!-- PLAYER INFO -->
+    <div class="title">Player Info</div>
     <div class="box">
 
-        {% if char_dict and char_dict|length > 0 %}
+        {% if player_info and player_info|length > 0 %}
 
-            {% for key, value in char_dict.items() %}
-
+            {% for key, value in player_info.items() %}
                 <div class="item">
-                    <div class="item-name">{{ key }}</div>
-                    <div class="item-value">{{ value }}</div>
+                    <div class="key">{{ key }}</div>
+                    <div class="value">{{ value }}</div>
                 </div>
-
             {% endfor %}
 
         {% else %}
-
-            <div class="empty">No character data</div>
-
+            <div class="empty">No player data</div>
         {% endif %}
 
     </div>
 
-    <!-- EXISTING SKILL BOX -->
-    <div class="title">Selected Skills</div>
-
+    <!-- CHARACTER INFO -->
+    <div class="title">Character Info</div>
     <div class="box">
 
-        {% if display_dict and display_dict|length > 0 %}
+        {% if char_info and char_info|length > 0 %}
 
-            {% for skill, qty in display_dict.items() %}
-
+            {% for key, value in char_info.items() %}
                 <div class="item">
-                    <div class="item-name">{{ skill }}</div>
-                    <div class="item-value">x{{ qty }}</div>
+                    <div class="key">{{ key }}</div>
+                    <div class="value">{{ value }}</div>
                 </div>
-
             {% endfor %}
 
         {% else %}
+            <div class="empty">No character data</div>
+        {% endif %}
 
+    </div>
+
+    <!-- SKILL INFO -->
+    <div class="title">Skill Info</div>
+    <div class="box">
+
+        {% if skill_info and skill_info|length > 0 %}
+
+            {% for skill, qty in skill_info.items() %}
+                <div class="item">
+                    <div class="key">{{ skill }}</div>
+                    <div class="value">x{{ qty }}</div>
+                </div>
+            {% endfor %}
+
+        {% else %}
             <div class="empty">No skills selected</div>
-
         {% endif %}
 
     </div>
 
 </div>
 
-{% endblock %}
+</body>
+</html>
