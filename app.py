@@ -166,8 +166,6 @@ def submit_page():
 
     player_details={'name':player_ref['name'],'email':player_ref['email'],'discord':player_ref['discord']}
 
-    print(session)
-
     try:
         backstory=session['character_details']['backstory']
     except KeyError:
@@ -503,7 +501,7 @@ class Skill(ABC):
                 'cost':cost
             }
             current_skill=Construct_Skill(data)
-            if hasattr(self, "prereqs") and self.prereqs is not None:
+            if hasattr(current_skill, "prereqs") and current_skill.prereqs is not None:
                 current_skill.check_prereqs(check_dict=skill_check)
 
     def validate(self):
