@@ -182,6 +182,32 @@ def submit_page():
 def confirm():
     return render_template('confirm_character.html')
 
+class UnspentPoints(Exception):
+    pass
+
+
+class MissingBackstory(Exception):
+    pass
+
+@app.errorhandler(MissingBackstory)
+def handle_missing_backstory(e):
+    return {
+        "success": False,
+        "error": "MISSING_BACKSTORY",
+        "message": "Backstory is required before submission."
+    }, 400
+
+@app.route('/confirm_submission', methods=['POST'])
+def confirm_submission():
+    try:
+        backstory=session['character_details']['backstory']
+    except KeyError:
+        raise MissingBackstory()
+
+    points=session['character_details']['points']
+
+    return "", 204
+
 @app.route("/character_setup", methods=["GET"])
 def character_setup():
     return render_template("character_setup.html")
