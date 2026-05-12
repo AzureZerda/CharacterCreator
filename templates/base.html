@@ -1,70 +1,67 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{% block title %}Page{% endblock %}</title>
+{% extends "popup_handler.html" %}
 
-    <style>
-        html, body {
-            height: 100%;
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
+{% block title %}Page{% endblock %}
 
-        body {
-            padding-top: 50px;
-        }
+{% block head %}
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+        font-family: Arial, sans-serif;
+    }
 
-        .page-wrapper {
-            min-height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
+    body {
+        padding-top: 50px;
+    }
 
-        .content {
-            flex: 1;
-            padding: 40px;
-        }
+    .page-wrapper {
+        min-height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
 
-        .footer {
-            background: #00bcd4;
-            color: white;
-            text-align: center;
-            padding: 10px 0;
-        }
+    .content {
+        flex: 1;
+        padding: 40px;
+    }
 
-        .top-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: #222;
-            color: white;
-            padding: 10px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 1000;
-        }
+    .footer {
+        background: #00bcd4;
+        color: white;
+        text-align: center;
+        padding: 10px 0;
+    }
 
-        .top-left, .top-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            padding-right: 30px;
-        }
+    .top-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: #222;
+        color: white;
+        padding: 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 999;
+    }
 
-        button {
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-    </style>
-</head>
+    .top-left, .top-right {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding-right: 30px;
+    }
 
-<body>
+    button {
+        padding: 5px 10px;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
 
+{% block content %}
 <div class="top-bar">
-
     <div class="top-left">
         Points: <span id="ui-points">{{ points }}</span> |
         HP: <span id="ui-hp">{{ HP }}</span> |
@@ -90,18 +87,16 @@
         <form method="GET" action="{{ url_for('reset_character') }}">
             <button type="submit">Reset Character</button>
         </form>
-        
+
         <form method="GET" action="{{ url_for('submit_page') }}">
             <button type="submit">Submit</button>
         </form>
     </div>
-
-</div> <!-- ✅ THIS WAS MISSING -->
+</div>
 
 <div class="page-wrapper">
-
     <div class="content">
-        {% block content %}{% endblock %}
+        {% block page_content %}{% endblock %}
     </div>
 
     <div class="footer">
@@ -112,8 +107,5 @@
             code
         </a>
     </div>
-
 </div>
-
-</body>
-</html>
+{% endblock %}

@@ -2,7 +2,7 @@
 
 {% block title %}Skills Database{% endblock %}
 
-{% block content %}
+{% block page_content %}
 
 <style>
     .setup-box {
@@ -83,8 +83,6 @@
         cursor: pointer;
     }
 </style>
-
-<!-- CHARACTER SETUP -->
 
 <h1>Skill Database</h1>
 
@@ -185,7 +183,7 @@ function toggleSkill(btn) {
     if (maxv === "None") {
         quantity = parseInt(input?.value || "0");
         if (isNaN(quantity) || quantity < 1) {
-            alert("Please enter a valid quantity.");
+            showPopup("Invalid Input", "Please enter a valid quantity.");
             return;
         }
     } else if (parseInt(maxv) > 1) {
@@ -208,7 +206,7 @@ function toggleSkill(btn) {
     .then(data => {
 
         if (!data.success) {
-            alert(data.error || "Action failed");
+            showPopup("ERROR", data.error || "Action failed");
             return;
         }
 
@@ -229,7 +227,7 @@ function toggleSkill(btn) {
     })
     .catch(err => {
         console.error(err);
-        alert("Request failed");
+        showPopup("NETWORK ERROR", "Request failed");
     });
 }
 
