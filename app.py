@@ -9,8 +9,8 @@ app=Flask(__name__)
 app.secret_key="fennec"
 
 def contains_google_doc_link(text):
-    pattern = r"(https?://)?(www\.)?docs\.google\.com/"
-    return bool(re.search(pattern, text))
+    LINK_REGEX = re.compile(r"(https?://[^\s]+|www\.[^\s]+)", re.IGNORECASE)
+    return bool(re.search(LINK_REGEX, text))
 
 def Construct_Skill(data):
     route=Determine_Route(data['skill'].lower())
