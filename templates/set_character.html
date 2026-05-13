@@ -5,71 +5,155 @@
 {% block content %}
 
 <style>
+    .page-container {
+        display:flex;
+        justify-content:center;
+        gap:40px;
+        flex-wrap:wrap;
+    }
+
     .form-container {
-        max-width: 400px;
-        margin: auto;
+        width:400px;
+        padding:20px;
+        border:2px solid #000;
+        border-radius:6px;
+        background:#f9f9f9;
+    }
+
+    .form-title {
+        font-size:20px;
+        font-weight:bold;
+        margin-bottom:15px;
+        border-bottom:2px solid #000;
+        padding-bottom:5px;
     }
 
     .field {
-        margin-bottom: 20px;
+        margin-bottom:15px;
     }
 
     label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
+        display:block;
+        font-weight:bold;
+        margin-bottom:5px;
     }
 
     input, select {
-        width: 100%;
-        padding: 8px;
-        font-size: 14px;
+        width:100%;
+        padding:8px;
+        font-size:14px;
+        box-sizing:border-box;
+    }
+
+    .required {
+        color:red;
+        margin-left:4px;
     }
 
     button {
-        padding: 10px 15px;
-        cursor: pointer;
-        width: 100%;
+        padding:10px 15px;
+        cursor:pointer;
+        width:100%;
+        margin-top:20px;
     }
 </style>
 
-<div class="form-container">
+<form id="combined-form">
 
-    <h2>Character Setup</h2>
+<div class="page-container">
 
-    <form method="POST" action="{{ url_for('submit_character') }}">
+    <!-- PLAYER INFO -->
+    <div class="form-container">
+
+        <div class="form-title">Player Info</div>
 
         <div class="field">
-            <label for="name">Name</label>
-            <input type="text" id="name" name="name" required>
+            <label>Name <span class="required">*</span></label>
+            <input type="text" name="player_name" required>
         </div>
 
         <div class="field">
-            <label for="culture">Culture</label>
-            <select id="culture" name="culture">
+            <label>Email <span class="required">*</span></label>
+            <input type="email" name="email" required>
+        </div>
+
+        <div class="field">
+            <label>Discord Username</label>
+            <input type="text" name="discord">
+        </div>
+
+        <div class="field">
+            <label>Character Name <span class="required">*</span></label>
+            <input type="text" name="character_name" required>
+        </div>
+
+    </div>
+
+    <!-- CHARACTER SETUP -->
+    <div class="form-container">
+
+        <div class="form-title">Character Setup</div>
+
+        <div class="field">
+            <label>Name</label>
+            <input type="text" name="name" required>
+        </div>
+
+        <div class="field">
+            <label>Culture</label>
+            <select name="culture">
                 <option value="celestine">Celestine</option>
             </select>
         </div>
 
         <div class="field">
-            <label for="bloodline">Bloodline</label>
-            <select id="bloodline" name="bloodline">
+            <label>Bloodline</label>
+            <select name="bloodline">
                 <option value="human">Human</option>
             </select>
         </div>
 
         <div class="field">
-            <label for="faith">Faith</label>
-            <select id="faith" name="faith">
+            <label>Faith</label>
+            <select name="faith">
                 <option value=""></option>
                 <option value="celestine">Celestine</option>
             </select>
         </div>
 
-        <button type="submit">Create Character</button>
-
-    </form>
+    </div>
 
 </div>
+
+<button type="submit">Submit All</button>
+
+</form>
+
+<script>
+document.getElementById("combined-form").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch("{{ url_for('submission_test') }}", {
+        method: "POST",
+        body: formData
+    })
+    .then(async res => {
+        if(!res.ok){
+            const text = await res.text();
+            throw new Error(text || "Submission failed");
+        }
+        return res;
+    })
+    .then(() => {
+        window.location.href = "/all_skills";
+    })
+    .catch(err => {
+        console.error(err);
+        showPopup("ERROR", err.message);
+    });
+});
+</script>
 
 {% endblock %}

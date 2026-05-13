@@ -112,6 +112,10 @@ def inject_globals():
         except KeyError:
             continue
 
+    
+
+    print(session)
+
     try:
         player_details=session['person_details']
     except KeyError:
@@ -350,7 +354,33 @@ def maliks_idea():
 
 @app.route("/")
 def home():
-    return render_template('player_details.html')
+    return render_template('set_character.html')
+
+@app.route('/submission_test', methods=['POST'])
+def submission_test():
+    player_name     = request.form.get('player_name', '')
+    email           = request.form.get('email', '')
+    discord         = request.form.get('discord', '')
+    character_name  = request.form.get('character_name', '')
+    name            = request.form.get('name', '')
+    culture         = request.form.get('culture', '')
+    bloodline       = request.form.get('bloodline', '')
+    faith           = request.form.get('faith', '')
+
+    per_ref=session['person_details']
+    per_ref['name']=player_name
+    per_ref['discord']=discord
+    per_ref['email']=email
+
+    char_ref=session['character_details']
+    char_ref['name']=name
+    char_ref['culture']=culture
+    char_ref['bloodline']=bloodline
+    char_ref['faith']=faith
+
+    session.modified=True
+
+    return '', 204
 
 @app.route("/set_character/<category>")
 def set_character(category):
@@ -358,33 +388,8 @@ def set_character(category):
 
 @app.route("/submit_character", methods=["POST"])
 def submit_character():
-    data = {
-        "name": request.form.get("name"),
-        "culture": request.form.get("culture"),
-        "bloodline": request.form.get("bloodline"),
-        "faith": request.form.get("faith")
-    }
 
-    dic_ref=session['character_details']
-
-    dic_ref['Name']=data['name']
-    dic_ref['culture']=data['culture']
-    dic_ref['bloodline']=data['bloodline']
-    if data['faith']!='':
-        session['skills_added']['has_faith']=1
-    else:
-        session['skills_added']['has_faith']=0
-    session.modified=True
-    dic_ref['faith']=data['faith']
-
-    skills_db_dict = {
-        k: v
-        for k, v in vars(skills_db).items()
-        if isinstance(v, dict)
-    }
-    del skills_db_dict['__builtins__']
-
-    return render_template('all_skills.html',skills_db=skills_db_dict)
+    return "",204
 
 @app.route("/skills/<category>")
 def skills_page(category):
@@ -795,7 +800,10 @@ class Background_Flaw(Skill):
     def remove(self):
         if self.name=='Illiterate':
             session['skills_added']['Literate']+=1
-        session['character_details']['flaws_added'].remove(self.name)
+        if self.name=='Frail':
+            session['character_details']['health points']+=self.quantity
+        for i in range(self.quantity):
+            session['character_details']['flaws_added'].remove(self.name)
 
     def check_flaw_count(self):
         current_flaw_points=session['character_details']['flaw_points']
@@ -811,9 +819,13 @@ class Background_Flaw(Skill):
     def add(self):
         if hasattr(self, "prereqs") and self.prereqs is not None:
             super().check_prereqs(session)
+        if self.name=='Frail':
+            session['character_details']['health points']-=self.quantity
         if self.name=='Illiterate':
             session['skills_added']['Literate']-=1
-        session['character_details']['flaws_added'].append(self.name)
+
+        for i in range(self.quantity):
+            session['character_details']['flaws_added'].append(self.name)
             
 class Memory_Flaw(Background_Flaw):
     def __init__(self, name):
@@ -822,12 +834,15 @@ class Memory_Flaw(Background_Flaw):
     def add(self):
         self.check_prereq()
         session['character_details']['flaws_added'].append(self.name)
-        session['skills_added']['memory_flaws']+=1
+        session['skills_added']['memory_flaws']=1
         session.modifed=True
 
     def check_prereq(self):
-        if session['skills_added']['memory_flaws']:
-            raise Memory_Flaw_Already_Added
+        try:
+            if session['skills_added']['memory_flaws']:
+                raise Memory_Flaw_Already_Added
+        except KeyError:
+            pass
     
     def remove(self):
         session['skills_added']['memory_flaws']-=1
