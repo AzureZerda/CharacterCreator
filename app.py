@@ -201,7 +201,6 @@ def Update_Points():
     skills_list= dict(session['skills_added'])
 
     for flaw in session['character_details']['flaws_added']:
-        print(session)
         new_flaw_points = flaw_points + -SKILL_REF[flaw]['Cost']
         
         if new_flaw_points >= 10:
@@ -239,6 +238,8 @@ def Update_Points():
 
     for skill,quantity in skills_list.items():
         if skill in flaws:
+            continue
+        if skill[:7]=='Native':
             continue
         try:
             skill_cost=SKILL_REF[skill]['Cost']
@@ -406,6 +407,8 @@ def submission_test():
         session['character_details']['flaws_added'].append('Tethered')
         session.modified=True
         add_skill('Tethered',1)
+
+    session['skills_added'][f'Native Lore: {culture}']=0
 
     per_ref=session['person_details']
     per_ref['name']=player_name
