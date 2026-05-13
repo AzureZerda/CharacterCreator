@@ -46,7 +46,8 @@ BACKGROUND_FLAWS={
         'Prereq':{
           'memory_flaws':0}
     },
-    "Illiterate": {"Max": 1, "Cost": -4, 'Prereq':{'Literate':0}}}
+    "Illiterate": {"Max": 1, "Cost": -4, 'Prereq':{'Literate':0}},
+    'Oathbound':{'Max':1, 'Cost': -6}}
 
 WEAPON_PROFICIENCIES = {
     "Short Weapons": {

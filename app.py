@@ -72,6 +72,7 @@ def Determine_Route(skill):
         'sovereign zeal':8,
         'religious zeal':8,
         'corrupted':8,
+        'oathbound':8,
         'frail':8,
         'illiterate':8,
         'weapon master':9
@@ -188,12 +189,19 @@ def reset_session():
     session.modified=True
 
 def Update_Points():
-    new_total=40
+    forty_points=['human','effendal']
+
+    if session['character_details']['bloodline'].lower() not in forty_points:
+        base_total=20
+    else:
+        base_total=40
+
     flaw_points=0
     
     skills_list= dict(session['skills_added'])
 
     for flaw in session['character_details']['flaws_added']:
+        print(session)
         new_flaw_points = flaw_points + -SKILL_REF[flaw]['Cost']
         
         if new_flaw_points >= 10:
@@ -202,10 +210,10 @@ def Update_Points():
         elif new_flaw_points<10:
             flaw_points=new_flaw_points
 
-    new_total+=flaw_points
+    base_total+=flaw_points
     
     flaws=['Sovereign Zeal','Religious Zeal','Religious Zeal','Corrupted','Frail',
-           'Clouded Memory','Fractured Memory','Fading Memory','Illiterate','Oath Bound',
+           'Clouded Memory','Fractured Memory','Fading Memory','Illiterate','Oathbound',
            'Tethered']
     
     if 'Pursuit of Knowledge' in skills_list:
@@ -216,7 +224,7 @@ def Update_Points():
         elif lore_score==0:
             pass
         else:
-            new_total+=lore_score
+            base_total+=lore_score
 
     dict_ref=session['Point_Cats']
     lore_score=dict_ref['lore_score']
@@ -236,16 +244,16 @@ def Update_Points():
             skill_cost=SKILL_REF[skill]['Cost']
         except KeyError:
             continue
-        new_total-=skill_cost*quantity
+        base_total-=skill_cost*quantity
 
     if 'Pursuit of Knowledge' in skills_list:
         if lore_score >= 12:
-            new_total+=12
+            base_total+=12
         else:
-            new_total+=lore_score
+            base_total+=lore_score
     
-    session['character_details']['points']=new_total
-    return new_total
+    session['character_details']['points']=base_total
+    return base_total
 
 @app.route("/modify_skill", methods=["POST"])
 def modify_skill():
@@ -392,6 +400,13 @@ def submission_test():
     bloodline       = request.form.get('bloodline', '')
     faith           = request.form.get('faith', '')
 
+    if bloodline.lower()=='newborn dream':
+        skills_db.BACKGROUND_FLAWS['Tethered']={'Max':1,'Cost':-10}
+        SKILL_REF['Tethered']={'Max':1,'Cost':-10}
+        session['character_details']['flaws_added'].append('Tethered')
+        session.modified=True
+        add_skill('Tethered',1)
+
     per_ref=session['person_details']
     per_ref['name']=player_name
     per_ref['discord']=discord
@@ -402,6 +417,8 @@ def submission_test():
     char_ref['culture']=culture
     char_ref['bloodline']=bloodline
     char_ref['faith']=faith
+
+    session['character_details']['points']=Update_Points()
 
     session.modified=True
 
@@ -476,7 +493,17 @@ def back_to_the_death_realms_with_you():
             'Literate':0,
             'has_faith':0
         }
-    session['character_details']['points']=40
+
+    session['character_details']['flaws_added']=[]
+
+    try:
+        del skills_db.BACKGROUND_FLAWS['Tethered']
+    except KeyError:
+        pass
+
+    points=Update_Points()
+
+    session['character_details']['points']=points
     try:
         del session['character_details']['backstory']
     except KeyError:
@@ -570,6 +597,8 @@ def remove_skill(skill,quantity):
         skill.remove()
     except ReliantSkills:
         return jsonify({'success':False,'error':f'You must remove these skills first:\n\n{', '.join(skill.reliant_skills)}'})
+    except Bloodline_Requirement:
+        return jsonify({'success':False,'error':'Newborn dreams are required to take Tethered'})
     session.modified=True
 
     return {
@@ -593,11 +622,6 @@ def create_character():
     "faith": request.form.get("faith")
     })
 
-    forty_points=['human','effendal']
-
-    if session['character_details']['bloodline'].lower() not in forty_points:
-        session['character_details']['points']=20
-
     session.modified = True
 
     skills_db_dict = {
@@ -612,6 +636,9 @@ def create_character():
 skill_reference=None
 
 skills_added={}
+
+class Bloodline_Requirement(Exception):
+    pass
 
 class points_exhausted(Exception):
     pass
@@ -673,6 +700,8 @@ class Skill(ABC):
         session.modified=True
 
     def remove(self):
+        if self.name=='Tethered':
+            raise Bloodline_Requirement
         new_skills = dict(session["skills_added"])
         del new_skills[self.name]
         if hasattr(self, "flags") and self.flags is not None:
@@ -755,11 +784,9 @@ class Weapon_Master(Skill):
         super().__init__(self.name, self.cost, self.quantity, self.max_quant)
     
     def add(self):
-        print(session['skills_added'])
         for weapon in self.weapons_gained:
             add_skill(weapon,quantity=1)
         session['skills_added'][self.name]=1
-        print(session['skills_added'])
         session.modified=True
 
     def remove(self):
@@ -827,7 +854,6 @@ class Instruction_Ability(Skill):
 
 class Assassin_Eligibility_Skill(Skill):
     def __init__(self, name,cost):
-        print('\nbean dip\n')
         self.flags=['can_assassinate']
         super().__init__(name, cost)
     
@@ -905,22 +931,27 @@ class Memory_Flaw(Background_Flaw):
         session.modifed=True
         super().remove()
 
-all_skill_sets = {
-    k: v
-    for k, v in vars(skills_db).items()
-    if isinstance(v, dict)
-}
-
 SKILL_REF = {}
 
-for skills in all_skill_sets.values():
-    for skill_name, skill_details in skills.items():
-        SKILL_REF[skill_name] = skill_details
+def construct_skill_ref():
+    all_skill_sets = {
+        k: v
+        for k, v in vars(skills_db).items()
+        if isinstance(v, dict)
+    }
 
-for bloodline in BLOODLINE_SKILLS:
-    pull_dict=BLOODLINE_SKILLS[bloodline]
-    for skill_name, skill_details in pull_dict.items():
-        SKILL_REF[skill_name]=skill_details
+    for skills in all_skill_sets.values():
+        for skill_name, skill_details in skills.items():
+            SKILL_REF[skill_name] = skill_details
+
+    for bloodline in BLOODLINE_SKILLS:
+        pull_dict=BLOODLINE_SKILLS[bloodline]
+        for skill_name, skill_details in pull_dict.items():
+            SKILL_REF[skill_name]=skill_details
+    
+    return all_skill_sets
+
+all_skill_sets=construct_skill_ref()
 
 if __name__=="__main__":
     app.run(debug=True)
