@@ -410,6 +410,7 @@ def submission_test():
 
     session['skills_added'][f'Native Lore: {culture}']=0
 
+    session['person_details']={}
     per_ref=session['person_details']
     per_ref['name']=player_name
     per_ref['discord']=discord
