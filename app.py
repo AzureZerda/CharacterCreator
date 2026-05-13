@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, session, jsonify, redirect, u
 from abc import ABC
 import json
 import skills_db
+from bloodline_skills import BLOODLINE_SKILLS
 
 app=Flask(__name__)
 app.secret_key="fennec"
@@ -112,10 +113,6 @@ def inject_globals():
         except KeyError:
             continue
 
-    
-
-    print(session)
-
     try:
         player_details=session['person_details']
     except KeyError:
@@ -182,7 +179,8 @@ def reset_session():
 
     session['flags']={
         'points_warning_given':False,
-        'memory_flaws':0
+        'memory_flaws':0,
+        'lore_score':0
         }
     
     session['Point_Cats']={
@@ -350,6 +348,17 @@ def maliks_idea():
         if isinstance(v, dict)
     }
     del skills_db_dict['__builtins__']
+
+    print(skills_db_dict)
+
+    print(session["character_details"]["bloodline"])
+    print(BLOODLINE_SKILLS[session["character_details"]["bloodline"]])
+
+    bloodline=session["character_details"]["bloodline"]
+
+    skills_db_dict[bloodline]=BLOODLINE_SKILLS.get(bloodline,{})
+
+
     return render_template('all_skills.html', skills_db=skills_db_dict,back_url=url_for("character_setup"))
 
 @app.route("/")
@@ -860,6 +869,11 @@ SKILL_REF = {}
 for skills in all_skill_sets.values():
     for skill_name, skill_details in skills.items():
         SKILL_REF[skill_name] = skill_details
+
+for bloodline in BLOODLINE_SKILLS:
+    pull_dict=BLOODLINE_SKILLS[bloodline]
+    for skill_name, skill_details in pull_dict.items():
+        SKILL_REF[skill_name]=skill_details
 
 if __name__=="__main__":
     app.run(debug=True)
