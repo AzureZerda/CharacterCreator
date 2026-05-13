@@ -1,24 +1,30 @@
-BACKGROUND_FEATURES= {
+BACKGROUND_FEATURES={
     'Magical Aptitude':{
         'Max':1,
-        'Cost':4
+        'Cost':4,
+        'desc':'Required to learn and use magic'
     },
     'Prophetic Dreamer':{
         'Max':1,
-        'Cost':4
+        'Cost':4,
+        'desc':'Dreams reveal future threats and events'
     },
     'Nobility':{
         'Max':1,
-        'Cost':6
+        'Cost':6,
+        'desc':'High social status with privileges, responsibilities'
     },
     'Military Experience':{
         'Max':None,
-        'Cost':4
+        'Cost':4,
+        'desc':'Recall military knowledge for situational insight'
     },
     'Bardic Knowledge':{
         'Max':1,
-        'Cost':4
-    }}
+        'Cost':4,
+        'desc':'Wide knowledge of lore, legends, customs'
+    }
+}
 
 BACKGROUND_FLAWS={
     "Sovereign Zeal": {"Max": 1, "Cost": -2},

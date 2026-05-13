@@ -48,19 +48,25 @@
 
     .skill-tile {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 10px;
+        flex-direction: column;
         padding: 8px 12px;
         border: 1px solid #333;
         background: #f5f5f5;
         border-radius: 4px;
         min-width: 240px;
+        cursor: pointer;
     }
 
     .skill-tile.locked {
         background: #ddd;
         opacity: 0.7;
+    }
+
+    .skill-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
     }
 
     .skill-name {
@@ -72,6 +78,19 @@
     .skill-price {
         font-size: 12px;
         color: #555;
+    }
+
+    .skill-desc {
+        display: none;
+        margin-top: 8px;
+        font-size: 13px;
+        color: #333;
+        border-top: 1px solid #ccc;
+        padding-top: 5px;
+    }
+
+    .skill-tile.expanded .skill-desc {
+        display: block;
     }
 
     .qty-input {
@@ -101,55 +120,64 @@
         {% set is_selected = skill_name in display_dict %}
         {% set current_qty = display_dict.get(skill_name, 1) %}
 
-        <div class="skill-tile {% if is_selected %}locked{% endif %}">
+        <div class="skill-tile {% if is_selected %}locked{% endif %}" onclick="toggleDesc(event, this)">
 
-            <div class="skill-name">
-                <div>{{ skill_name }}</div>
-                <div class="skill-price">Price: {{ data['Cost'] }}</div>
+            <div class="skill-header">
+
+                <div class="skill-name">
+                    <div>{{ skill_name }}</div>
+                    <div class="skill-price">Price: {{ data['Cost'] }}</div>
+                </div>
+
+                {% if maxv is none %}
+
+                    <input
+                        type="number"
+                        class="qty-input"
+                        min="1"
+                        value="{{ current_qty }}"
+                        data-skill-input="{{ skill_name }}"
+                        {% if is_selected %}disabled{% endif %}>
+
+                {% elif maxv > 1 %}
+
+                    <select
+                        class="qty-input"
+                        data-skill-input="{{ skill_name }}"
+                        {% if is_selected %}disabled{% endif %}>
+
+                        {% for i in range(1, maxv + 1) %}
+                            <option value="{{ i }}" {% if i == current_qty %}selected{% endif %}>
+                                {{ i }}
+                            </option>
+                        {% endfor %}
+
+                    </select>
+
+                {% else %}
+
+                    <input type="hidden"
+                           value="1"
+                           data-skill-input="{{ skill_name }}">
+
+                {% endif %}
+
+                <button
+                    type="button"
+                    class="plus-btn"
+                    data-skill="{{ skill_name }}"
+                    data-max="{{ maxv }}"
+                    data-state="{{ 'remove' if is_selected else 'add' }}"
+                    onclick="toggleSkill(this); event.stopPropagation();">
+                    {{ '-' if is_selected else '+' }}
+                </button>
+
             </div>
 
-            {% if maxv is none %}
-
-                <input
-                    type="number"
-                    class="qty-input"
-                    min="1"
-                    value="{{ current_qty }}"
-                    data-skill-input="{{ skill_name }}"
-                    {% if is_selected %}disabled{% endif %}>
-
-            {% elif maxv > 1 %}
-
-                <select
-                    class="qty-input"
-                    data-skill-input="{{ skill_name }}"
-                    {% if is_selected %}disabled{% endif %}>
-
-                    {% for i in range(1, maxv + 1) %}
-                        <option value="{{ i }}" {% if i == current_qty %}selected{% endif %}>
-                            {{ i }}
-                        </option>
-                    {% endfor %}
-
-                </select>
-
-            {% else %}
-
-                <input type="hidden"
-                       value="1"
-                       data-skill-input="{{ skill_name }}">
-
-            {% endif %}
-
-            <button
-                type="button"
-                class="plus-btn"
-                data-skill="{{ skill_name }}"
-                data-max="{{ maxv }}"
-                data-state="{{ 'remove' if is_selected else 'add' }}"
-                onclick="toggleSkill(this)">
-                {{ '-' if is_selected else '+' }}
-            </button>
+            <!-- DROPDOWN DESCRIPTION -->
+            <div class="skill-desc">
+                {{ data.get('desc', 'No description available') }}
+            </div>
 
         </div>
 
@@ -168,6 +196,16 @@ function syncTopBar(data) {
     document.getElementById("ui-culture").textContent = data.culture ?? "";
     document.getElementById("ui-bloodline").textContent = data.bloodline ?? "";
     document.getElementById("ui-faith").textContent = data.faith ?? "";
+}
+
+function toggleDesc(event, tile) {
+
+    // prevent toggling when interacting with controls
+    if (event.target.closest(".plus-btn") || event.target.closest(".qty-input")) {
+        return;
+    }
+
+    tile.classList.toggle("expanded");
 }
 
 function toggleSkill(btn) {
@@ -199,7 +237,6 @@ function toggleSkill(btn) {
     formData.append("quantity", quantity);
     formData.append("modifier", modifier);
 
-    // 🔥 CHANGED: single endpoint
     fetch("/modify_skill", {
         method: "POST",
         body: formData
