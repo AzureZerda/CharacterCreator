@@ -102,7 +102,7 @@ def process_person():
 @app.context_processor
 def inject_globals():
     display_dict=dict(session['skills_added'])
-    flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter']
+    flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter', 'memory_flaws']
     for flag in flags:
         del display_dict[flag]
     char_dict=dict(session['character_details'])
@@ -265,7 +265,7 @@ def modify_skill():
 @app.route("/submit")
 def submit_page():
     display_dict=dict(session['skills_added'])
-    flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter']
+    flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter', 'memory_flaws']
     for flag in flags:
         del display_dict[flag]
 
