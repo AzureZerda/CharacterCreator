@@ -207,6 +207,18 @@ def Update_Points():
     flaws=['Sovereign Zeal','Religious Zeal','Religious Zeal','Corrupted','Frail',
            'Clouded Memory','Fractured Memory','Fading Memory','Illiterate','Oath Bound',
            'Tethered']
+    
+    if 'Pursuit of Knowledge' in session['skills_added']:
+        lore_score=session['flags']['lore_score']
+
+        print(lore_score)
+
+        if lore_score>=12:
+            new_total+=12
+        elif lore_score==0:
+            pass
+        else:
+            new_total+=lore_score
 
     dict_ref=session['Point_Cats']
     lore_score=dict_ref['lore_score']
@@ -348,11 +360,6 @@ def maliks_idea():
         if isinstance(v, dict)
     }
     del skills_db_dict['__builtins__']
-
-    print(skills_db_dict)
-
-    print(session["character_details"]["bloodline"])
-    print(BLOODLINE_SKILLS[session["character_details"]["bloodline"]])
 
     bloodline=session["character_details"]["bloodline"]
 
