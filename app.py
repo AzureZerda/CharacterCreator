@@ -3,9 +3,14 @@ from abc import ABC
 import json
 import skills_db
 from bloodline_skills import BLOODLINE_SKILLS
+import re
 
 app=Flask(__name__)
 app.secret_key="fennec"
+
+def contains_google_doc_link(text):
+    pattern = r"(https?://)?(www\.)?docs\.google\.com/"
+    return bool(re.search(pattern, text))
 
 def Construct_Skill(data):
     route=Determine_Route(data['skill'].lower())
@@ -326,6 +331,9 @@ class MissingBackstory(Exception):
 class ReliantSkills(Exception):
     pass
 
+class Backstory_Is_Link(Exception):
+    pass
+
 @app.errorhandler(MissingBackstory)
 def handle_missing_backstory(e):
     return {
@@ -333,6 +341,15 @@ def handle_missing_backstory(e):
         "error": "MISSING_BACKSTORY",
         "message": "Backstory is required before submission."
     }, 400
+
+@app.errorhandler(Backstory_Is_Link)
+def handle_missing_backstory(e):
+    return jsonify({
+        "success": False,
+        "error": "NO LINKS",
+        "message": "NO LINKS!!!"
+    }), 400
+
 
 @app.errorhandler(ReliantSkills)
 def handle_reliant_skills(e):
@@ -526,6 +543,9 @@ def trauma_dump_and_or_explode():
 @app.route("/submit_backstory", methods=["POST"])
 def submit_backstory():
     backstory=request.form.get("backstory")
+
+    if contains_google_doc_link(backstory):
+        raise Backstory_Is_Link
 
     session['character_details']['backstory']=backstory
 
