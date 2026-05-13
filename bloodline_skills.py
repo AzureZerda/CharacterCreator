@@ -19,6 +19,10 @@ BLOODLINE_SKILLS={
         'Pursuit of Knowledge':{
             'Max':1,
             'Cost':4
+        },
+        'Weapon Master':{
+            'Max':1,
+            'Cost':6
         }
     }
 }

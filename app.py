@@ -31,6 +31,8 @@ def Construct_Skill(data):
         choice=Memory_Flaw(data['skill'])
     elif route==8:
         choice=Background_Flaw(data['skill'],data['quantity'])
+    elif route==9:
+        choice=Weapon_Master()
     else:
         choice=Skill(data['skill'],data['cost'],quantity=data['quantity'],prereqs=prereqs)
     return choice
@@ -71,7 +73,8 @@ def Determine_Route(skill):
         'religious zeal':8,
         'corrupted':8,
         'frail':8,
-        'illiterate':8
+        'illiterate':8,
+        'weapon master':9
         }
     
     try:
@@ -104,7 +107,10 @@ def inject_globals():
     display_dict=dict(session['skills_added'])
     flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter', 'memory_flaws']
     for flag in flags:
-        del display_dict[flag]
+        try:
+            del display_dict[flag]
+        except KeyError:
+            pass
     char_dict=dict(session['character_details'])
     flags=['points','flaw_points','memory_flaws','health points','flaws_added']
     for flag in flags:
@@ -169,14 +175,6 @@ def reset_session():
         'memory_flaws':0
     }
 
-    session['character_details']={
-        'points':40,
-        'flaw_points':0,
-        'memory_flaws':0,
-        'health points':5,
-        'flaws_added':[]
-    }
-
     session['flags']={
         'points_warning_given':False,
         'memory_flaws':0,
@@ -192,6 +190,8 @@ def reset_session():
 def Update_Points():
     new_total=40
     flaw_points=0
+    
+    skills_list= dict(session['skills_added'])
 
     for flaw in session['character_details']['flaws_added']:
         new_flaw_points = flaw_points + -SKILL_REF[flaw]['Cost']
@@ -208,10 +208,8 @@ def Update_Points():
            'Clouded Memory','Fractured Memory','Fading Memory','Illiterate','Oath Bound',
            'Tethered']
     
-    if 'Pursuit of Knowledge' in session['skills_added']:
+    if 'Pursuit of Knowledge' in skills_list:
         lore_score=session['flags']['lore_score']
-
-        print(lore_score)
 
         if lore_score>=12:
             new_total+=12
@@ -222,7 +220,16 @@ def Update_Points():
 
     dict_ref=session['Point_Cats']
     lore_score=dict_ref['lore_score']
-    for skill,quantity in session['skills_added'].items():
+
+    if 'Weapon Master' in skills_list:
+        weapon_master=Weapon_Master()
+        for weapon in weapon_master.weapons_gained:
+            try:
+                del skills_list[weapon]
+            except KeyError:
+                pass
+
+    for skill,quantity in skills_list.items():
         if skill in flaws:
             continue
         try:
@@ -230,13 +237,12 @@ def Update_Points():
         except KeyError:
             continue
         new_total-=skill_cost*quantity
-    if 'Pursuit of Knowledge' in session['skills_added']:
+
+    if 'Pursuit of Knowledge' in skills_list:
         if lore_score >= 12:
             new_total+=12
         else:
             new_total+=lore_score
-    if 'Weapon Master' in session['skills_added']:
-        new_total-=13
     
     session['character_details']['points']=new_total
     return new_total
@@ -267,7 +273,10 @@ def submit_page():
     display_dict=dict(session['skills_added'])
     flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter', 'memory_flaws']
     for flag in flags:
-        del display_dict[flag]
+        try:
+            del display_dict[flag]
+        except KeyError:
+            pass
 
     char_ref=dict(session['character_details'])
 
@@ -493,7 +502,7 @@ def submit_backstory():
     }
     del skills_db_dict['__builtins__']
 
-    return render_template('all_skills.html',skills_db=skills_db_dict)
+    return maliks_idea()
 
 @app.route("/add_skill",methods=["POST"])
 def add_skill(skill,quantity):
@@ -544,7 +553,7 @@ def reset():
     }
     del skills_db_dict['__builtins__']
 
-    return render_template('all_skills.html',skills_db=skills_db_dict)
+    return maliks_idea()
 
 @app.route("/remove_skill", methods=["POST"])
 def remove_skill(skill,quantity):
@@ -598,7 +607,7 @@ def create_character():
     }
     del skills_db_dict['__builtins__']
 
-    return render_template('all_skills.html',skills_db=skills_db_dict)  # or wherever your main UI is
+    return maliks_idea()
 
 skill_reference=None
 
@@ -735,6 +744,36 @@ class Skill(ABC):
         for flag in self.flags:
             flag_location[flag]+=modification
 
+class Weapon_Master(Skill):
+    def __init__(self):
+        self.name='Weapon Master'
+        self.cost=6
+        self.quantity=1
+        self.max_quant=1
+        self.weapons_gained=['Short Weapons', 'One-Handed Weapons', 'Two-Handed Weapons', 'Oversized Weapon Use',
+                             'Thrown Weapons', 'Bow and Arrow']
+        super().__init__(self.name, self.cost, self.quantity, self.max_quant)
+    
+    def add(self):
+        print(session['skills_added'])
+        for weapon in self.weapons_gained:
+            add_skill(weapon,quantity=1)
+        session['skills_added'][self.name]=1
+        print(session['skills_added'])
+        session.modified=True
+
+    def remove(self):
+        for weapon in self.weapons_gained[::-1]:
+            remove_skill(weapon, quantity=1)
+        session.modified=True
+        del session['skills_added'][self.name]
+    
+    def check_reliance(self,pass_dict):
+        self.prereqs={}
+        for weapon in self.weapons_gained:
+            self.prereqs[weapon]=1
+        super().check_reliance(pass_dict)
+
 class Quad_Level_Skill(Skill):
     def __init__(self, name, level, prereqs,cost_per_level=6):
         if level>4:
@@ -788,6 +827,7 @@ class Instruction_Ability(Skill):
 
 class Assassin_Eligibility_Skill(Skill):
     def __init__(self, name,cost):
+        print('\nbean dip\n')
         self.flags=['can_assassinate']
         super().__init__(name, cost)
     
