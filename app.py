@@ -163,6 +163,11 @@ def init_session():
         session['flags']={
             'points_warning_given':False,
             'lore_score':0}
+    
+    if 'Point_Cats' not in session:
+        session['Point_Cats']={
+        'lore_score':0
+    }
 
 def reset_session():
     session["skills_added"]={
