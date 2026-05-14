@@ -4,10 +4,7 @@ import json
 import skills_db
 from bloodline_skills import BLOODLINE_SKILLS
 import re
-from dotenv import load_dotenv
 import os
-
-load_dotenv("config.env")
 
 app=Flask(__name__)
 app.secret_key=os.getenv("SECRET_KEY")
