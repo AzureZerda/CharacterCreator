@@ -723,52 +723,52 @@ BARDIC_ARTS={
   "Commanding Presence":{
     "Max":None,
     "Cost":3,
-    "Desc":"You may call “By My Voice: Stun” after role-playing 3 seconds of trying to get people to quiet down. This may not be used in combat."
+    "desc":"You may call “By My Voice: Stun” after role-playing 3 seconds of trying to get people to quiet down. This may not be used in combat."
   },
 
   "Serenade":{
     "Max":None,
     "Cost":8,
     "Prereq":{"Willpower":1},
-    "Desc":"You may perform a 3-minute bardic talent in front of an audience of at least 4 characters, then call “Bestow Willpower” on one of those characters and yourself. You must explain that this Willpower lasts for the entire game and Returns with Rest."
+    "desc":"You may perform a 3-minute bardic talent in front of an audience of at least 4 characters, then call “Bestow Willpower” on one of those characters and yourself. You must explain that this Willpower lasts for the entire game and Returns with Rest."
   },
 
   "Dance Lesson":{
     "Max":None,
     "Cost":8,
     "Prereq":{"Dodge":1},
-    "Desc":"You must dance to music with another character for 3 minutes, then you may call “Bestow Dodge” on that character and yourself. You must explain that this Dodge lasts for the entire game and Returns with Rest."
+    "desc":"You must dance to music with another character for 3 minutes, then you may call “Bestow Dodge” on that character and yourself. You must explain that this Dodge lasts for the entire game and Returns with Rest."
   },
 
   "True Greatness":{
     "Max":None,
     "Cost":4,
-    "Desc":"You may perform a 3-minute bardic talent in front of at least 3 characters. For 3 hours afterward, you may call “Remove Weakness” on yourself whenever you receive a verbal compliment."
+    "desc":"You may perform a 3-minute bardic talent in front of at least 3 characters. For 3 hours afterward, you may call “Remove Weakness” on yourself whenever you receive a verbal compliment."
   },
 
   "Drinking Song":{
     "Max":1,
     "Cost":6,
-    "Desc":"You may perform a 3-minute bardic talent in front of at least 3 characters. For 3 minutes afterward, the first applicable COOKING skill item you consume will have its numerical values doubled."
+    "desc":"You may perform a 3-minute bardic talent in front of at least 3 characters. For 3 minutes afterward, the first applicable COOKING skill item you consume will have its numerical values doubled."
   },
 
   "Meditative Song":{
     "Max":None,
     "Cost":10,
     "Prereq":{"Mana Focus":3},
-    "Desc":"You may perform a 3-minute bardic talent and call “Restore 3 Mana” on yourself. This may not be used more than once every 30 minutes."
+    "desc":"You may perform a 3-minute bardic talent and call “Restore 3 Mana” on yourself. This may not be used more than once every 30 minutes."
   },
 
   "Hymn":{
     "Max":1,
     "Cost":2,
-    "Desc":"You may perform a 3-minute bardic talent in front of at least 3 characters during the first 3 minutes of a PRAYER—dedicated to a god of your faith—and reduce the duration of the PRAYER from 30 minutes to 20 minutes."
+    "desc":"You may perform a 3-minute bardic talent in front of at least 3 characters during the first 3 minutes of a PRAYER—dedicated to a god of your faith—and reduce the duration of the PRAYER from 30 minutes to 20 minutes."
   },
 
   "Requiem":{
     "Max":1,
     "Cost":3,
-    "Desc":"You may perform a 3-minute bardic talent in front of at least 3 characters during a funeral or wake to allow the spirit of the dead character in question to hear everything said beyond that point in the ceremony."
+    "desc":"You may perform a 3-minute bardic talent in front of at least 3 characters during a funeral or wake to allow the spirit of the dead character in question to hear everything said beyond that point in the ceremony."
   }
 }
 
@@ -948,47 +948,58 @@ KNOWLEDGE={
 GATHERING={
     "Academic Standing":{
         "Max":4,
-        "Cost":4
+        "Cost":4,
+        'desc':'At check-in, you receive an amount of Academic Standing cards equal to the rank you choose'
     },
     "Economic Standing":{
         "Max":4,
-        "Cost":4
+        "Cost":4,
+        'desc':'At check-in, you receive an amount of Economic Standing cards equal to the rank you choose'
     },
     "Military Standing":{
         "Max":4,
-        "Cost":4
+        "Cost":4,
+        'desc':'At check-in, you receive an amount of Military Standing cards equal to the rank you choose'
     },
     "Political Standing":{
         "Max":4,
-        "Cost":4
+        "Cost":4,
+        'desc':'At check-in, you receive an amount of Political Standing cards equal to the rank you choose'
     },
     "Underworld Standing":{
         "Max":4,
-        "Cost":4
+        "Cost":4,
+        'desc':'At check-in, you receive an amount of Underworld Standing cards equal to the rank you choose'
     },
     "Mining":{
         "Max":4,
-        "Cost":4
+        "Cost":4,
+        'desc':'At check-in, you get an amount of points in the MINING tree equal to the rank you choose'
     },
     "Herbalism":{
         "Max":4,
-        "Cost":4
+        "Cost":4,
+        'desc':'At check-in, you get an amount of points in the HERBALISM tree equal to the rank you choose'
     },
     "Woodcutting":{
         "Max":4,
-        "Cost":4
+        "Cost":4,
+        'desc':'At check-in, you get an amount of points in the WOODCUTTING tree equal to the rank you choose'
     },
     "Hunting":{
         "Max":4,
-        "Cost":4
+        "Cost":4,
+        'desc':'At check-in, you get an amount of points in the HUNTING tree equal to the rank you choose'
     },
     "Mercantile":{
         "Max":4,
-        "Cost":4
+        "Cost":4,
+        'desc':'At check-in, you get an amount of points in the MERCANTILE tree equal to the rank you choose'
     },
     "Black Market":{
         "Max":4,
-        "Cost":4
+        "Cost":4,
+        'desc':'At check-in, you get an amount of points in the BLACK MARKET tree equal to the rank you choose'
     }
 }
 
@@ -997,120 +1008,78 @@ CRAFTING_SKILLS={
 "Max":1,
 "Cost":3,
 "Prereq":{"can_fortify":1},
-"Desc":"You may spend 3 minutes at a Worktable (Light) or a Forge (Heavy) role-playing reinforcing a set of armor, then call “Bestow 2 Armor” (Light) or “Bestow 4 Armor” (Heavy). You should explain that this bestowed armor lasts the entire weekend and is restored with rest or FIELD REPAIR."
+"desc":"You may spend 3 minutes at a Worktable (Light) or a Forge (Heavy) role-playing reinforcing a set of armor, then call “Bestow 2 Armor” (Light) or “Bestow 4 Armor” (Heavy). You should explain that this bestowed armor lasts the entire weekend and is restored with rest or FIELD REPAIR."
 },
 
 "Field Repair":{
 "Max":None,
 "Cost":2,
 "Prereq":{"can_field_repair":1},
-"Desc":"You may spend 30 seconds role-playing repairing a set of armor or a shield that you have the relevant crafting skill for, then call “Restore Armor” or “Restore Shield.”"
+"desc":"You may spend 30 seconds role-playing repairing a set of armor or a shield that you have the relevant crafting skill for, then call “Restore Armor” or “Restore Shield.”"
 },
 
 "Repair Shield":{
 "Max":1,
 "Cost":3,
 "Prereq":{"Shieldsmithing":1},
-"Desc":"You may spend 3 minutes at a Forge roleplaying the process of repairing a shield, then call Restore Shield."
+"desc":"You may spend 3 minutes at a Forge roleplaying the process of repairing a shield, then call Restore Shield."
 },
 
 "Recipe Scribing":{
 "Max":1,
 "Cost":2,
 "Prereq":{"Scroll Scribing":1},
-"Desc":"You may use SCROLL SCRIBING to copy craft recipes (but not rituals). The cost is 1 Feather + 1 Paper per level of the recipe. You must bring the recipe, Laboratory tag, and ingredients to Logistics, just as you do with a scroll."
+"desc":"You may use SCROLL SCRIBING to copy craft recipes (but not rituals). The cost is 1 Feather + 1 Paper per level of the recipe. You must bring the recipe, Laboratory tag, and ingredients to Logistics, just as you do with a scroll."
 },
 
 "New Edition":{
 "Max":1,
 "Cost":3,
 "Prereq":{"Scroll Scribing":1},
-"Desc":"You may use SCROLL SCRIBING to make a replacement copy of a damaged, non-stolen scroll for a single blood ink, regardless of level. You must bring (and surrender) the damaged scroll to Logistics along with the Laboratory tag and ingredients, just like making a new scroll."
+"desc":"You may use SCROLL SCRIBING to make a replacement copy of a damaged, non-stolen scroll for a single blood ink, regardless of level. You must bring (and surrender) the damaged scroll to Logistics along with the Laboratory tag and ingredients, just like making a new scroll."
 },
 
 "Grand Feast":{
 "Max":1,
 "Cost":10,
 "Prereq":{"Cooking":4},
-"Desc":"You spend 30+ minutes role-playing hosting a feast for any number of people. You and up to 2 other cooks you choose may cook any number of dishes from the COOKING tree as part of the feast. You should explain that any food cooked AND consumed during the event by a participant that is there for the full 30 minutes gains the benefit of DRINKING SONG. See the COOKING skill for which dishes DRINKING SONG applies to."
+"desc":"You spend 30+ minutes role-playing hosting a feast for any number of people. You and up to 2 other cooks you choose may cook any number of dishes from the COOKING tree as part of the feast. You should explain that any food cooked AND consumed during the event by a participant that is there for the full 30 minutes gains the benefit of DRINKING SONG. See the COOKING skill for which dishes DRINKING SONG applies to."
 },
 
 "Reconstruct":{
 "Max":1,
 "Cost":1,
 "Prereq":{"is_crafter":1},
-"Desc":"You may remake a crafting item with the exact same, rulebook-legal properties listed on the original tag with one fewer listed ingredient of your choice per rank of the original item."
+"desc":"You may remake a crafting item with the exact same, rulebook-legal properties listed on the original tag with one fewer listed ingredient of your choice per rank of the original item."
 },
 
 "Inventor":{
 "Max":1,
 "Cost":2,
 "Prereq":{"can_invent":1,"Research":1},
-"Desc":"You may pitch and invent new craft recipes using the rules for Researching New Craft Items"
+"desc":"You may pitch and invent new craft recipes using the rules for Researching New Craft Items"
 }
 }
 
-LORE={
-    "Lore: Alchemy": {"Max": 1, "Cost": 4},
-    "Lore: Celestials": {"Max": 1, "Cost": 4},
-    "Lore: Church of Chorus": {"Max": 1, "Cost": 4},
-    "Lore: War of Wine": {"Max": 1, "Cost": 4},
-    "Lore: Rules of Society": {"Max": 1, "Cost": 4},
+LORE={}
 
-    "Lore: Blood Magic": {"Max": 1, "Cost": 4},
-    "Lore: Amalgamation": {"Max": 1, "Cost": 4},
-    "Lore: Demons": {"Max": 1, "Cost": 4},
-    "Lore: Old Ways": {"Max": 1, "Cost": 4},
-    "Lore: Purges": {"Max": 1, "Cost": 4},
-    "Lore: Nature": {"Max": 1, "Cost": 4},
-
-    "Lore: Channeling": {"Max": 1, "Cost": 4},
-    "Lore: Fae": {"Max": 1, "Cost": 4},
-    "Lore: Dragon Worship": {"Max": 1, "Cost": 4},
-    "Lore: The First Crusade": {"Max": 1, "Cost": 4},
-    "Lore: Anatomy": {"Max": 1, "Cost": 4},
-
-    "Lore: Divination": {"Max": 1, "Cost": 4},
-    "Lore: Dragons": {"Max": 1, "Cost": 4},
-    "Lore: The Celestine Faith": {"Max": 1, "Cost": 4},
-    "Lore: The War Of Radiance": {"Max": 1, "Cost": 4},
-    "Lore: Medicine": {"Max": 1, "Cost": 4},
-
-    "Lore: Dream": {"Max": 1, "Cost": 4},
-    "Lore: Undead": {"Max": 1, "Cost": 4},
-    "Lore: The Lady of the Mists": {"Max": 1, "Cost": 4},
-    "Lore: The Second Crusade": {"Max": 1, "Cost": 4},
-
-    "Lore: Necromancy": {"Max": 1, "Cost": 4},
-    "Lore: The Nameless Faith": {"Max": 1, "Cost": 4},
-    "Lore: The War of Giants": {"Max": 1, "Cost": 4},
-
-    "Lore: Sorcery": {"Max": 1, "Cost": 4},
-    "Lore: Trahazi Zodiac": {"Max": 1, "Cost": 4},
-
-    "Lore: Summoning": {"Max": 1, "Cost": 4},
-    "Lore: The Blood Cauldron": {"Max": 1, "Cost": 4},
-
-    "Lore: Warding": {"Max": 1, "Cost": 4},
-    "Lore: Demon Faiths": {"Max": 1, "Cost": 4},
-
-    "Lore: Rituals": {"Max": 1, "Cost": 4},
-    "Lore: Dace": {"Max": 1, "Cost": 4}
-}
+APPROVED_LORES=["Alchemy","Celestials","The Blood Cauldon","War of Wine","Rules of Society","Blood Magic","Demons","The Celestine Faith","Purges","Nature","Channeling","Fae","Church of Chorus","The First Crusade","Anatomy","Divination","Dragons","Demon Faiths","The War of Radiance","Medicine","Dream Magic","Undead","Dragon Worship","The Second Crusade","Knighthood","Necromancy","The Lady of the Mists","The War of Giants","Sorcery","the Nameless Faith","Summoning","Old Ways","Warding","Trahazi Zodiac","Ritual Magic"]
+for starting_lore in APPROVED_LORES:
+    LORE[f'Lore: {starting_lore}']={'Max':1,'Cost':4,'desc':f'You may call “Bid Lore: {starting_lore}” and ask a question of a nearby Twin Mask Story Staff member. This question may be as simple as, “Do I know anything about this?” or as specific as you like.'}
 
 CRAFTING_CIRCLES = {
-    "Blacksmithing": {"Max": 4, "Cost": 6, "Desc":"You may spend 30 minutes at a Forge role-playing crafting an item from the Blacksmithing chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
-    "Weaponsmithing": {"Max": 4, "Cost": 6, "Desc":"You may spend 30 minutes at a Forge role-playing crafting an item from the Weaponsmithing chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
-    "Armorsmithing": {"Max": 4, "Cost": 6, "Desc":"You may spend 30 minutes at a Forge role-playing crafting an item from the Armorsmithing chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
-    "Shieldsmithing": {"Max": 4, "Cost": 6, "Desc":"You may spend 30 minutes at a Forge role-playing crafting an item from the Shieldsmithing chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
-    "Locksmithing": {"Max": 4, "Cost": 6, "Desc":"You may spend 30 minutes at a Work Table role-playing crafting an item from the Locksmithing chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
-    "Enchanting": {"Max": 4, "Cost": 6, "Desc":"You may spend 30 minutes at a Work Table role-playing crafting an item from the Enchanting chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
-    "Scroll Scribing": {"Max": 4, "Cost": 6, "Desc":"You may spend 30 minutes at a Laboratory role-playing copying any spell scroll or Scribing craft recipe up to the level you choose, then take your building tag and ingredients to Logistics."},
-    "Artificing": {"Max": 4, "Cost": 6, "Desc":"You may spend 30 minutes at a Laboratory role-playing crafting an item from the Artificing chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
-    "Cooking": {"Max": 4, "Cost": 6, "Desc":"You may spend 3 minutes at a Kitchen role-playing to cook a dish from the Cooking chart or a craft recipe with a total Skill Level up to your chosen level."},
-    "Stable Alchemy": {"Max": 4, "Cost": 6, "Desc":"You may spend 30 minutes at a Laboratory role-playing crafting a potion from an Alchemy scroll up to the level you choose you are attuned to (or an attuned craft recipe), then take your building tag and ingredients to Logistics."},
-    "Tailoring": {"Max": 4, "Cost": 6, "Desc":"You may spend 30 minutes at a Worktable role-playing crafting an item from the Tailoring chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
-    "Fletching": {"Max": 4, "Cost": 6, "Desc":"You may spend 30 minutes at a Worktable role-playing crafting an item from the Fletching chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
-    "Engineering": {"Max": 4, "Cost": 6, "Desc":"You may spend 30 minutes at a location role-playing crafting an item from the Engineering chart or a craft recipe with a total Skill Level of your chosen level, then take your ingredients to Logistics."}
+    "Blacksmithing": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a Forge role-playing crafting an item from the Blacksmithing chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
+    "Weaponsmithing": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a Forge role-playing crafting an item from the Weaponsmithing chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
+    "Armorsmithing": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a Forge role-playing crafting an item from the Armorsmithing chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
+    "Shieldsmithing": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a Forge role-playing crafting an item from the Shieldsmithing chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
+    "Locksmithing": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a Work Table role-playing crafting an item from the Locksmithing chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
+    "Enchanting": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a Work Table role-playing crafting an item from the Enchanting chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
+    "Scroll Scribing": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a Laboratory role-playing copying any spell scroll or Scribing craft recipe up to the level you choose, then take your building tag and ingredients to Logistics."},
+    "Artificing": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a Laboratory role-playing crafting an item from the Artificing chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
+    "Cooking": {"Max": 4, "Cost": 6, "desc":"You may spend 3 minutes at a Kitchen role-playing to cook a dish from the Cooking chart or a craft recipe with a total Skill Level up to your chosen level."},
+    "Stable Alchemy": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a Laboratory role-playing crafting a potion from an Alchemy scroll up to the level you choose you are attuned to (or an attuned craft recipe), then take your building tag and ingredients to Logistics."},
+    "Tailoring": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a Worktable role-playing crafting an item from the Tailoring chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
+    "Fletching": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a Worktable role-playing crafting an item from the Fletching chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics."},
+    "Engineering": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a location role-playing crafting an item from the Engineering chart or a craft recipe with a total Skill Level of your chosen level, then take your ingredients to Logistics."}
 }
 
