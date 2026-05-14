@@ -9,6 +9,13 @@ import os
 app=Flask(__name__)
 app.secret_key=os.getenv("SECRET_KEY")
 
+FLAGS={'can_fortify':['Armorsmithing x1', 'Tailoring x1'],
+       'can_field_repair':['Fortify Armor','Repair Shield'],
+       'is_crafter':['Anything from CRAFTING CIRCLES except cooking'],
+       'can_invent':['Anything from CRAFTING CIRCLES at level 4'],
+       'can_instruct':['Offensive Instruction', 'Evasive Instruction', 'Defensive Instruction'],
+       'can_assassinate':['Short Weapons', 'Thrown Weapons', 'Bow and Arrow']}
+
 def contains_google_doc_link(text):
     LINK_REGEX = re.compile(r"(https?://[^\s]+|www\.[^\s]+)", re.IGNORECASE)
     return bool(re.search(LINK_REGEX, text))
@@ -32,7 +39,7 @@ def Construct_Skill(data):
     elif route==5:
         choice=Instruction_Ability(data['skill'],data['quantity'],SKILL_REF[data['skill']]['Cost'],SKILL_REF[data['skill']]['Prereq'])
     elif route==6:
-        choice=Field_Repair_Skill(data['skill'],SKILL_REF[data['skill']]['Cost'],SKILL_REF[data['skill']]['Prereqs'])
+        choice=Field_Repair_Skill(data['skill'],SKILL_REF[data['skill']]['Cost'],SKILL_REF[data['skill']]['Prereq'])
     elif route==7:
         choice=Memory_Flaw(data['skill'])
     elif route==8:
@@ -112,7 +119,7 @@ def process_person():
 @app.context_processor
 def inject_globals():
     display_dict=dict(session['skills_added'])
-    flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter', 'memory_flaws']
+    flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter', 'memory_flaws', 'can_field_repair']
     for flag in flags:
         try:
             del display_dict[flag]
@@ -152,7 +159,8 @@ def init_session():
             "can_instruct":0,
             "can_assassinate":0,
             'Literate':0,
-            'has_faith':0
+            'has_faith':0,
+            'can_field_repair':0
         }
         session.modified=True
     
@@ -184,7 +192,8 @@ def reset_session():
         "can_assassinate":0,
         'Literate':0,
         'has_faith':0,
-        'memory_flaws':0
+        'memory_flaws':0, 
+        'can_field_repair':0
     }
 
     session['flags']={
@@ -291,7 +300,7 @@ def modify_skill():
 @app.route("/submit")
 def submit_page():
     display_dict=dict(session['skills_added'])
-    flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter', 'memory_flaws']
+    flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter', 'memory_flaws', 'can_field_repair']
     for flag in flags:
         try:
             del display_dict[flag]
@@ -491,7 +500,7 @@ def skills_page(category):
     if skills is None:
         return "Invalid category", 404
 
-    flags = ['can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'is_crafter', 'Literate','has_faith']
+    flags = ['can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'is_crafter', 'Literate','has_faith', 'can_field_repair']
 
     display_dict = dict(session.get("skills_added", {}))
     for flag in flags:
@@ -518,7 +527,8 @@ def back_to_the_death_realms_with_you():
             "can_instruct":0,
             "can_assassinate":0,
             'Literate':0,
-            'has_faith':0
+            'has_faith':0,
+            'can_field_repair':0
         }
 
     session['character_details']['flaws_added']=[]
@@ -588,6 +598,8 @@ def add_skill(skill,quantity):
             "faith": session["character_details"].get("faith", "no faith selected"),
         }
     
+    except Prereq_Flag_Raised:
+        return jsonify({'success':False, 'error':f'You need one of the following skills:\n\n {'\n'.join(skill.missing_prereqs)}'})
     except Prereq_Not_Met:
         return jsonify({"success": False, "error": f"you need the following skills to add {skill.name}:\n\n{', '.join(skill.missing_prereqs)}", "message":"haahahahahahha"})
     except Max_Points_Spent:
@@ -704,6 +716,9 @@ class Max_Points_Spent(Exception):
 class Memory_Flaw_Already_Added(Exception):
     pass
 
+class Prereq_Flag_Raised(Exception):
+    pass
+
 class Skill(ABC):   
     def __init__(self, name: str, cost: int, quantity=1, max_quant=None, prereqs: dict = None):
         self.name = name
@@ -768,6 +783,8 @@ class Skill(ABC):
             raise ReliantSkills
 
     def validate(self):
+        print('\nvalid viking\n')
+        print(self.prereqs)
         self.check_points()
         if self.max_quant is not None:
             self.check_quantity()
@@ -786,12 +803,17 @@ class Skill(ABC):
             raise Max_Quantity_Exceeded("Quantity exceeds maximum allowed")
 
     def check_prereqs(self, check_dict):
+        print('\nslippery sailor\n')
         self.missing_prereqs=[]
         if 'skills_added' in check_dict:
             check_dict=check_dict['skills_added']
         if self.prereqs is not None:
             for skill, quant in self.prereqs.items():
                 if skill not in check_dict or check_dict[skill] < quant:
+                    if skill in FLAGS:
+                        print('\nFishy Friar\n')
+                        self.missing_prereqs=FLAGS[skill]
+                        raise Prereq_Flag_Raised
                     if quant==1:
                         self.missing_prereqs.append(skill)
                     else:
@@ -894,6 +916,7 @@ class Fortification_Skill(Skill):
 
 class Field_Repair_Skill(Skill):
     def __init__(self, name, cost, prereqs):
+        self.prereqs=prereqs
         self.flags=['can_field_repair']
         super().__init__(name, cost, prereqs=prereqs)
 

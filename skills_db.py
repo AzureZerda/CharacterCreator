@@ -996,14 +996,14 @@ CRAFTING_SKILLS={
 "Fortify Armor":{
 "Max":1,
 "Cost":3,
-"Prereqs":{"can_fortify":1},
+"Prereq":{"can_fortify":1},
 "Desc":"You may spend 3 minutes at a Worktable (Light) or a Forge (Heavy) role-playing reinforcing a set of armor, then call “Bestow 2 Armor” (Light) or “Bestow 4 Armor” (Heavy). You should explain that this bestowed armor lasts the entire weekend and is restored with rest or FIELD REPAIR."
 },
 
 "Field Repair":{
 "Max":None,
 "Cost":2,
-"Prerequisite":{"can_field_repair":1},
+"Prereq":{"can_field_repair":1},
 "Desc":"You may spend 30 seconds role-playing repairing a set of armor or a shield that you have the relevant crafting skill for, then call “Restore Armor” or “Restore Shield.”"
 },
 
