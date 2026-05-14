@@ -7,7 +7,7 @@ import re
 import os
 
 app=Flask(__name__)
-app.secret_key='fennec'
+app.secret_key=os.getenv("SECRET_KEY")
 
 def contains_google_doc_link(text):
     LINK_REGEX = re.compile(r"(https?://[^\s]+|www\.[^\s]+)", re.IGNORECASE)
