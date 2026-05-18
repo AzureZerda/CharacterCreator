@@ -5,16 +5,63 @@ import skills_db
 from bloodline_skills import BLOODLINE_SKILLS
 import re
 import os
+import constants
 
 app=Flask(__name__)
 app.secret_key=os.getenv("SECRET_KEY")
 
-FLAGS={'can_fortify':['Armorsmithing x1', 'Tailoring x1'],
-       'can_field_repair':['Fortify Armor','Repair Shield'],
-       'is_crafter':['Anything from CRAFTING CIRCLES except cooking'],
-       'can_invent':['Anything from CRAFTING CIRCLES at level 4'],
-       'can_instruct':['Offensive Instruction', 'Evasive Instruction', 'Defensive Instruction'],
-       'can_assassinate':['Short Weapons', 'Thrown Weapons', 'Bow and Arrow']}
+class UnspentPoints(Exception):
+    pass
+
+class MissingBackstory(Exception):
+    pass
+
+class ReliantSkills(Exception):
+    pass
+
+class Backstory_Is_Link(Exception):
+    pass
+
+class Bloodline_Requirement(Exception):
+    pass
+
+class points_exhausted(Exception):
+    pass
+
+class Prereq_Not_Met(Exception):
+    pass
+
+class Max_Quantity_Exceeded(Exception):
+    pass
+
+class Skill_Not_Exist(Exception):
+    pass
+
+class Max_Points_Spent(Exception):
+    pass
+
+class Memory_Flaw_Already_Added(Exception):
+    pass
+
+class Prereq_Flag_Raised(Exception):
+    pass
+
+class Weapon_Master_Modified(Exception):
+    pass
+
+def create_app():
+    app=Flask(__name__)
+
+    app.config["SECRET_KEY"]=os.getenv("SECRET_KEY")
+    app.config["SQLALCHEMY_DATABASE_URI"]="sqlite:///app.db"
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]=False
+
+    db.init_app(app)
+
+    with app.app_context():
+        db.create_all()
+
+    return app
 
 def contains_google_doc_link(text):
     LINK_REGEX = re.compile(r"(https?://[^\s]+|www\.[^\s]+)", re.IGNORECASE)
@@ -151,67 +198,30 @@ def inject_globals():
 
 @app.before_request
 def init_session():
-    if "skills_added" not in session:
-        session["skills_added"]={
-            "gm_mage":0,
-            "is_crafter":0,
-            "can_invent":0,
-            "can_instruct":0,
-            "can_assassinate":0,
-            'Literate':0,
-            'has_faith':0,
-            'can_field_repair':0
-        }
-        session.modified=True
+    for cat in constants.DEFAULT_SESSION:
+        if cat not in session:
+            session[cat]=constants.DEFAULT_SESSION[cat]
     
-    if 'character_details' not in session:
-        session['character_details']={
-            'points':40,
-            'flaw_points':0,
-            'memory_flaws':0,
-            'health points':5,
-            'flaws_added':[]
-        }
+    session.modified=True
 
-    if 'flags' not in session:
-        session['flags']={
-            'points_warning_given':False,
-            'lore_score':0}
+def reset_skills():
+    for cat in constants.DEFAULT_SESSION:
+        if cat=='character_details':
+            continue
+        session[cat]=constants.DEFAULT_SESSION[cat]
     
-    if 'Point_Cats' not in session:
-        session['Point_Cats']={
-        'lore_score':0
-    }
+    session.modified=True
 
 def reset_session():
-    session["skills_added"]={
-        "gm_mage":0,
-        "is_crafter":0,
-        "can_invent":0,
-        "can_instruct":0,
-        "can_assassinate":0,
-        'Literate':0,
-        'has_faith':0,
-        'memory_flaws':0, 
-        'can_field_repair':0
-    }
-
-    session['flags']={
-        'points_warning_given':False,
-        'memory_flaws':0,
-        'lore_score':0
-        }
-    
-    session['Point_Cats']={
-        'lore_score':0
-    }
+    for cat in constants.DEFAULT_SESSION:
+        if cat=='character_details':
+            continue
+        session[cat]=constants.DEFAULT_SESSION[cat]
     
     session.modified=True
 
 def Update_Points():
-    forty_points=['human','effendal']
-
-    if session['character_details']['bloodline'].lower() not in forty_points:
+    if session['character_details']['bloodline'].lower() not in constants.FORTY_POINTS:
         base_total=20
     else:
         base_total=40
@@ -230,10 +240,6 @@ def Update_Points():
             flaw_points=new_flaw_points
 
     base_total+=flaw_points
-    
-    flaws=['Sovereign Zeal','Religious Zeal','Religious Zeal','Corrupted','Frail',
-           'Clouded Memory','Fractured Memory','Fading Memory','Illiterate','Oathbound',
-           'Tethered']
     
     if 'Pursuit of Knowledge' in skills_list:
         lore_score=session['flags']['lore_score']
@@ -257,7 +263,7 @@ def Update_Points():
                 pass
 
     for skill,quantity in skills_list.items():
-        if skill in flaws:
+        if skill in constants.FLAWS:
             continue
         if skill[:7]=='Native':
             continue
@@ -275,6 +281,24 @@ def Update_Points():
     
     session['character_details']['points']=base_total
     return base_total
+
+def construct_skill_ref():
+    all_skill_sets = {
+        k: v
+        for k, v in vars(skills_db).items()
+        if isinstance(v, dict)
+    }
+
+    for skills in all_skill_sets.values():
+        for skill_name, skill_details in skills.items():
+            SKILL_REF[skill_name] = skill_details
+
+    for bloodline in BLOODLINE_SKILLS:
+        pull_dict=BLOODLINE_SKILLS[bloodline]
+        for skill_name, skill_details in pull_dict.items():
+            SKILL_REF[skill_name]=skill_details
+    
+    return all_skill_sets
 
 @app.route("/modify_skill", methods=["POST"])
 def modify_skill():
@@ -331,19 +355,6 @@ def submit_page():
 def confirm():
     return render_template('confirm_character.html')
 
-class UnspentPoints(Exception):
-    pass
-
-
-class MissingBackstory(Exception):
-    pass
-
-class ReliantSkills(Exception):
-    pass
-
-class Backstory_Is_Link(Exception):
-    pass
-
 @app.errorhandler(MissingBackstory)
 def handle_missing_backstory(e):
     return {
@@ -380,7 +391,6 @@ def handle_missing_backstory(e):
         "error": "UNSPENT_POINTS",
         "message": "Warning- you have unspent points.\n\nSubmit your character if you are okay with this."
     }, 400
-
 
 @app.route('/confirm_submission', methods=['POST'])
 def confirm_submission():
@@ -520,31 +530,7 @@ def reset_character():
     return render_template('set_character.html')
 
 def back_to_the_death_realms_with_you():
-    session["skills_added"]={
-            "gm_mage":0,
-            "is_crafter":0,
-            "can_invent":0,
-            "can_instruct":0,
-            "can_assassinate":0,
-            'Literate':0,
-            'has_faith':0,
-            'can_field_repair':0
-        }
-
-    session['character_details']['flaws_added']=[]
-
-    try:
-        del skills_db.BACKGROUND_FLAWS['Tethered']
-    except KeyError:
-        pass
-
-    points=Update_Points()
-
-    session['character_details']['points']=points
-    try:
-        del session['character_details']['backstory']
-    except KeyError:
-        pass
+    init_session()
     session.modified=True
 
 @app.route("/enter_backstory", methods=["POST"])
@@ -606,13 +592,10 @@ def add_skill(skill,quantity):
         return jsonify({"success": False, "error": f"You do not have enough points."})
     except Memory_Flaw_Already_Added:
         return jsonify({'success':False, 'error':'You have already added a memory flaw'})
-        
 
 @app.route("/reset", methods=["POST"])
 def reset():
-    init_session()
-
-    reset_session()
+    reset_skills()
 
     session.modified=True
     skills_db_dict = {
@@ -621,6 +604,8 @@ def reset():
         if isinstance(v, dict)
     }
     del skills_db_dict['__builtins__']
+
+    Update_Points()
 
     return maliks_idea()
 
@@ -678,46 +663,6 @@ def create_character():
 skill_reference=None
 
 skills_added={}
-
-class Bloodline_Requirement(Exception):
-    pass
-
-class points_exhausted(Exception):
-    pass
-
-class Character:
-    def __init__(self,char_points=40):
-        self.skills_added={}
-        self.skills_added['Literate']=1
-        self.char_points=char_points
-    
-    def add_skill(self,skill):
-        self.check_budget(skill.cost)
-        skill.validate()
-        self.skills_added[skill.name]=skill.quantity
-
-    def check_budget(self,cost):
-        new_point_total=self.char_points-cost
-        if new_point_total<0:
-            raise points_exhausted
-
-class Prereq_Not_Met(Exception):
-    pass
-
-class Max_Quantity_Exceeded(Exception):
-    pass
-
-class Skill_Not_Exist(Exception):
-    pass
-
-class Max_Points_Spent(Exception):
-    pass
-
-class Memory_Flaw_Already_Added(Exception):
-    pass
-
-class Prereq_Flag_Raised(Exception):
-    pass
 
 class Skill(ABC):   
     def __init__(self, name: str, cost: int, quantity=1, max_quant=None, prereqs: dict = None):
@@ -783,8 +728,6 @@ class Skill(ABC):
             raise ReliantSkills
 
     def validate(self):
-        print('\nvalid viking\n')
-        print(self.prereqs)
         self.check_points()
         if self.max_quant is not None:
             self.check_quantity()
@@ -803,16 +746,14 @@ class Skill(ABC):
             raise Max_Quantity_Exceeded("Quantity exceeds maximum allowed")
 
     def check_prereqs(self, check_dict):
-        print('\nslippery sailor\n')
         self.missing_prereqs=[]
         if 'skills_added' in check_dict:
             check_dict=check_dict['skills_added']
         if self.prereqs is not None:
             for skill, quant in self.prereqs.items():
                 if skill not in check_dict or check_dict[skill] < quant:
-                    if skill in FLAGS:
-                        print('\nFishy Friar\n')
-                        self.missing_prereqs=FLAGS[skill]
+                    if skill in constants.FLAGS:
+                        self.missing_prereqs=constants.FLAGS[skill]
                         raise Prereq_Flag_Raised
                     if quant==1:
                         self.missing_prereqs.append(skill)
@@ -985,24 +926,6 @@ class Memory_Flaw(Background_Flaw):
         super().remove()
 
 SKILL_REF = {}
-
-def construct_skill_ref():
-    all_skill_sets = {
-        k: v
-        for k, v in vars(skills_db).items()
-        if isinstance(v, dict)
-    }
-
-    for skills in all_skill_sets.values():
-        for skill_name, skill_details in skills.items():
-            SKILL_REF[skill_name] = skill_details
-
-    for bloodline in BLOODLINE_SKILLS:
-        pull_dict=BLOODLINE_SKILLS[bloodline]
-        for skill_name, skill_details in pull_dict.items():
-            SKILL_REF[skill_name]=skill_details
-    
-    return all_skill_sets
 
 all_skill_sets=construct_skill_ref()
 
