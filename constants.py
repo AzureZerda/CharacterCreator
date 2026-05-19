@@ -9,6 +9,7 @@ FLAGS={
     'memory_flaws':[],
     'can_field_repair':['Fortify Armor','Repair Shield'],
     'can_fortify':['Armorsmithing x1', 'Tailoring x1'],
+    'Weapon_Master':[]
     }
 
 DEFAULT_SESSION={
@@ -39,3 +40,5 @@ FLAWS=['Sovereign Zeal','Religious Zeal','Religious Zeal','Corrupted','Frail',
 
 for flag in FLAGS:
     DEFAULT_SESSION['skills_added'][flag]=0
+
+WEAPON_MASTER_SKILLS=['Bow and Arrow', 'One-Handed Weapons', 'Oversized Weapon Use', 'Short Weapons', 'Thrown Weapons', 'Two-Handed Weapons']

@@ -50,7 +50,8 @@ BLOODLINE_SKILLS={
         'Weapon Master':{
             'Max':1,
             'Cost':6,
-            'desc':'You may function as though you had the skills SHORT WEAPONS, ONE-HANDED WEAPONS, TWO-HANDED WEAPONS, OVERSIZED WEAPON USE, THROWN WEAPONS, and BOW AND ARROW on your character sheet.'
+            'desc':'You may function as though you had the skills SHORT WEAPONS, ONE-HANDED WEAPONS, TWO-HANDED WEAPONS, OVERSIZED WEAPON USE, THROWN WEAPONS, and BOW AND ARROW on your character sheet.',
+            'redirect':'all_skills'
         },
         'Scion of the Land':{
             'Max':1,

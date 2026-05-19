@@ -49,6 +49,9 @@ class Prereq_Flag_Raised(Exception):
 class Weapon_Master_Modified(Exception):
     pass
 
+class Weapon_Master_Added(Exception):
+    pass
+
 def create_app():
     app=Flask(__name__)
 
@@ -166,7 +169,7 @@ def process_person():
 @app.context_processor
 def inject_globals():
     display_dict=dict(session['skills_added'])
-    flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter', 'memory_flaws', 'can_field_repair']
+    flags=constants.FLAGS
     for flag in flags:
         try:
             del display_dict[flag]
@@ -184,6 +187,7 @@ def inject_globals():
         player_details=session['person_details']
     except KeyError:
         player_details={}
+
     return {
         "points": session.get("character_details", {}).get("points", 0), 
         'display_dict': display_dict,
@@ -319,21 +323,30 @@ def modify_skill():
         except TypeError:
             pass
 
+        if SKILL_REF[skill_name].get("redirect"):
+            modification['redirect']=SKILL_REF[skill_name]['redirect']
+
         return modification
 
 @app.route("/submit")
 def submit_page():
     display_dict=dict(session['skills_added'])
-    flags=['Literate', 'can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'has_faith', 'is_crafter', 'memory_flaws', 'can_field_repair']
+    flags=constants.FLAGS
     for flag in flags:
         try:
             del display_dict[flag]
         except KeyError:
             pass
 
+    if 'Weapon Master' in display_dict:
+        for weapon in constants.WEAPON_MASTER_SKILLS:
+            del display_dict[weapon]
+
     char_ref=dict(session['character_details'])
 
     char_dict={'name':char_ref['name'],'Culture':char_ref['culture'],'bloodline':char_ref['bloodline'],'faith':char_ref['faith'],'HP':char_ref['health points']}
+
+    #display_dict[f'Native Lore: {char_dict['culture']}']=1
 
     player_ref=session['person_details']
 
@@ -622,11 +635,14 @@ def remove_skill(skill,quantity):
 
     try:
         skill.remove()
+        session.modified=True
+
+    except Weapon_Master_Added:
+        return jsonify({'success':False, 'error':'In order to remove this skill, you must instead remove WEAPON MASTER'})
     except ReliantSkills:
         return jsonify({'success':False,'error':f'You must remove these skills first:\n\n{', '.join(skill.reliant_skills)}'})
     except Bloodline_Requirement:
         return jsonify({'success':False,'error':'Newborn dreams are required to take Tethered'})
-    session.modified=True
 
     return {
             'success': True,
@@ -753,6 +769,8 @@ class Skill(ABC):
             for skill, quant in self.prereqs.items():
                 if skill not in check_dict or check_dict[skill] < quant:
                     if skill in constants.FLAGS:
+                        if skill=='Weapon_Master':
+                            raise Weapon_Master_Added
                         self.missing_prereqs=constants.FLAGS[skill]
                         raise Prereq_Flag_Raised
                     if quant==1:
@@ -781,12 +799,14 @@ class Weapon_Master(Skill):
             add_skill(weapon,quantity=1)
         session['skills_added'][self.name]=1
         session.modified=True
+        session['skills_added']['Weapon_Master']-=1
 
     def remove(self):
         for weapon in self.weapons_gained[::-1]:
-            remove_skill(weapon, quantity=1)
+            del session['skills_added'][weapon]
         session.modified=True
         del session['skills_added'][self.name]
+        session['skills_added']['Weapon_Master']+=1
     
     def check_reliance(self,pass_dict):
         self.prereqs={}
