@@ -346,7 +346,7 @@ def submit_page():
 
     char_dict={'name':char_ref['name'],'Culture':char_ref['culture'],'bloodline':char_ref['bloodline'],'faith':char_ref['faith'],'HP':char_ref['health points']}
 
-    #display_dict[f'Native Lore: {char_dict['culture']}']=1
+    display_dict[f'Native Lore: {char_dict['Culture']}']=1
 
     player_ref=session['person_details']
 
