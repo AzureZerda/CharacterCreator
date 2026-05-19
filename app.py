@@ -249,7 +249,7 @@ def Update_Points():
         lore_score=session['flags']['lore_score']
 
         if lore_score>=12:
-            new_total+=12
+            base_total+=12
         elif lore_score==0:
             pass
         else:
@@ -463,8 +463,6 @@ def submission_test():
         session.modified=True
         add_skill('Tethered',1)
 
-    session['skills_added'][f'Native Lore: {culture}']=0
-
     session['person_details']={}
     per_ref=session['person_details']
     per_ref['name']=player_name
@@ -478,6 +476,10 @@ def submission_test():
     char_ref['faith']=faith
 
     session['character_details']['points']=Update_Points()
+
+    session['skills_added']=constants.DEFAULT_SESSION['skills_added']
+
+    Update_Points()
 
     session.modified=True
 
