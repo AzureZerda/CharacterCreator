@@ -439,6 +439,8 @@ def maliks_idea():
 
     skills_db_dict[bloodline]=BLOODLINE_SKILLS.get(bloodline,{})
 
+    Update_Points()
+
     return render_template('all_skills.html', skills_db=skills_db_dict,back_url=url_for("character_setup"))
 
 @app.route("/")
@@ -482,9 +484,6 @@ def submission_test():
     char_ref['culture']=culture
     char_ref['bloodline']=bloodline
     char_ref['faith']=faith
-
-    if bloodline.lower() != 'Newborn Dream' and 'Tethered' in SKILL_REF:
-        del SKILL_REF['Tethered']
 
     session['character_details']['points']=Update_Points()
 
@@ -554,7 +553,11 @@ def reset_character():
     return render_template('set_character.html')
 
 def back_to_the_death_realms_with_you():
-    init_session()
+    for cat in session:
+        try:
+            session[cat]=constants.DEFAULT_SESSION[cat]
+        except KeyError:
+            continue
     session.modified=True
 
 @app.route("/enter_backstory", methods=["POST"])
