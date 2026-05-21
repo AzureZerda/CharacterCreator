@@ -209,6 +209,7 @@ def init_session():
     session.modified=True
 
 def reset_skills():
+    print(session)
     for cat in constants.DEFAULT_SESSION:
         if cat=='character_details':
             continue
@@ -438,7 +439,6 @@ def maliks_idea():
 
     skills_db_dict[bloodline]=BLOODLINE_SKILLS.get(bloodline,{})
 
-
     return render_template('all_skills.html', skills_db=skills_db_dict,back_url=url_for("character_setup"))
 
 @app.route("/")
@@ -456,12 +456,20 @@ def submission_test():
     bloodline       = request.form.get('bloodline', '')
     faith           = request.form.get('faith', '')
 
+    session['skills_added']=constants.DEFAULT_SESSION['skills_added']
+
     if bloodline.lower()=='newborn dream':
         skills_db.BACKGROUND_FLAWS['Tethered']={'Max':1,'Cost':-10}
         SKILL_REF['Tethered']={'Max':1,'Cost':-10}
         session['character_details']['flaws_added'].append('Tethered')
         session.modified=True
-        add_skill('Tethered',1)
+        session['skills_added']['Tethered']=1
+
+    else:
+        session['character_details']['flaws_added']=[]
+        if 'Tethered' in SKILL_REF:
+            del SKILL_REF['Tethered']
+
 
     session['person_details']={}
     per_ref=session['person_details']
@@ -475,9 +483,10 @@ def submission_test():
     char_ref['bloodline']=bloodline
     char_ref['faith']=faith
 
-    session['character_details']['points']=Update_Points()
+    if bloodline.lower() != 'Newborn Dream' and 'Tethered' in SKILL_REF:
+        del SKILL_REF['Tethered']
 
-    session['skills_added']=constants.DEFAULT_SESSION['skills_added']
+    session['character_details']['points']=Update_Points()
 
     Update_Points()
 
