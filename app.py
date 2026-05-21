@@ -209,7 +209,6 @@ def init_session():
     session.modified=True
 
 def reset_skills():
-    print(session)
     for cat in constants.DEFAULT_SESSION:
         if cat=='character_details':
             continue
@@ -234,6 +233,9 @@ def Update_Points():
     flaw_points=0
     
     skills_list= dict(session['skills_added'])
+
+    if session['character_details']['bloodline'].lower() != 'newborn dream' and 'Tethered' in session['character_details']['flaws_added']:
+        session['character_details']['flaws_added'].remove('Tethered')
 
     for flaw in session['character_details']['flaws_added']:
         new_flaw_points = flaw_points + -SKILL_REF[flaw]['Cost']
@@ -709,6 +711,8 @@ class Skill(ABC):
             self.flags=['Literate']
 
     def add(self):
+        if hasattr(self, "prereqs") and self.prereqs is not None:
+            self.process_prereq_chain()
         self.validate()
         if hasattr(self, "flags") and self.flags is not None:
             self.modify_flags(1,session['skills_added'])
@@ -797,6 +801,49 @@ class Skill(ABC):
     def modify_flags(self,modification,flag_location):
         for flag in self.flags:
             flag_location[flag]+=modification
+
+    def process_prereq_chain(self):
+        self.prereq_chain={}
+        self.add_prereqs()
+        points=session['character_details']['points']
+        if self.prereq_cost>points:
+            pass #something that happens when prereq chain costs too much
+        print(self.prereq_cost)
+    
+    def add_prereqs(self):
+        self.prereq_cost=0
+        if hasattr(self,'prereqs') and self.prereqs is not None:
+            chain=self.construct_prereq_chain()
+            prereq_objs=self.get_prereq_objs(chain)
+            chain_cost=self.get_chain_cost(prereq_objs)
+
+    def get_chain_cost(self,chain):
+        for prereq_obj in chain:
+            self.prereq_cost+=prereq_obj.cost
+            prereq_obj.add_prereqs()
+            #if prereq_obj.prereqs is not None:
+            #    self.all_prereqs.update(prereq_obj.prereqs)
+            self.prereq_cost+=prereq_obj.prereq_cost
+
+    def get_prereq_objs(self,chain):
+        prereq_objs=[]
+        for skill in chain:
+            skill_quant=self.prereqs[skill]
+            skill_cost=skill_quant*SKILL_REF[skill]['Cost']
+            skill_data={'skill':skill, 'quantity':skill_quant, 'cost':skill_cost}
+            skill_obj=Construct_Skill(skill_data)
+            prereq_objs.append(skill_obj)
+        return prereq_objs
+
+    def prereq_costs(self,chain):
+        pass
+    
+    def construct_prereq_chain(self):
+        prereqs_to_add=[]
+        for skill in self.prereqs:
+            if skill not in session['skills_added']:
+                prereqs_to_add.append(skill)
+        return prereqs_to_add
 
 class Weapon_Master(Skill):
     def __init__(self):
