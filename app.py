@@ -52,20 +52,6 @@ class Weapon_Master_Modified(Exception):
 class Weapon_Master_Added(Exception):
     pass
 
-def create_app():
-    app=Flask(__name__)
-
-    app.config["SECRET_KEY"]=os.getenv("SECRET_KEY")
-    app.config["SQLALCHEMY_DATABASE_URI"]="sqlite:///app.db"
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"]=False
-
-    db.init_app(app)
-
-    with app.app_context():
-        db.create_all()
-
-    return app
-
 def contains_google_doc_link(text):
     LINK_REGEX = re.compile(r"(https?://[^\s]+|www\.[^\s]+)", re.IGNORECASE)
     return bool(re.search(LINK_REGEX, text))
@@ -296,6 +282,11 @@ def construct_skill_ref():
         if isinstance(v, dict)
     }
 
+    if '__builtins__' in all_skill_sets:
+        del all_skill_sets['__builtins__']
+
+    new_skill_sets={}
+
     for skills in all_skill_sets.values():
         for skill_name, skill_details in skills.items():
             SKILL_REF[skill_name] = skill_details
@@ -304,8 +295,11 @@ def construct_skill_ref():
         pull_dict=BLOODLINE_SKILLS[bloodline]
         for skill_name, skill_details in pull_dict.items():
             SKILL_REF[skill_name]=skill_details
-    
-    return all_skill_sets
+
+    for key in all_skill_sets:
+        new_skill_sets[key.replace('_',' ')]=all_skill_sets[key]
+
+    return new_skill_sets
 
 @app.route("/modify_skill", methods=["POST"])
 def modify_skill():
@@ -387,7 +381,6 @@ def handle_missing_backstory(e):
         "message": "NO LINKS!!!"
     }), 400
 
-
 @app.errorhandler(ReliantSkills)
 def handle_reliant_skills(e):
     return jsonify({'success':False,'error':'Reliant skill must be removed', 'message':'slimmery'}), 400
@@ -428,18 +421,18 @@ def confirm_submission():
 def character_setup():
     return render_template("character_setup.html")
 
-@app.route("/all_skills")
-def maliks_idea():
-    skills_db_dict = {
-        k: v
-        for k, v in vars(skills_db).items()
-        if isinstance(v, dict)
-    }
-    del skills_db_dict['__builtins__']
-
+def inject_bloodline_skills(session,dictionary):
     bloodline=session["character_details"]["bloodline"]
 
-    skills_db_dict[bloodline]=BLOODLINE_SKILLS.get(bloodline,{})
+    dictionary[f'{bloodline.upper()} ONLY SKILLS']=BLOODLINE_SKILLS.get(bloodline,{})
+
+    return dictionary
+
+@app.route("/all_skills")
+def maliks_idea():
+    skills_db_dict = construct_skill_ref()
+
+    skills_db_dict=inject_bloodline_skills(session,skills_db_dict)
 
     Update_Points()
 
@@ -808,7 +801,7 @@ class Skill(ABC):
         points=session['character_details']['points']
         if self.prereq_cost>points:
             pass #something that happens when prereq chain costs too much
-        print(self.prereq_cost)
+        
     
     def add_prereqs(self):
         self.prereq_cost=0
@@ -1011,4 +1004,3 @@ SKILL_REF = {}
 all_skill_sets=construct_skill_ref()
 
 if __name__=="__main__":
-    app.run(debug=True)
