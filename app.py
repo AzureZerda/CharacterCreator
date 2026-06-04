@@ -1004,3 +1004,4 @@ SKILL_REF = {}
 all_skill_sets=construct_skill_ref()
 
 if __name__=="__main__":
+        app.run(debug=True)
