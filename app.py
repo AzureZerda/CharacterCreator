@@ -25,9 +25,6 @@ class Backstory_Is_Link(Exception):
 class Bloodline_Requirement(Exception):
     pass
 
-class points_exhausted(Exception):
-    pass
-
 class Prereq_Not_Met(Exception):
     pass
 
@@ -44,9 +41,6 @@ class Memory_Flaw_Already_Added(Exception):
     pass
 
 class Prereq_Flag_Raised(Exception):
-    pass
-
-class Weapon_Master_Modified(Exception):
     pass
 
 class Weapon_Master_Added(Exception):
