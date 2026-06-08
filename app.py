@@ -371,7 +371,7 @@ def handle_missing_backstory(e):
 def handle_missing_backstory(e):
     return jsonify({
         "success": False,
-        "error": "NO LINKS",
+        "error": "Please do not submit links for your backstory.",
         "message": "NO LINKS!!!"
     }), 400
 
