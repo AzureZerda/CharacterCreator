@@ -50,34 +50,35 @@ def contains_google_doc_link(text):
     LINK_REGEX = re.compile(r"(https?://[^\s]+|www\.[^\s]+)", re.IGNORECASE)
     return bool(re.search(LINK_REGEX, text))
 
-def Construct_Skill(data):
-    route=Determine_Route(data['skill'].lower())
+def Construct_Skill(input):
+
+    route=Determine_Route(input.name.lower())
     try:
-        prereqs=skills_db[data['skill']]['Prereq']
+        prereqs=skills_db[input.name]['Prereq']
     except:
         prereqs=None
     if route==0:
-        choice=Assassin_Eligibility_Skill(data['skill'],data['cost'])
+        choice=Assassin_Eligibility_Skill(input.name)
     elif route==1:
-        choice=Lockpicking(data['skill'],data['quantity'])
+        choice=Lockpicking(input.name,input.quant)
     elif route==2:
-        choice=Magic(data['skill'],data['quantity'])
+        choice=Magic(input.name,input.quant)
     elif route==3:
-        choice=Priest_Level(data['quantity'],session['character_details']['faith'])
+        choice=Priest_Level(input.quant,session['character_details']['faith'])
     elif route==4:
-        choice=Craft(data['skill'],data['quantity'])
+        choice=Craft(input.name,input.quant)
     elif route==5:
-        choice=Instruction_Ability(data['skill'],data['quantity'],SKILL_REF[data['skill']]['Cost'],SKILL_REF[data['skill']]['Prereq'])
+        choice=Instruction_Ability(input.name,input.quant,SKILL_REF[input.name]['Prereq'])
     elif route==6:
-        choice=Field_Repair_Skill(data['skill'],SKILL_REF[data['skill']]['Cost'],SKILL_REF[data['skill']]['Prereq'])
+        choice=Field_Repair_Skill(input.name,SKILL_REF[input.name]['Prereq'])
     elif route==7:
-        choice=Memory_Flaw(data['skill'])
+        choice=Memory_Flaw(input.name)
     elif route==8:
-        choice=Background_Flaw(data['skill'],data['quantity'])
+        choice=Background_Flaw(input.name,input.quant)
     elif route==9:
         choice=Weapon_Master()
     else:
-        choice=Skill(data['skill'],data['cost'],quantity=data['quantity'],prereqs=prereqs)
+        choice=Skill(input.name,quantity=input.quant,prereqs=prereqs)
     return choice
 
 def Determine_Route(skill):
@@ -295,27 +296,47 @@ def construct_skill_ref():
 
     return new_skill_sets
 
+class SkillChangeInput:
+    def __init__(self,data):
+        self.name=data.get('skill')
+        self.quant=data.get('quantity')
+        self.modifier=data.get('modifier')
+    
+    def validate(self):
+        if self.name not in SKILL_REF:
+            raise Skill_Not_Exist
+        
+        if SKILL_REF[self.name]['Max'] is not None:
+            if self.quant>SKILL_REF[self.name]['Max']:
+                raise Max_Quantity_Exceeded
+        
+        if not isinstance(self.quant,int):
+            raise TypeError
+
 @app.route("/modify_skill", methods=["POST"])
 def modify_skill():
-        skill_name=request.form.get("skill")
-        quantity=int(request.form.get("quantity",1))
-        modifier=int(request.form.get("modifier",0))
+        data=request.get_json()
 
-        if modifier not in (1,-1):
-            return {"success":False,"error":"INVALID_MODIFIER"},400
+        input=SkillChangeInput(data)
+        input.validate()
 
-        if modifier==1:
-            modification= add_skill(skill_name,quantity)
+        if input.modifier not in (1,-1):
+            return {"success":False,"error":"INVALID_MODIFIER"},
+
+        skill=Construct_Skill(input)
+
+        if input.modifier==1:
+            modification= add_skill(skill)
         else:
-            modification= remove_skill(skill_name,quantity)
+            modification= remove_skill(skill)
 
         try:
             modification['points']=Update_Points()
         except TypeError:
             pass
 
-        if SKILL_REF[skill_name].get("redirect"):
-            modification['redirect']=SKILL_REF[skill_name]['redirect']
+        if SKILL_REF[input.name].get("redirect"):
+            modification['redirect']=SKILL_REF[input.name]['redirect']
 
         return modification
 
@@ -371,7 +392,7 @@ def handle_missing_backstory(e):
 def handle_missing_backstory(e):
     return jsonify({
         "success": False,
-        "error": "Please do not submit links for your backstory.",
+        "error": "NO LINKS",
         "message": "NO LINKS!!!"
     }), 400
 
@@ -574,20 +595,10 @@ def submit_backstory():
     return maliks_idea()
 
 @app.route("/add_skill",methods=["POST"])
-def add_skill(skill,quantity):
-    cost=SKILL_REF[skill]['Cost']
-
-    data={
-        "skill":skill,
-        "quantity":quantity,
-        "cost":cost
-    }
-
-    skill=Construct_Skill(data)
-
+def add_skill(skill):
     try:
         skill.add()
-        session["skills_added"][skill.name] = quantity
+        session["skills_added"][skill.name] = skill.quantity    
         session.modified = True
         return {
             'success': True,
@@ -626,16 +637,7 @@ def reset():
     return maliks_idea()
 
 @app.route("/remove_skill", methods=["POST"])
-def remove_skill(skill,quantity):
-    cost=SKILL_REF[skill]['Cost']
-    data={
-        "skill":skill,
-        "quantity":quantity,
-        "cost":cost
-    }
-
-    skill=Construct_Skill(data)
-
+def remove_skill(skill):
     try:
         skill.remove()
         session.modified=True
@@ -684,7 +686,7 @@ skill_reference=None
 skills_added={}
 
 class Skill(ABC):   
-    def __init__(self, name: str, cost: int, quantity=1, max_quant=None, prereqs: dict = None):
+    def __init__(self, name: str, quantity=1, max_quant=None, prereqs: dict = None):
         self.name = name
         self.cost = SKILL_REF[name]['Cost']*quantity
         self.quantity = quantity
@@ -817,7 +819,8 @@ class Skill(ABC):
         for skill in chain:
             skill_quant=self.prereqs[skill]
             skill_cost=skill_quant*SKILL_REF[skill]['Cost']
-            skill_data={'skill':skill, 'quantity':skill_quant, 'cost':skill_cost}
+            skill_data={'skill':skill, 'quantity':skill_quant, 'cost':skill_cost, 'modifier':None}
+            skill_data=SkillChangeInput(skill_data)
             skill_obj=Construct_Skill(skill_data)
             prereq_objs.append(skill_obj)
         return prereq_objs
@@ -867,7 +870,7 @@ class Quad_Level_Skill(Skill):
         if level>4:
             raise Skill_Not_Exist('This skill maxes out at level 4.')
         cost=level*cost_per_level
-        super().__init__(name,cost,prereqs=prereqs,quantity=level)
+        super().__init__(name,prereqs=prereqs,quantity=level)
 
 class Lockpicking(Quad_Level_Skill):
     def __init__(self,name,level):
@@ -908,15 +911,14 @@ class Lore(Skill):
         super().__init__(name=f"Lore: {name}", cost=4, max_quant=1)
 
 class Instruction_Ability(Skill):
-    def __init__(self, name, quantity,cost_per,prereqs):
-        cost=quantity*cost_per
+    def __init__(self, name, quantity,prereqs):
         self.flags=['can_instruct']
-        super().__init__(name, cost,quantity=quantity,prereqs=prereqs)
+        super().__init__(name, quantity=quantity,prereqs=prereqs)
 
 class Assassin_Eligibility_Skill(Skill):
-    def __init__(self, name,cost):
+    def __init__(self, name):
         self.flags=['can_assassinate']
-        super().__init__(name, cost)
+        super().__init__(name)
     
 class Fortification_Skill(Skill):
     def __init__(self, name, cost, quantity, prereqs):
@@ -924,10 +926,10 @@ class Fortification_Skill(Skill):
         super().__init__(name, cost, quantity=quantity, prereqs=prereqs)
 
 class Field_Repair_Skill(Skill):
-    def __init__(self, name, cost, prereqs):
+    def __init__(self, name, prereqs):
         self.prereqs=prereqs
         self.flags=['can_field_repair']
-        super().__init__(name, cost, prereqs=prereqs)
+        super().__init__(name, prereqs=prereqs)
 
 class Background_Flaw(Skill):
     def __init__(self, name, quantity):
@@ -998,4 +1000,4 @@ SKILL_REF = {}
 all_skill_sets=construct_skill_ref()
 
 if __name__=="__main__":
-        app.run(debug=True)
+    app.run(debug=True)
