@@ -457,20 +457,45 @@ def maliks_idea():
 def home():
     return render_template('set_character.html')
 
+class Player_Details_Input:
+    def __init__(self,input):
+        self.name=input['player_name']
+        self.email=input['email']
+        if input['discord']=='':
+            self.discord='None'
+        else:
+            self.discord=input['discord']
+
+class Character_Details_Input:
+    def __init__(self,input):
+        self.name=input['name']
+        self.culture=input['culture']
+        self.bloodline=input['bloodline']
+        self.faith=input['faith']
+
+def insert_char_details(player):
+    session['person_details']={}
+    per_ref=session['person_details']
+    per_ref['name']=player.name
+    per_ref['discord']=player.discord
+    per_ref['email']=player.email
+
 @app.route('/submission_test', methods=['POST'])
-def submission_test():
-    player_name     = request.form.get('player_name', '')
-    email           = request.form.get('email', '')
-    discord         = request.form.get('discord', '')
-    character_name  = request.form.get('character_name', '')
-    name            = request.form.get('name', '')
-    culture         = request.form.get('culture', '')
-    bloodline       = request.form.get('bloodline', '')
-    faith           = request.form.get('faith', '')
+def new_player():
+    data = request.get_json()
+    create_char(data)
+    return '', 204
+
+def create_char(data):
+    data = request.get_json()
+
+    player=Player_Details_Input(data)
+
+    character=Character_Details_Input(data)
 
     session['skills_added']=constants.DEFAULT_SESSION['skills_added']
 
-    if bloodline.lower()=='newborn dream':
+    if character.bloodline.lower()=='newborn dream':
         skills_db.BACKGROUND_FLAWS['Tethered']={'Max':1,'Cost':-10}
         SKILL_REF['Tethered']={'Max':1,'Cost':-10}
         session['character_details']['flaws_added'].append('Tethered')
@@ -482,26 +507,19 @@ def submission_test():
         if 'Tethered' in SKILL_REF:
             del SKILL_REF['Tethered']
 
-
-    session['person_details']={}
-    per_ref=session['person_details']
-    per_ref['name']=player_name
-    per_ref['discord']=discord
-    per_ref['email']=email
+    insert_char_details(player)
 
     char_ref=session['character_details']
-    char_ref['name']=name
-    char_ref['culture']=culture
-    char_ref['bloodline']=bloodline
-    char_ref['faith']=faith
+    char_ref['name']=character.name
+    char_ref['culture']=character.culture
+    char_ref['bloodline']=character.bloodline
+    char_ref['faith']=character.faith
 
     session['character_details']['points']=Update_Points()
 
     Update_Points()
 
     session.modified=True
-
-    return '', 204
 
 @app.route("/set_character/<category>")
 def set_character(category):
