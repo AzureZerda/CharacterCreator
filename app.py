@@ -243,12 +243,8 @@ def Update_Points():
     lore_score=dict_ref['lore_score']
 
     if 'Weapon Master' in skills_list:
-        weapon_master=Weapon_Master()
-        for weapon in weapon_master.weapons_gained:
-            try:
-                del skills_list[weapon]
-            except KeyError:
-                pass
+        for skill in constants.WEAPON_MASTER_SKILLS:
+            del skills_list[skill]
 
     for skill,quantity in skills_list.items():
         if skill in constants.FLAWS:
@@ -259,6 +255,7 @@ def Update_Points():
             skill_cost=SKILL_REF[skill]['Cost']
         except KeyError:
             continue
+
         base_total-=skill_cost*quantity
 
     if 'Pursuit of Knowledge' in skills_list:
@@ -298,8 +295,8 @@ def construct_skill_ref():
 
 class SkillChangeInput:
     def __init__(self,data):
-        self.name=data.get('skill')
-        self.quant=data.get('quantity')
+        self.name=data['skill']
+        self.quant=data['quantity']
         self.modifier=data.get('modifier')
     
     def validate(self):
@@ -317,6 +314,8 @@ class SkillChangeInput:
 def modify_skill():
         data=request.get_json()
 
+        print(data)
+
         input=SkillChangeInput(data)
         input.validate()
 
@@ -324,6 +323,8 @@ def modify_skill():
             return {"success":False,"error":"INVALID_MODIFIER"},
 
         skill=Construct_Skill(input)
+
+        print(skill.quantity)
 
         if input.modifier==1:
             modification= add_skill(skill)
@@ -452,10 +453,6 @@ def maliks_idea():
     Update_Points()
 
     return render_template('all_skills.html', skills_db=skills_db_dict,back_url=url_for("character_setup"))
-
-@app.route("/")
-def home():
-    return render_template('set_character.html')
 
 class Player_Details_Input:
     def __init__(self,input):
@@ -714,6 +711,7 @@ class Skill(ABC):
             except KeyError:
                 self.prereqs=None
         self.max_quant = max_quant
+        print(self.quantity)
         if self.name=='Research':
             self.flags=['Literate']
 
@@ -855,17 +853,19 @@ class Skill(ABC):
 
 class Weapon_Master(Skill):
     def __init__(self):
+        print('\nskibbidi\n')
         self.name='Weapon Master'
         self.cost=6
         self.quantity=1
         self.max_quant=1
         self.weapons_gained=['Short Weapons', 'One-Handed Weapons', 'Two-Handed Weapons', 'Oversized Weapon Use',
                              'Thrown Weapons', 'Bow and Arrow']
-        super().__init__(self.name, self.cost, self.quantity, self.max_quant)
     
     def add(self):
         for weapon in self.weapons_gained:
-            add_skill(weapon,quantity=1)
+            skill_info=SkillChangeInput({'skill':weapon,'quantity':1})
+            skill=Construct_Skill(skill_info)
+            add_skill(skill)
         session['skills_added'][self.name]=1
         session.modified=True
         session['skills_added']['Weapon_Master']-=1
