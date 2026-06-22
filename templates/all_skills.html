@@ -156,9 +156,10 @@
 
                 {% else %}
 
-                    <input type="hidden"
-                           value="1"
-                           data-skill-input="{{ skill_name }}">
+                    <input
+                        type="hidden"
+                        value="1"
+                        data-skill-input="{{ skill_name }}">
 
                 {% endif %}
 
@@ -183,6 +184,7 @@
         {% endfor %}
 
     </div>
+
 </div>
 {% endfor %}
 
@@ -199,7 +201,10 @@ function syncTopBar(data) {
 
 function toggleDesc(event, tile) {
 
-    if (event.target.closest(".plus-btn") || event.target.closest(".qty-input")) {
+    if (
+        event.target.closest(".plus-btn") ||
+        event.target.closest(".qty-input")
+    ) {
         return;
     }
 
@@ -217,10 +222,14 @@ function toggleSkill(btn) {
     let quantity;
 
     if (maxv === "None") {
+
         quantity = parseInt(input?.value || "0");
 
         if (isNaN(quantity) || quantity < 1) {
-            showPopup("Invalid Input", "Please enter a valid quantity.");
+            showPopup(
+                "Invalid Input",
+                "Please enter a valid quantity."
+            );
             return;
         }
 
@@ -236,20 +245,27 @@ function toggleSkill(btn) {
 
     const modifier = state === "add" ? 1 : -1;
 
-    const formData = new URLSearchParams();
-    formData.append("skill", skill);
-    formData.append("quantity", quantity);
-    formData.append("modifier", modifier);
+    const payload = {
+        skill,
+        quantity,
+        modifier
+    };
 
     fetch("/modify_skill", {
         method: "POST",
-        body: formData
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
     })
     .then(res => res.json())
     .then(data => {
 
         if (!data.success) {
-            showPopup("ERROR", data.error || "Action failed");
+            showPopup(
+                "ERROR",
+                data.error || "Action failed"
+            );
             return;
         }
 
@@ -278,8 +294,14 @@ function toggleSkill(btn) {
 
     })
     .catch(err => {
+
         console.error(err);
-        showPopup("NETWORK ERROR", "Request failed");
+
+        showPopup(
+            "NETWORK ERROR",
+            "Request failed"
+        );
+
     });
 }
 

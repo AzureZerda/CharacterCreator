@@ -52,6 +52,8 @@ def contains_google_doc_link(text):
 
 def Construct_Skill(input):
 
+    print(input)
+
     route=Determine_Route(input.name.lower())
     try:
         prereqs=skills_db[input.name]['Prereq']
@@ -317,6 +319,9 @@ def buttons():
 @app.route("/modify_skill", methods=["POST"])
 def modify_skill():
         data=request.get_json()
+        print('621')
+
+        print(data)
 
         print(data)
 
@@ -759,9 +764,11 @@ class Skill(ABC):
             data={
                 'skill':skill,
                 'quantity':quantity,
-                'cost':cost
+                'modifier':'-1'
             }
-            current_skill=Construct_Skill(data)
+            print('\nabout to crash\n')
+            input=SkillChangeInput(data)
+            current_skill=Construct_Skill(input)
             if hasattr(current_skill, "prereqs") and current_skill.prereqs is not None:
                 try:
                     current_skill.check_prereqs(check_dict=skill_check)
