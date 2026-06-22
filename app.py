@@ -312,7 +312,7 @@ class SkillChangeInput:
 
 @app.route("/")
 def buttons():
-    return render_template('landing_page.html')
+    return render_template('set_character.html')
 
 @app.route("/modify_skill", methods=["POST"])
 def modify_skill():
