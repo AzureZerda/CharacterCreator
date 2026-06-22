@@ -310,6 +310,10 @@ class SkillChangeInput:
         if not isinstance(self.quant,int):
             raise TypeError
 
+@app.route("/")
+def buttons():
+    return render_template('landing_page.html')
+
 @app.route("/modify_skill", methods=["POST"])
 def modify_skill():
         data=request.get_json()
