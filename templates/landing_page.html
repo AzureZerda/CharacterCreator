@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Creator</title>
+</head>
+<body>
+    <form action="{{ url_for('new_player_landing') }}" method="get">
+        <button type="submit">New Player</button>
+    </form>
+    <form action="{{ url_for('alt_char_landing') }}" method="get">
+        <button type="submit">Alt Character</button>
+    </form>
+</body>
+</html>
