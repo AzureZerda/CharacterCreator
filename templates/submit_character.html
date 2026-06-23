@@ -24,7 +24,9 @@
         border-radius: 4px;
     }
 
-    .back-btn:hover { background: #eaeaea; }
+    .back-btn:hover {
+        background: #eaeaea;
+    }
 
     .container {
         max-width: 700px;
@@ -54,11 +56,17 @@
         border-bottom: 1px solid #ddd;
     }
 
-    .item:last-child { border-bottom: none; }
+    .item:last-child {
+        border-bottom: none;
+    }
 
-    .key { font-weight: bold; }
+    .key {
+        font-weight: bold;
+    }
 
-    .value { color: #555; }
+    .value {
+        color: #555;
+    }
 
     .empty {
         text-align: center;
@@ -82,7 +90,9 @@
         cursor: pointer;
     }
 
-    .confirm-btn:hover { background-color: #245e24; }
+    .confirm-btn:hover {
+        background-color: #245e24;
+    }
 </style>
 {% endblock %}
 
@@ -147,11 +157,53 @@
 </div>
 
 <div style="text-align: center; margin: 10px 0 40px;">
-    <form method="POST" action="{{ url_for('confirm_submission') }}">
-        <button type="submit" class="confirm-btn">
-            Confirm Submission
-        </button>
-    </form>
+    <button type="button" class="confirm-btn" onclick="confirmSubmission()">
+        Confirm Submission
+    </button>
 </div>
+
+<script>
+async function confirmSubmission() {
+    try {
+        const response = await fetch("{{ url_for('confirm_submission') }}", {
+            method: "POST",
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+
+        const contentType = response.headers.get("content-type") || "";
+
+        if (contentType.includes("text/html")) {
+            const html = await response.text();
+
+            document.open();
+            document.write(html);
+            document.close();
+            return;
+        }
+
+        const data = await response.json();
+
+        if (typeof handlePopupResponse === "function") {
+            handlePopupResponse(data);
+        } else if (typeof showPopup === "function") {
+            showPopup(
+                data.code || data.error || "ERROR",
+                data.message || "An error occurred."
+            );
+        }
+    } catch (error) {
+        console.error(error);
+
+        if (typeof showPopup === "function") {
+            showPopup(
+                "NETWORK_ERROR",
+                "Could not reach server."
+            );
+        }
+    }
+}
+</script>
 
 {% endblock %}
