@@ -436,7 +436,7 @@ def confirm_submission():
         session.modified=True
         raise UnspentPoints()
     
-    return redirect(url_for('submission_placeholder'))
+    return render_template("submission_placeholder.html")
 
 @app.route("/character_setup", methods=["GET"])
 def character_setup():

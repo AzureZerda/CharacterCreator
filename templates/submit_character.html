@@ -147,21 +147,11 @@
 </div>
 
 <div style="text-align: center; margin: 10px 0 40px;">
-    <button type="button" class="confirm-btn" onclick="confirmSubmission()">
-        Confirm Submission
-    </button>
+    <form method="POST" action="{{ url_for('confirm_submission') }}">
+        <button type="submit" class="confirm-btn">
+            Confirm Submission
+        </button>
+    </form>
 </div>
-
-<script>
-function confirmSubmission() {
-    fetch("{{ url_for('confirm_submission') }}", { method: "POST" })
-        .then(res => {
-            window.location.href = res.url;
-        })
-        .catch(() => {
-            showPopup("NETWORK_ERROR", "Could not reach server");
-        });
-}
-</script>
 
 {% endblock %}
