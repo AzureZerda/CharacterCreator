@@ -51,6 +51,8 @@ def contains_google_doc_link(text):
     return bool(re.search(LINK_REGEX, text))
 
 def Construct_Skill(input):
+    print(input)
+
     route=Determine_Route(input.name.lower())
     try:
         prereqs=skills_db[input.name]['Prereq']
@@ -309,13 +311,11 @@ class SkillChangeInput:
         if not isinstance(self.quant,int):
             raise TypeError
 
-@app.route("/")
-def buttons():
-    return render_template('set_character.html')
-
 @app.route("/modify_skill", methods=["POST"])
 def modify_skill():
         data=request.get_json()
+
+        print(data)
 
         input=SkillChangeInput(data)
         input.validate()
@@ -324,6 +324,8 @@ def modify_skill():
             return {"success":False,"error":"INVALID_MODIFIER"},
 
         skill=Construct_Skill(input)
+
+        print(skill.quantity)
 
         if input.modifier==1:
             modification= add_skill(skill)
@@ -416,6 +418,10 @@ def handle_missing_backstory(e):
         "message": "Warning- you have unspent points.\n\nSubmit your character if you are okay with this."
     }, 400
 
+@app.route('/submission_placeholder')
+def submission_placeholder():
+    return render_template('submission_placeholder.html')
+
 @app.route('/confirm_submission', methods=['POST'])
 def confirm_submission():
     try:
@@ -430,7 +436,7 @@ def confirm_submission():
         session.modified=True
         raise UnspentPoints()
     
-    return "", 204
+    return redirect(url_for('submission_placeholder'))
 
 @app.route("/character_setup", methods=["GET"])
 def character_setup():
@@ -475,6 +481,10 @@ def insert_char_details(player):
     per_ref['name']=player.name
     per_ref['discord']=player.discord
     per_ref['email']=player.email
+
+@app.route("/")
+def buttons():
+    return render_template('set_character.html')
 
 @app.route('/submission_test', methods=['POST'])
 def new_player():
@@ -708,6 +718,7 @@ class Skill(ABC):
             except KeyError:
                 self.prereqs=None
         self.max_quant = max_quant
+        print(self.quantity)
         if self.name=='Research':
             self.flags=['Literate']
 
@@ -751,7 +762,7 @@ class Skill(ABC):
             data={
                 'skill':skill,
                 'quantity':quantity,
-                'modifier':'-1'
+                'cost':cost
             }
             input=SkillChangeInput(data)
             current_skill=Construct_Skill(input)
@@ -850,6 +861,7 @@ class Skill(ABC):
 
 class Weapon_Master(Skill):
     def __init__(self):
+        print('\nskibbidi\n')
         self.name='Weapon Master'
         self.cost=6
         self.quantity=1
