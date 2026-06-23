@@ -96,8 +96,6 @@ document.getElementById("backstoryForm").addEventListener("submit", function(e) 
         }
 
         showPopup("SUCCESS", data.message || "Backstory submitted successfully");
-
-        this.querySelector("textarea").value = "";
     })
     .catch(err => {
         console.error(err);
@@ -106,4 +104,4 @@ document.getElementById("backstoryForm").addEventListener("submit", function(e) 
 });
 </script>
 
-{% endblock %}
+{% endblock %}x`

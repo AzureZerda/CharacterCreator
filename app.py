@@ -590,23 +590,21 @@ def trauma_dump_and_or_explode():
 
 @app.route("/submit_backstory", methods=["POST"])
 def submit_backstory():
-    backstory=request.form.get("backstory")
+    backstory = request.form.get("backstory")
 
     if contains_google_doc_link(backstory):
-        raise Backstory_Is_Link
+        return jsonify({
+            "success": False,
+            "error": "Links are not allowed in backstories"
+        }), 400
 
-    session['character_details']['backstory']=backstory
+    session['character_details']['backstory'] = backstory
+    session.modified = True
 
-    session.modified=True
-
-    skills_db_dict = {
-        k: v
-        for k, v in vars(skills_db).items()
-        if isinstance(v, dict)
-    }
-    del skills_db_dict['__builtins__']
-
-    return maliks_idea()
+    return jsonify({
+        "success": True,
+        "message": "Backstory saved"
+    })
 
 @app.route("/add_skill",methods=["POST"])
 def add_skill(skill):
