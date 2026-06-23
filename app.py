@@ -51,9 +51,6 @@ def contains_google_doc_link(text):
     return bool(re.search(LINK_REGEX, text))
 
 def Construct_Skill(input):
-
-    print(input)
-
     route=Determine_Route(input.name.lower())
     try:
         prereqs=skills_db[input.name]['Prereq']
@@ -319,11 +316,6 @@ def buttons():
 @app.route("/modify_skill", methods=["POST"])
 def modify_skill():
         data=request.get_json()
-        print('621')
-
-        print(data)
-
-        print(data)
 
         input=SkillChangeInput(data)
         input.validate()
@@ -332,8 +324,6 @@ def modify_skill():
             return {"success":False,"error":"INVALID_MODIFIER"},
 
         skill=Construct_Skill(input)
-
-        print(skill.quantity)
 
         if input.modifier==1:
             modification= add_skill(skill)
@@ -720,7 +710,6 @@ class Skill(ABC):
             except KeyError:
                 self.prereqs=None
         self.max_quant = max_quant
-        print(self.quantity)
         if self.name=='Research':
             self.flags=['Literate']
 
@@ -766,7 +755,6 @@ class Skill(ABC):
                 'quantity':quantity,
                 'modifier':'-1'
             }
-            print('\nabout to crash\n')
             input=SkillChangeInput(data)
             current_skill=Construct_Skill(input)
             if hasattr(current_skill, "prereqs") and current_skill.prereqs is not None:
@@ -864,7 +852,6 @@ class Skill(ABC):
 
 class Weapon_Master(Skill):
     def __init__(self):
-        print('\nskibbidi\n')
         self.name='Weapon Master'
         self.cost=6
         self.quantity=1
