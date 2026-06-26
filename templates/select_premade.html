@@ -1,0 +1,369 @@
+{% extends "character_nav.html" %}
+
+{% block title %}Prebuilt Characters{% endblock %}
+
+{% block page_content %}
+
+<style>
+
+.section {
+    border:2px solid #000;
+    margin-bottom:20px;
+}
+
+
+.section-header {
+
+    background:#eee;
+    padding:12px;
+    font-size:22px;
+    font-weight:bold;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    user-select:none;
+
+}
+
+
+.header-text {
+
+    cursor:pointer;
+    flex:1;
+
+}
+
+
+.description {
+
+    font-size:14px;
+    font-weight:normal;
+    color:#555;
+    margin-left:15px;
+
+}
+
+
+.select-button {
+
+    width:35px;
+    height:35px;
+    font-size:24px;
+    cursor:pointer;
+    line-height:20px;
+
+}
+
+
+.section-content {
+
+    padding:15px;
+    display:none;
+
+}
+
+
+.section.expanded .section-content {
+
+    display:block;
+
+}
+
+
+.field-header {
+
+    font-size:18px;
+    font-weight:bold;
+    margin-top:15px;
+    border-bottom:1px solid #ccc;
+    padding-bottom:4px;
+
+}
+
+
+.equipment {
+
+    margin-top:8px;
+    color:#555;
+    white-space:pre-wrap;
+
+}
+
+
+.skill-list {
+
+    margin-top:10px;
+    padding-left:20px;
+
+}
+
+
+.skill-item {
+
+    margin-bottom:6px;
+
+}
+
+
+.skill-name {
+
+    font-weight:bold;
+
+}
+
+
+.skill-qty {
+
+    color:#444;
+
+}
+
+
+</style>
+
+
+<h1>Prebuilt Characters</h1>
+
+
+
+{% for name, data in PREBUILTS.items() %}
+
+
+<div class="section">
+
+
+
+    <div class="section-header">
+
+
+
+        <div 
+            class="header-text"
+            onclick="toggleSection(this)">
+
+
+            {{ name }}
+
+
+            <span class="description">
+
+                - {{ data.description }}
+
+            </span>
+
+
+        </div>
+
+
+
+        <button
+            class="select-button"
+            onclick="selectPrebuilt('{{ name }}'); event.stopPropagation();">
+
+
+            +
+
+
+        </button>
+
+
+
+    </div>
+
+
+
+
+
+
+    <div class="section-content">
+
+
+
+
+
+        <div class="field-header">
+
+            Required Equipment
+
+        </div>
+
+
+
+
+        <div class="equipment">
+
+            {{ data.required_equipment }}
+
+        </div>
+
+
+
+
+
+
+
+        <div class="field-header">
+
+            Skills
+
+        </div>
+
+
+
+
+
+
+
+        <ul class="skill-list">
+
+
+
+
+
+        {% for skill, quantity in data.skills.items() %}
+
+
+
+
+            <li class="skill-item">
+
+
+
+                <span class="skill-name">
+
+                    {{ skill }}
+
+                </span>
+
+
+
+                <span class="skill-qty">
+
+                    : {{ quantity }}
+
+                </span>
+
+
+
+            </li>
+
+
+
+
+        {% endfor %}
+
+
+
+
+
+        </ul>
+
+
+
+
+
+    </div>
+
+
+
+
+
+</div>
+
+
+
+
+
+{% endfor %}
+
+
+
+
+
+
+<script>
+
+
+function toggleSection(header){
+
+
+    header
+    .closest(".section")
+    .classList
+    .toggle("expanded");
+
+
+}
+
+
+
+
+
+
+function selectPrebuilt(name){
+
+
+    fetch("/select_prebuilt", {
+
+
+        method:"POST",
+
+
+        headers:{
+
+
+            "Content-Type":"application/json"
+
+
+        },
+
+
+        body:JSON.stringify({
+
+
+            prebuilt:name
+
+
+        })
+
+
+    })
+
+
+
+    .then(response=>{
+
+
+        if(response.ok){
+
+
+            window.location.href="/all_skills";
+
+
+        }
+
+
+    })
+
+
+
+    .catch(error=>{
+
+
+        console.error(error);
+
+
+    });
+
+
+
+}
+
+
+
+</script>
+
+
+
+
+{% endblock %}

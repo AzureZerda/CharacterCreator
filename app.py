@@ -6,6 +6,7 @@ from bloodline_skills import BLOODLINE_SKILLS
 import re
 import os
 import constants
+from prebuilts import PREBUILTS
 
 app=Flask(__name__)
 app.secret_key=os.getenv("SECRET_KEY")
@@ -441,6 +442,33 @@ def handle_missing_backstory(e):
 @app.route('/submission_placeholder')
 def submission_placeholder():
     return render_template('submission_placeholder.html')
+
+@app.route("/show_prebuilts")
+def show_prebuilts():
+
+    return render_template(
+        "select_premade.html",
+        PREBUILTS=PREBUILTS
+    )
+
+@app.route("/make_choice")
+def custom_or_prebuilt():
+    return render_template('premade_or_custom.html')
+
+@app.route("/select_prebuilt", methods=["POST"])
+def select_prebuilt():
+
+    data = request.get_json()
+
+    prebuilt = data.get("prebuilt")
+
+    for skill in PREBUILTS[prebuilt]['skills']:
+        input={'skill':skill, 'quantity':PREBUILTS[prebuilt]['skills'][skill]}
+        input=SkillChangeInput(input)
+        skill=Construct_Skill(input)
+        add_skill(skill)
+
+    return "", 204
 
 @app.route('/confirm_submission', methods=['POST'])
 def confirm_submission():

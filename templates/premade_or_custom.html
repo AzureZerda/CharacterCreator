@@ -1,0 +1,70 @@
+{% extends "character_nav.html" %}
+
+{% block title %}Character Creation{% endblock %}
+
+{% block page_content %}
+
+<style>
+
+.choice-container {
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:25px;
+    margin-top:50px;
+
+}
+
+
+.choice-button {
+
+    width:300px;
+    padding:20px;
+    font-size:24px;
+    font-weight:bold;
+    cursor:pointer;
+    border:2px solid #000;
+    background:#eee;
+
+}
+
+
+.choice-button:hover {
+
+    background:#ddd;
+
+}
+
+</style>
+
+
+<h1>Character Creation</h1>
+
+
+<div class="choice-container">
+
+
+    <button
+        class="choice-button"
+        onclick="window.location.href='/show_prebuilts'">
+
+        Select Premade
+
+    </button>
+
+
+
+    <button
+        class="choice-button"
+        onclick="window.location.href='/all_skills'">
+
+        Custom Character
+
+    </button>
+
+
+</div>
+
+
+{% endblock %}
