@@ -180,7 +180,7 @@ ARMOR_PROFICIENCIES={
         "Max":1,
         "Cost":2,
         "Prereq":{
-            "Armor Training: Light":1
+            "Armored Training: Light":1
         },
         "desc":"You may wear and benefit from heavy armor, providing a base armor value of 15 points when worn.",
         "sheet_box":"General Skills"
