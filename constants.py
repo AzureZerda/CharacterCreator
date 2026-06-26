@@ -42,3 +42,31 @@ for flag in FLAGS:
     DEFAULT_SESSION['skills_added'][flag]=0
 
 WEAPON_MASTER_SKILLS=['Bow and Arrow', 'One-Handed Weapons', 'Oversized Weapon Use', 'Short Weapons', 'Thrown Weapons', 'Two-Handed Weapons']
+
+SHEET_BOXES=['Bloodline','Background','General Skills','Knowledge','Magical Arts','Gathering/Crafting']
+
+DEFAULT_SKILLS=['Toughness','Mana Focus','Parry','Dodge','Willpower']
+
+SHEET_RENAME_MAP={
+    'bloodline':'Bloodline:',
+    'culture':'Culture:',
+    'faith':'Religion:',
+    'name':'Character:',
+    'name':'Player:',
+    'email':'Email:'
+}
+
+SHEET_FORMULAS={
+    'Total CP:':{'formula':'=SUM(Progression!C2:E1000)','col':'B','row':'7'},
+    'Spent CP:':{'formula':'=SUM(B10:B)+SUM(F10:F)','col':'B','row':'8'},
+    'Corruption:':{'formula':'=SUM(Progression!I2:I1000)','col':'E','row':'4'},
+    'HP:':{'formula':'=(B17/3)+5','col':'G','row':'4'},
+    'Mana:':{'formula':'=B18','col':'G','row':'5'},
+    'CP Left:':{'formula':'=C7-C8','col':'F','row':'8'},
+    'Incentive Points Left:':{'formula':'=SUM(Progression!H2:H1000)','col':'F','row':'6'}
+}
+
+PROGRESSION_HEADERS={'CP Credit Reason':'Characer Creation','Date Earned':'','CP Earned':40,
+                     'IP to CP':'','Food Tag':'',
+                     'Incentive Points and Taint':'Death (Character Creation)','Date Earned':'',
+                     'IP Earned':'','Corruption Earned':'1','Staff Initials':''}

@@ -46,13 +46,38 @@ class Prereq_Flag_Raised(Exception):
 class Weapon_Master_Added(Exception):
     pass
 
+def construct_skill_ref():
+    all_skill_sets = {
+        k: v
+        for k, v in vars(skills_db).items()
+        if isinstance(v, dict)
+    }
+
+    if '__builtins__' in all_skill_sets:
+        del all_skill_sets['__builtins__']
+
+    new_skill_sets={}
+
+    for skills in all_skill_sets.values():
+        for skill_name, skill_details in skills.items():
+            SKILL_REF[skill_name] = skill_details
+
+    for bloodline in BLOODLINE_SKILLS:
+        pull_dict=BLOODLINE_SKILLS[bloodline]
+        for skill_name, skill_details in pull_dict.items():
+            SKILL_REF[skill_name]=skill_details
+            SKILL_REF[skill_name]['Sheet_Box']='Bloodline'
+
+    for key in all_skill_sets:
+        new_skill_sets[key.replace('_',' ')]=all_skill_sets[key]
+
+    return new_skill_sets
+
 def contains_google_doc_link(text):
     LINK_REGEX = re.compile(r"(https?://[^\s]+|www\.[^\s]+)", re.IGNORECASE)
     return bool(re.search(LINK_REGEX, text))
 
 def Construct_Skill(input):
-    print(input)
-
     route=Determine_Route(input.name.lower())
     try:
         prereqs=skills_db[input.name]['Prereq']
@@ -129,6 +154,10 @@ def Determine_Route(skill):
         route=99
     
     return route
+
+@app.route("/")
+def buttons():
+    return render_template('landing_page.html')
 
 @app.route("/process_person", methods=["POST"])
 def process_person():
@@ -207,6 +236,7 @@ def reset_session():
     session.modified=True
 
 def Update_Points():
+    # at some point the base native lore started showing up in here. Fix it azzy
     if session['character_details']['bloodline'].lower() not in constants.FORTY_POINTS:
         base_total=20
     else:
@@ -215,6 +245,13 @@ def Update_Points():
     flaw_points=0
     
     skills_list= dict(session['skills_added'])
+
+    native_skips=0
+
+    for skill in skills_list.copy(): 
+        if skill[:6]=='Native' and native_skips==0:
+            del skills_list[skill]
+            native_skips+=1
 
     if session['character_details']['bloodline'].lower() != 'newborn dream' and 'Tethered' in session['character_details']['flaws_added']:
         session['character_details']['flaws_added'].remove('Tethered')
@@ -255,7 +292,10 @@ def Update_Points():
         try:
             skill_cost=SKILL_REF[skill]['Cost']
         except KeyError:
-            continue
+            if skill[:6]=='Native':
+                skill_cost=4
+            else:
+                continue
 
         base_total-=skill_cost*quantity
 
@@ -266,33 +306,8 @@ def Update_Points():
             base_total+=lore_score
     
     session['character_details']['points']=base_total
+
     return base_total
-
-def construct_skill_ref():
-    all_skill_sets = {
-        k: v
-        for k, v in vars(skills_db).items()
-        if isinstance(v, dict)
-    }
-
-    if '__builtins__' in all_skill_sets:
-        del all_skill_sets['__builtins__']
-
-    new_skill_sets={}
-
-    for skills in all_skill_sets.values():
-        for skill_name, skill_details in skills.items():
-            SKILL_REF[skill_name] = skill_details
-
-    for bloodline in BLOODLINE_SKILLS:
-        pull_dict=BLOODLINE_SKILLS[bloodline]
-        for skill_name, skill_details in pull_dict.items():
-            SKILL_REF[skill_name]=skill_details
-
-    for key in all_skill_sets:
-        new_skill_sets[key.replace('_',' ')]=all_skill_sets[key]
-
-    return new_skill_sets
 
 class SkillChangeInput:
     def __init__(self,data):
@@ -315,8 +330,6 @@ class SkillChangeInput:
 def modify_skill():
         data=request.get_json()
 
-        print(data)
-
         input=SkillChangeInput(data)
         input.validate()
 
@@ -324,8 +337,6 @@ def modify_skill():
             return {"success":False,"error":"INVALID_MODIFIER"},
 
         skill=Construct_Skill(input)
-
-        print(skill.quantity)
 
         if input.modifier==1:
             modification= add_skill(skill)
@@ -424,6 +435,8 @@ def submission_placeholder():
 
 @app.route('/confirm_submission', methods=['POST'])
 def confirm_submission():
+    #sheet_creator.export_char(session)
+
     try:
         backstory=session['character_details']['backstory']
     except KeyError:
@@ -482,10 +495,6 @@ def insert_char_details(player):
     per_ref['discord']=player.discord
     per_ref['email']=player.email
 
-@app.route("/")
-def buttons():
-    return render_template('set_character.html')
-
 @app.route('/submission_test', methods=['POST'])
 def new_player():
     data = request.get_json()
@@ -520,12 +529,27 @@ def create_char(data):
     char_ref['culture']=character.culture
     char_ref['bloodline']=character.bloodline
     char_ref['faith']=character.faith
+    if 'second_culture' in data:
+        char_ref['second_culture']=data['second_culture']
+        input={'skill':f'Native Lore: {data['second_culture']}',
+        'quantity':1,'modifer':1}
+        input=SkillChangeInput(input)
+        skill=Construct_Skill(input)
+        add_skill(skill)
 
     session['character_details']['points']=Update_Points()
 
     Update_Points()
 
     session.modified=True
+
+@app.route("/new_player_landing")
+def new_player_landing():
+    return render_template('set_character.html')
+
+@app.route("/alt_char_landing")
+def alt_char_landing():
+    return render_template('enter_sheet_id.html')
 
 @app.route("/set_character/<category>")
 def set_character(category):
@@ -710,7 +734,13 @@ skills_added={}
 class Skill(ABC):   
     def __init__(self, name: str, quantity=1, max_quant=None, prereqs: dict = None):
         self.name = name
-        self.cost = SKILL_REF[name]['Cost']*quantity
+        try:
+            self.cost = SKILL_REF[name]['Cost']*quantity
+        except KeyError:
+            if name[:6]=='Native':
+                self.cost=4
+            else:
+                raise KeyError
         self.quantity = quantity
         if prereqs is None:
             try:
@@ -718,7 +748,6 @@ class Skill(ABC):
             except KeyError:
                 self.prereqs=None
         self.max_quant = max_quant
-        print(self.quantity)
         if self.name=='Research':
             self.flags=['Literate']
 
@@ -861,7 +890,6 @@ class Skill(ABC):
 
 class Weapon_Master(Skill):
     def __init__(self):
-        print('\nskibbidi\n')
         self.name='Weapon Master'
         self.cost=6
         self.quantity=1
@@ -1024,6 +1052,8 @@ class Memory_Flaw(Background_Flaw):
 SKILL_REF = {}
 
 all_skill_sets=construct_skill_ref()
+
+import sheet_creator
 
 if __name__=="__main__":
     app.run(debug=True)

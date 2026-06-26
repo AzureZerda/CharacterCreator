@@ -45,6 +45,25 @@
         box-sizing:border-box;
     }
 
+    .checkbox-label {
+        display:flex;
+        align-items:center;
+        gap:8px;
+        font-weight:bold;
+    }
+
+    .checkbox-label input {
+        width:auto;
+    }
+
+    .reminder {
+        background:#fff3cd;
+        border:1px solid #e0c36d;
+        padding:10px;
+        margin-bottom:10px;
+        font-size:14px;
+    }
+
     .required {
         color:red;
         margin-left:4px;
@@ -58,9 +77,11 @@
     }
 </style>
 
+
 <form id="combined-form">
 
 <div class="page-container">
+
 
     <!-- PLAYER INFO -->
     <div class="form-container">
@@ -72,10 +93,12 @@
             <input type="text" name="player_name" required>
         </div>
 
+
         <div class="field">
             <label>Email <span class="required">*</span></label>
             <input type="email" name="email" required>
         </div>
+
 
         <div class="field">
             <label>Discord Username</label>
@@ -84,19 +107,26 @@
 
     </div>
 
-    <!-- CHARACTER SETUP -->
+
+
+    <!-- CHARACTER INFO -->
     <div class="form-container">
 
         <div class="form-title">Character Information</div>
+
 
         <div class="field">
             <label>Name</label>
             <input type="text" name="name" required>
         </div>
 
+
         <div class="field">
+
             <label>Culture</label>
+
             <select name="culture">
+
                 <option value="Castle Thorn">Castle Thorn</option>
                 <option value="The Celestine Empire">Celestine</option>
                 <option value="Cestral">Cestral</option>
@@ -118,12 +148,78 @@
                 <option value="Redemption">Redemption</option>
                 <option value="The Citadel">Citadel</option>
                 <option value="Endurant Tribes">Endurant Tribes</option>
+
             </select>
+
         </div>
 
+
+        <!-- SECOND CULTURE CHECKBOX -->
+
         <div class="field">
+
+            <label class="checkbox-label">
+
+                <input type="checkbox" id="second-culture-check">
+
+                Add second culture
+
+            </label>
+
+        </div>
+
+
+
+        <!-- SECOND CULTURE DROPDOWN -->
+
+        <div class="field" id="second-culture-container" style="display:none;">
+
+            <div class="reminder">
+
+                <b>Reminder:</b> your second culture must be justified in your backstory.
+                Your second native lore will cost 4 character points.
+
+            </div>
+
+
+            <label>Second Culture</label>
+
+            <select name="second_culture">
+
+                <option value="Castle Thorn">Castle Thorn</option>
+                <option value="The Celestine Empire">Celestine</option>
+                <option value="Cestral">Cestral</option>
+                <option value="Cole">Cole</option>
+                <option value="Dace">Dace</option>
+                <option value="The Kingdom of Hastings">Hastings</option>
+                <option value="The Nadine Empire">Nadine</option>
+                <option value="The Vein">Vein</option>
+                <option value="The Drir">Drir</option>
+                <option value="The Ko'aat">Ko'aat</option>
+                <option value="Myre">Myre</option>
+                <option value="The Saek">Saek</option>
+                <option value="The Trahazi">Trahazi</option>
+                <option value="The Vicaul">Vicaul</option>
+                <option value="Paradox: Dawn">Paradox: Dawn</option>
+                <option value="Paradox: Dusk">Paradox: Dusk</option>
+                <option value="Bastion">Bastion</option>
+                <option value="The Breach">The Breach</option>
+                <option value="Redemption">Redemption</option>
+                <option value="The Citadel">Citadel</option>
+                <option value="Endurant Tribes">Endurant Tribes</option>
+
+            </select>
+
+        </div>
+
+
+
+        <div class="field">
+
             <label>Bloodline</label>
+
             <select name="bloodline">
+
                 <option value="human">Human</option>
                 <option value="effendal">Effendal</option>
                 <option value="fae-blooded">Fae-Blooded</option>
@@ -131,55 +227,125 @@
                 <option value="demon-blooded">Demon-Blooded</option>
                 <option value="dragon-blooded">Dragon-Blooded</option>
                 <option value="newborn dream">Newborn Dream</option>
+
             </select>
+
         </div>
 
-       <div class="field">
+
+
+        <div class="field">
+
             <label>Faith</label>
-            <input type="text" name="faith" />
+
+            <input type="text" name="faith">
+
         </div>
+
 
     </div>
 
 </div>
 
+
 <button type="submit">Submit All</button>
+
 
 </form>
 
+
+
 <script>
+
+
+document.getElementById("second-culture-check").addEventListener("change", function(){
+
+    const container =
+        document.getElementById("second-culture-container");
+
+
+    if(this.checked){
+
+        container.style.display = "block";
+
+    }
+    else {
+
+        container.style.display = "none";
+
+        document.querySelector(
+            'select[name="second_culture"]'
+        ).value = "";
+
+    }
+
+});
+
+
+
 document.getElementById("combined-form").addEventListener("submit", function(e){
+
     e.preventDefault();
+
 
     const formDict = {};
 
-    // Convert form fields into a dictionary
+
     new FormData(this).forEach((value, key) => {
+
         formDict[key] = value;
+
     });
 
+
+
     fetch("{{ url_for('new_player') }}", {
+
         method: "POST",
+
         headers: {
+
             "Content-Type": "application/json"
+
         },
+
         body: JSON.stringify(formDict)
+
     })
+
     .then(async res => {
+
         if(!res.ok){
+
             const text = await res.text();
+
             throw new Error(text || "Submission failed");
+
         }
+
         return res;
+
     })
+
     .then(() => {
+
         window.location.href = "/all_skills";
+
     })
+
     .catch(err => {
+
         console.error(err);
+
         showPopup("ERROR", err.message);
+
     });
+
+
 });
+
+
 </script>
+
 
 {% endblock %}
