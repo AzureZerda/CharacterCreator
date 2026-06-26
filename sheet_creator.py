@@ -377,5 +377,7 @@ def construct_NPL_Row(session,sheet):
                     discord_cell,dual_flag_cell]
     return rows
 
+
 from app import SKILL_REF
-gc = gspread.oauth()
+#azzy needs to change this to use a service account
+#gc = gspread.oauth()
