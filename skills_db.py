@@ -169,14 +169,14 @@ WEAPON_PROFICIENCIES={
 }
 
 ARMOR_PROFICIENCIES={
-    "Armor Training: Light":{
+    "Armored Training: Light":{
         "Max":1,
         "Cost":2,
         "desc":"You may wear and benefit from light armor, providing a base armor value of 7 points when worn.",
         "sheet_box":"General Skills"
     },
 
-    "Armor Training: Heavy":{
+    "Armored Training: Heavy":{
         "Max":1,
         "Cost":2,
         "Prereq":{
