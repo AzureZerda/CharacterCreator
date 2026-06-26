@@ -1217,11 +1217,40 @@ CRAFTING_SKILLS={
 }
 }
 
-LORE={}
+MAGIC_LORES={}
 
-APPROVED_LORES=["Alchemy","Celestials","The Blood Cauldon","War of Wine","Rules of Society","Blood Magic","Demons","The Celestine Faith","Purges","Nature","Channeling","Fae","Church of Chorus","The First Crusade","Anatomy","Divination","Dragons","Demon Faiths","The War of Radiance","Medicine","Dream Magic","Undead","Dragon Worship","The Second Crusade","Knighthood","Necromancy","The Lady of the Mists","The War of Giants","Sorcery","the Nameless Faith","Summoning","Old Ways","Warding","Trahazi Zodiac","Ritual Magic"]
-for starting_lore in APPROVED_LORES:
-    LORE[f'Lore: {starting_lore}']={'Max':1,'Cost':4,'desc':f'You may call “Bid Lore: {starting_lore}” and ask a question of a nearby Twin Mask Story Staff member. This question may be as simple as, “Do I know anything about this?” or as specific as you like.','sheet_box':'Knowledge'}
+MAGIC_LORE=['Alchemy','Channeling','Divination','Sorcery','Warding','Blood Magic','Necromancy','Summoning','Dream Magic','Rituals']
+
+for lore in MAGIC_LORE:
+    MAGIC_LORES[f'Lore: {lore}']={'Max':1,'Cost':4,'desc':f'You may call “Bid Lore: {lore}” and ask a question of a nearby Twin Mask Story Staff member. This question may be as simple as, “Do I know anything about this?” or as specific as you like.','sheet_box':'Knowledge'}
+
+CREATURE_LORES={}
+
+CREATURE_LORE=["Celestials","Demons",'Fae','Dragons','Undead']
+
+for lore in CREATURE_LORE:
+    CREATURE_LORES[f'Lore: {lore}']={'Max':1,'Cost':4,'desc':f'You may call “Bid Lore: {lore}” and ask a question of a nearby Twin Mask Story Staff member. This question may be as simple as, “Do I know anything about this?” or as specific as you like.','sheet_box':'Knowledge'}
+
+RELIGION_LORES={}
+
+RELIGION_LORE=['Church of Chours','Old Ways','Dragon Worship','The Celestine Faith','The Lady of the Mists','The Nameless Faith','Trahazi Zodiac','The Blood Cauldron','Demon Faiths']
+
+for lore in RELIGION_LORE:
+    RELIGION_LORES[f'Lore Religion: {lore}']={'Max':1,'Cost':4,'desc':f'You may call “Bid Lore: {lore}” and ask a question of a nearby Twin Mask Story Staff member. This question may be as simple as, “Do I know anything about this?” or as specific as you like.','sheet_box':'Knowledge'}
+
+HISTORICAL_LORES={}
+
+HISTORIC_LORE=["War of Wine","Purges","The First Crusade",'The War of Radiance',"The Second Crusade","The War of Giants"]
+
+for lore in HISTORIC_LORE:
+  HISTORICAL_LORES[f'Lore: {lore}']={'Max':1,'Cost':4,'desc':f'You may call “Bid Lore: {lore}” and ask a question of a nearby Twin Mask Story Staff member. This question may be as simple as, “Do I know anything about this?” or as specific as you like.','sheet_box':'Knowledge'}
+
+MISC_LORES={}
+
+MISC_LORE=["Rules of Society","Nature","Anatomy","Medicine","Knighthood",]
+
+for lore in MISC_LORE:
+  MISC_LORES[f'Lore: {lore}']={'Max':1,'Cost':4,'desc':f'You may call “Bid Lore: {lore}” and ask a question of a nearby Twin Mask Story Staff member. This question may be as simple as, “Do I know anything about this?” or as specific as you like.','sheet_box':'Knowledge'}
 
 CRAFTING_CIRCLES = {
     "Blacksmithing": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a Forge role-playing crafting an item from the Blacksmithing chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics.", "sheet_box":"Gathering/Crafting"},
