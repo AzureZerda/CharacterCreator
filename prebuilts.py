@@ -67,7 +67,7 @@ PREBUILTS={
         }
     },
     'Wandering Monk':{
-        'description':'A little bit of everything. Basic healing, combat, and religious abilities. If literacy is important to you, drop illiteracy.',
+        'description':'Basic healing, combat, and religious abilities. If literacy is important to you, drop illiteracy.',
         'required_equipment':'Strips of fabric for bandages. A sword up to 48"',
         'skills':{
             "Clouded Memory": 1,
@@ -100,7 +100,7 @@ PREBUILTS={
     },
     'Practiced Surgeon':{
         'description':"A master of healing arts. You can treat nearly any ailment that doesn't require magic.",
-        'required equipment':'Cloth strips for bandages. Safe, fake surgical implements. This can be as simple as a small foam knife and some thread.',
+        'required_equipment':'Cloth strips for bandages. Safe, fake surgical implements. This can be as simple as a small foam knife and some thread.',
         'skills':{
             "Clouded Memory": 1,
             "Lore: Anatomy": 1,
@@ -118,7 +118,7 @@ PREBUILTS={
     },
     'Charismatic Courtier':{
         'description':'A charismatic Noble who blends social and battlefield skills using wit, diplomacy, and generosity.',
-        'required equipment':'Sword up to 48"',
+        'required_equipment':'Sword up to 48"',
         'skills':{
             "Clouded Memory": 1,
             "Oath Bound": 1,
@@ -135,7 +135,7 @@ PREBUILTS={
     },
     'Alchemical Merchant':{
         'description':'A merchant who makes their money by selling potions.',
-        'required equipment':'Potion bottle props(no glass).',
+        'required_equipment':'Potion bottle props(no glass).',
         'skills':{
             "Clouded Memory": 1,
             "Lore: Alchemy": 1,
