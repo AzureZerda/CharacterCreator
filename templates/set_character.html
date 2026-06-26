@@ -107,6 +107,19 @@
 <input type="text" name="discord">
 </div>
 
+<div class="field">
+
+<label>Emergency Contact</label>
+
+<div class="reminder">
+
+For safety, please list your emergency contact (name, contact number, and relation)
+
+</div>
+
+<input type="text" name="emergency_contact" required>
+
+</div>
 
 </div>
 
@@ -133,34 +146,164 @@
 
 <label>Culture</label>
 
-<select name="culture">
+<select name="culture" id="culture-select">
 
-<option value="Castle Thorn">Castle Thorn</option>
-<option value="The Celestine Empire">Celestine</option>
-<option value="Cestral">Cestral</option>
-<option value="Cole">Cole</option>
-<option value="Dace">Dace</option>
-<option value="The Kingdom of Hastings">Hastings</option>
-<option value="The Nadine Empire">Nadine</option>
-<option value="The Vein">Vein</option>
-<option value="The Drir">Drir</option>
-<option value="The Ko'aat">Ko'aat</option>
-<option value="Myre">Myre</option>
-<option value="The Saek">Saek</option>
-<option value="The Trahazi">Trahazi</option>
-<option value="The Vicaul">Vicaul</option>
-<option value="Paradox: Dawn">Paradox: Dawn</option>
-<option value="Paradox: Dusk">Paradox: Dusk</option>
-<option value="Bastion">Bastion</option>
-<option value="The Breach">The Breach</option>
-<option value="Redemption">Redemption</option>
-<option value="The Citadel">Citadel</option>
-<option value="Endurant Tribes">Endurant Tribes</option>
+    <option value="Castle Thorn">Castle Thorn</option>
+    <option value="The Celestine Empire">Celestine</option>
+    <option value="Cestral">Cestral</option>
+    <option value="Cole">Cole</option>
+    <option value="Dace">Dace</option>
+    <option value="The Kingdom of Hastings">Hastings</option>
+    <option value="The Nadine Empire">Nadine</option>
+    <option value="The Vein">Vein</option>
+    <option value="The Drir">Drir</option>
+    <option value="The Ko'aat">Ko'aat</option>
+    <option value="Myre">Myre</option>
+    <option value="The Saek">Saek</option>
+    <option value="The Trahazi">Trahazi</option>
+    <option value="The Vicaul">Vicaul</option>
+    <option value="Paradox: Dawn">Paradox: Dawn</option>
+    <option value="Paradox: Dusk">Paradox: Dusk</option>
+    <option value="Bastion">Bastion</option>
+    <option value="The Breach">The Breach</option>
+    <option value="Redemption">Redemption</option>
+    <option value="The Citadel">Citadel</option>
+    <option value="Endurant Tribes">Endurant Tribes</option>
+
+    <option value="Legacy">Legacy</option>
+    <option value="Unlisted">Unlisted</option>
 
 </select>
 
 </div>
 
+
+
+<div class="field" id="legacy-container" style="display:none;">
+
+<label>Legacy Culture</label>
+
+<select id="legacy-select" disabled>
+
+    <option value="Ad Decimum">Ad Decimum</option>
+    <option value="Gael">Gael</option>
+    <option value="Eerie">Eerie</option>
+    <option value="Mandala">Mandala</option>
+
+</select>
+
+</div>
+
+
+
+
+<div class="field" id="unlisted-container" style="display:none;">
+
+<div class="reminder">
+
+<b>Note:</b> this option only exists for special cases pre-approved by NPLs/staff.
+Please do not make up your own culture.
+
+</div>
+
+
+<label>Unlisted Culture</label>
+
+<input 
+    type="text"
+    id="unlisted-select"
+    disabled>
+
+</div>
+
+
+
+<script>
+
+const cultureSelect =
+document.getElementById("culture-select");
+
+
+const legacyContainer =
+document.getElementById("legacy-container");
+
+
+const legacySelect =
+document.getElementById("legacy-select");
+
+
+const unlistedContainer =
+document.getElementById("unlisted-container");
+
+
+const unlistedInput =
+document.getElementById("unlisted-select");
+
+
+
+cultureSelect.addEventListener("change", function(){
+
+
+    // reset everything
+
+    legacyContainer.style.display="none";
+    unlistedContainer.style.display="none";
+
+
+    legacySelect.disabled=true;
+    unlistedInput.disabled=true;
+
+
+    legacySelect.removeAttribute("name");
+    unlistedInput.removeAttribute("name");
+
+
+    this.name="culture";
+
+
+
+    if(this.value === "Legacy"){
+
+
+        legacyContainer.style.display="block";
+
+        legacySelect.disabled=false;
+
+
+        // legacy dropdown submits as culture
+        legacySelect.name="culture";
+
+
+        // stop parent dropdown submitting Legacy
+        this.name="legacy";
+
+
+    }
+
+
+
+    else if(this.value === "Unlisted"){
+
+
+        unlistedContainer.style.display="block";
+
+        unlistedInput.disabled=false;
+
+
+        // typed value submits as culture
+        unlistedInput.name="culture";
+
+
+        // prevent "Unlisted" from submitting
+        this.name="unlisted";
+
+
+    }
+
+
+});
+
+</script>
 
 
 <!-- SECOND CULTURE -->
