@@ -358,9 +358,6 @@ def modify_skill():
         if SKILL_REF[input.name].get("redirect"):
             modification['redirect']=SKILL_REF[input.name]['redirect']
 
-        print('\nmodify skill\n')
-        print()
-
         return modification
 
 @app.route("/submit")
@@ -455,8 +452,22 @@ def show_prebuilts():
 def custom_or_prebuilt():
     return render_template('premade_or_custom.html')
 
+def reset_skill_selections():
+    char_ref=session['character_details']
+    char_ref['flaws_added']=[]
+    session['skills_added']={'Literate': 0, 'Weapon_Master': 0, 
+                             'can_assassinate': 0, 'can_field_repair': 0, 'can_fortify': 0, 
+                             'can_instruct': 0, 'can_invent': 0, 'gm_mage': 0, 'has_faith': 0, 
+                             'is_crafter': 0, 'memory_flaws': 0}
+    session.modified=True
+
 @app.route("/select_prebuilt", methods=["POST"])
 def select_prebuilt():
+    # there's some oddity going on in here. Azzy thinks she fixed it. We will see.
+    
+    reset_skill_selections()
+
+    Update_Points()
 
     data = request.get_json()
 
