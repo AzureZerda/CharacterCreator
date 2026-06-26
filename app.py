@@ -46,6 +46,14 @@ class Prereq_Flag_Raised(Exception):
 class Weapon_Master_Added(Exception):
     pass
 
+@app.route("/")
+def buttons():
+    return render_template('landing_page.html')
+
+@app.route("/new_player_landing")
+def new_player_landing():
+    return render_template('set_character.html')
+
 def construct_skill_ref():
     all_skill_sets = {
         k: v
@@ -155,10 +163,6 @@ def Determine_Route(skill):
     
     return route
 
-@app.route("/")
-def buttons():
-    return render_template('landing_page.html')
-
 @app.route("/process_person", methods=["POST"])
 def process_person():
     name = request.form.get("name")
@@ -241,6 +245,8 @@ def Update_Points():
         base_total=20
     else:
         base_total=40
+
+    base_total+=int(session['character_details']['incentive_points'])
 
     flaw_points=0
     
@@ -350,6 +356,9 @@ def modify_skill():
 
         if SKILL_REF[input.name].get("redirect"):
             modification['redirect']=SKILL_REF[input.name]['redirect']
+
+        print('\nmodify skill\n')
+        print()
 
         return modification
 
@@ -536,20 +545,14 @@ def create_char(data):
         input=SkillChangeInput(input)
         skill=Construct_Skill(input)
         add_skill(skill)
+    if 'incentive_points' in data:
+        char_ref['incentive_points']=data['incentive_points']
+    else:
+        char_ref['incentive_points']=0
 
     session['character_details']['points']=Update_Points()
 
-    Update_Points()
-
     session.modified=True
-
-@app.route("/new_player_landing")
-def new_player_landing():
-    return render_template('set_character.html')
-
-@app.route("/alt_char_landing")
-def alt_char_landing():
-    return render_template('enter_sheet_id.html')
 
 @app.route("/set_character/<category>")
 def set_character(category):
