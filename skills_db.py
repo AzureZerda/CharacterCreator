@@ -88,7 +88,7 @@ BACKGROUND_FLAWS={
 'sheet_box':'Background'
 },
 
-'Oathbound':{
+'Oath Bound':{
 'Max':1,
 'Cost':-6,
 'desc':'Whenever you give a formal oath within the world of Twin Mask, you are bound to keep it. Failure to do so gives +1 Corruption per broken oath (reported to NPC camp). Magical compulsion prevents penalty if resisted appropriately.',
