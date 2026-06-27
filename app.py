@@ -184,6 +184,10 @@ def process_person():
 
 @app.context_processor
 def inject_globals():
+    if 'Toughness' in session['skills_added']:
+        session['character_details']['health points']=5+session['skills_added']['Toughness']
+    else:
+        session['character_details']['health points']=5
     display_dict=dict(session['skills_added'])
     flags=constants.FLAGS
     for flag in flags:
@@ -443,6 +447,10 @@ def submission_placeholder():
 @app.route("/show_prebuilts")
 def show_prebuilts():
 
+    reset_skill_selections()
+
+    session.modified=True
+
     return render_template(
         "select_premade.html",
         PREBUILTS=PREBUILTS
@@ -453,6 +461,7 @@ def custom_or_prebuilt():
     return render_template('premade_or_custom.html')
 
 def reset_skill_selections():
+    session['character_details']['health_points']=5
     char_ref=session['character_details']
     char_ref['flaws_added']=[]
     session['skills_added']={'Literate': 0, 'Weapon_Master': 0, 
@@ -464,7 +473,9 @@ def reset_skill_selections():
 @app.route("/select_prebuilt", methods=["POST"])
 def select_prebuilt():
     # there's some oddity going on in here. Azzy thinks she fixed it. We will see.
-    
+    #Azzy the health points calculation is broken. Fix!!!
+    # oh also charismatic courtier is throwing a key error. fix it azzy! Fixed- Azzy
+
     reset_skill_selections()
 
     Update_Points()
