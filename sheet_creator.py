@@ -177,7 +177,7 @@ class Sheet_Constructor:
             self.formula_cells.extend([cell1,cell2])
     
     def insert_player_details(self,player):
-        not_on_sheet=['discord',]
+        not_on_sheet=['discord','emergency_contact']
 
         new_dict={}
 
@@ -287,17 +287,17 @@ def export_char(session):
     #sh = gc.create('DUAL_TEST')
     sh = gc.open_by_url('https://docs.google.com/spreadsheets/d/1q71A6Yt6spkFtRbojMFi_fwN35eaXQ-cvM41IobujLc/edit?gid=269478616#gid=269478616')
 
-    template.copy_to(sh.id)
+    #template.copy_to(sh.id)
 
-    try:
-        worksheet = sh.worksheet("Character")
-        sh.del_worksheet(worksheet)
-    except:
-        pass
+    #try:
+    #    worksheet = sh.worksheet("Character")
+    #    sh.del_worksheet(worksheet)
+    #except:
+    #    pass
 
-    result= sh.worksheet("Copy of Character")
+    #result= sh.worksheet("Copy of Character")
 
-    result.update_title("Character")
+    #result.update_title("Character")
 
     try:
         worksheet = sh.worksheet("Character")
@@ -315,27 +315,55 @@ def export_char(session):
 
     sheet.construct(session)
 
-    worksheet.update_cells(sheet.cells)
+    #worksheet.update_cells(sheet.cells)
 
-    worksheet1.update_cells(sheet.progression_cells)
+    #worksheet1.update_cells(sheet.progression_cells)
 
-    for cell in sheet.formula_cells:
-        worksheet.update_acell(cell.coordinate,cell.value)
-
-    for range in sheet.layout.merge_ranges:
-        worksheet.merge_cells(range)
-
-    for line in sheet.layout.starting_line:
-        sheet.formats['skill_box_header']['cells'].extend([f'A{sheet.layout.starting_line[line]}',f'E{sheet.layout.starting_line[line]}'])
+    try:
+        emergency = sh.worksheet("Emergency")
     
-    for format in sheet.formats:
-        for cell in sheet.formats[format]['cells']:
-            worksheet.format(cell,sheet.formats[format]['format'])
+    except gspread.WorksheetNotFound:
+        emergency = sh.add_worksheet(title="Emergency", rows=100, cols=20)
 
-    NPL_Rows=construct_NPL_Row(session,sh)
+    try:
+        history = sh.worksheet("History")
+    
+    except gspread.WorksheetNotFound:
+        history = sh.add_worksheet(title="History", rows=100, cols=20)
+    
+
+    #REMOVE FOR PROD
+
+    #try:
+    #    history.update_acell('A1',session['character_details']['backstory'])
+    #except KeyError:
+    #    session['character_details']['backstory']='He was forced to eat cement when he was 6'
+    #    history.update_acell('A1',session['character_details']['backstory'])
+
+
+    #emergency.update_acell('A2',session['person_details']['emergency_contact'])
+
+    #for cell in sheet.formula_cells:
+    #    worksheet.update_acell(cell.coordinate,cell.value)
+
+    #for range in sheet.layout.merge_ranges:
+    #    worksheet.merge_cells(range)
+
+    #for line in sheet.layout.starting_line:
+    #    sheet.formats['skill_box_header']['cells'].extend([f'A{sheet.layout.starting_line[line]}',f'E{sheet.layout.starting_line[line]}'])
+    
+    #for format in sheet.formats:
+    #    for cell in sheet.formats[format]['cells']:
+    #        worksheet.format(cell,sheet.formats[format]['format'])
 
     #NPL_sh = gc.create('NPL_DEMO_1')
     NPL_sh = gc.open_by_url('https://docs.google.com/spreadsheets/d/1ArvwEyaAzGb3XvPSShNeEL_eHHrw2TfV9q4kbrY8Bwg/edit?gid=1599082411#gid=1599082411')
+    NPL_records = NPL_sh.worksheet("Demo")
+
+    rows = NPL_records.get_all_values()
+    num_rows = len(rows)
+
+    NPL_Rows=construct_NPL_Row(session,sh,num_rows+1)
 
     try:
         worksheet = NPL_sh.worksheet("Demo")
@@ -343,11 +371,10 @@ def export_char(session):
     except gspread.WorksheetNotFound:
         worksheet = NPL_sh.add_worksheet(title="Demo", rows=100, cols=20)
     
-    worksheet.update_cells(NPL_Rows)
+    #worksheet.update_cells(NPL_Rows,num_rows)
 
-def construct_NPL_Row(session,sheet):
+def construct_NPL_Row(session,sheet,row):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    row=3
     if 'second_culture' in session['character_details']:
         culture=f'{session['character_details']['culture']}/{session['character_details']['second_culture']}'
     timestamp_cell=gspread.Cell(row,1,timestamp)
@@ -380,4 +407,4 @@ def construct_NPL_Row(session,sheet):
 
 from app import SKILL_REF
 #azzy needs to change this to use a service account
-#gc = gspread.oauth()
+gc = gspread.oauth()
