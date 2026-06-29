@@ -87,15 +87,15 @@ PREBUILTS={
             "Bandage": 1
         }
     },
-    'Combat Healer(Alchemy)':{
+    'Combat Healer (Alchemy)':{
         'description':'Not able to deal damage, but very good at healing damage on the fly with mundane means and alchemy.',
         'required_equipment':'Strips of fabric for bandages. Potion bottle props(no glass).',
         'skills':{
             "Clouded Memory": 1,
             "Magical Aptitude": 1,
-            "Lore: Channeling": 1,
+            "Lore: Alchemy": 1,
             "Mana Focus": 10,
-            "Channeling": 2,
+            "Alchemy": 2,
             "Examine Wounds": 1,
             "Apply Pressure": 1,
             "Set Bone": 1,
@@ -103,7 +103,7 @@ PREBUILTS={
             "Sudden Motivation": 2
             }
     },
-    'Combat Healer(Channeling)':{
+    'Combat Healer (Channeling)':{
         'description':'Not able to deal damage, but very good at healing damage on the fly with mundane means and channeling.',
         'required_equipment':'Strips of fabric for bandages',
         'skills':{
