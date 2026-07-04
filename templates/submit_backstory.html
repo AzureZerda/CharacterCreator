@@ -1,8 +1,10 @@
 {% extends "character_nav.html" %}
 
-{% block title %}Enter Backstory{% endblock %}
+{% block title %}Skills Database{% endblock %}
 
 {% block page_content %}
+
+{% set existing_backstory = session.get('character_details', {}).get('backstory') %}
 
 <style>
     .rules {
@@ -13,7 +15,7 @@
         width: 100%;
         font-size: 20px;
         line-height: 1.8;
-        margin-bottom: 5px; /* removes big gap */
+        margin-bottom: 5px;
     }
 
     .rules ul {
@@ -25,7 +27,7 @@
 
     .container {
         max-width: 600px;
-        margin: 5px auto 40px auto; /* tight gap above form */
+        margin: 5px auto 40px auto;
     }
 
     textarea {
@@ -34,6 +36,7 @@
         padding: 10px;
         font-size: 14px;
         resize: vertical;
+        box-sizing: border-box;
     }
 
     button {
@@ -45,22 +48,22 @@
 </style>
 
 <div class="rules">
-  <div>
-    <ul>
-      <li>
-        A backstory must end with that character’s death. Your character is dead at the beginning of their first game… and you will find out, in game, what happens next.
-      </li>
+    <div>
+        <ul>
+            <li>
+                A backstory must end with that character’s death. Your character is dead at the beginning of their first game… and you will find out, in game, what happens next.
+            </li>
 
-      <li>
-        Please use bullet points, be concise, and follow the rules for character creation found
-        <a href="https://docs.google.com/document/d/1GGG4T5-KaN-FOkCSyi27bF2puj4DPbg76Dng82CrJZA/edit?tab=t.0">
-          here
-        </a>
-      </li>
+            <li>
+                Please use bullet points, be concise, and follow the rules for character creation found
+                <a href="https://docs.google.com/document/d/1GGG4T5-KaN-FOkCSyi27bF2puj4DPbg76Dng82CrJZA/edit?tab=t.0">
+                    here
+                </a>
+            </li>
 
-      <li><strong>Do not submit any links</strong></li>
-    </ul>
-  </div>
+            <li><strong>Do not submit any links</strong></li>
+        </ul>
+    </div>
 </div>
 
 <div class="container">
@@ -69,9 +72,15 @@
 
     <form id="backstoryForm">
 
-        <textarea name="backstory" placeholder="Write your backstory here..." required></textarea>
+        <textarea
+            name="backstory"
+            placeholder="Write your backstory here..."
+            required
+        >{{ existing_backstory or '' }}</textarea>
 
-        <button type="submit">Submit Backstory</button>
+        <button type="submit">
+            {{ "Update Backstory" if existing_backstory else "Submit Backstory" }}
+        </button>
 
     </form>
 
@@ -96,6 +105,9 @@ document.getElementById("backstoryForm").addEventListener("submit", function(e) 
         }
 
         showPopup("SUCCESS", data.message || "Backstory submitted successfully");
+
+        // Change button text after first successful submission
+        document.querySelector("#backstoryForm button").textContent = "Update Backstory";
     })
     .catch(err => {
         console.error(err);
@@ -104,4 +116,4 @@ document.getElementById("backstoryForm").addEventListener("submit", function(e) 
 });
 </script>
 
-{% endblock %}x`
+{% endblock %}
