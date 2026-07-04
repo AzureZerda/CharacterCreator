@@ -1,5 +1,8 @@
 #azzy made a mess in here. fix it idiot
 
+class Outside_Respec_Range(Exception):
+    pass
+
 import gspread
 from openpyxl.utils import column_index_from_string
 import constants
@@ -59,6 +62,14 @@ class Layout_Manager:
         }
 
         self.merge_ranges=['B2:D2','B3:D3','B4:D4','B5:D5','F2:H2','F3:H3','E6:F6','A1:H1']
+
+class Character_Sheet:
+    def __init__(self,url):
+        self.workbook = gc.open_by_url(url)
+        
+        self.character = self.workbook.worksheet('Character')
+        self.progression = self.workbook.worksheet('Progression')
+        self.history = self.workbook.worksheet('History')
 
 def next_letter(letter):
     return chr(ord(letter) + 1)
@@ -276,6 +287,11 @@ class Sheet_Constructor:
         spend_cost=skill_cost*quantity
         return spend_cost
 
+class Existing_Sheet:
+    def __init__(self,skills,char_details):
+        self.skills=skills
+        self.char_details=char_details
+
 def export_char(session):
 
     template_sh = gc.open_by_url('https://docs.google.com/spreadsheets/d/1S4jGc7nqan4eHvhuWuqbDKQJlKUd2FEe-g2JgSHsFlg/edit?gid=38564953#gid=38564953')
@@ -404,7 +420,79 @@ def construct_NPL_Row(session,sheet,row):
                     discord_cell,dual_flag_cell]
     return rows
 
+def check_eligiblity(sheet):
+    values_list = sheet.col_values(1)
+    if len(values_list)>3:
+        raise Outside_Respec_Range
+
+def add_points(sheet,session):
+    points_earned = []
+    
+    list1 = sheet.get_all_values()[1][2:5]
+
+    list2 = sheet.get_all_values()[2][2:5]
+
+    points_earned.extend(list1)
+    points_earned.extend(list2)
+
+    if session['character_details']['bloodline'].lower() not in ['human','effendal']:
+        points=-20
+    else:
+        points=-40
+
+    for point in points_earned:
+        try:
+            points+=int(point)
+        except ValueError:
+            continue
+    
+    return points
+
+def parse_sheet(sheet_id,session):
+    #some method to get the sheet link
+
+    skills=[]
+
+    url='https://docs.google.com/spreadsheets/d/1pJR1I8vtj53HHl0JtMiVFKyN0yMDMJE771WZ1zRDq6M/edit?gid=223854145#gid=223854145'
+
+    sheet = Character_Sheet(url)
+
+    check_eligiblity(sheet.progression)
+    
+    session['points_earned'] = add_points(sheet.progression,session)
+
+    session['character_details']['backstory'] = sheet.history.acell('A1').value
+
+    session.modified=True
+
+    list_of_rows = sheet.character.get_all_values()[9:]
+
+    for row in list_of_rows:
+        sides=[row[:2],row[4:6]]
+
+        for side in sides:
+            if side[0] in ['','General Skills','Magical Arts','Knowledge','Gathering/Crafting']:
+                continue
+            if side[1] in ['N/A','0']:
+                continue
+            if ' x' in side[0]:
+                side[0]=side[0][:-3]
+            
+            skill_cost=SKILL_REF[side[0]]['Cost']
+            skill_quant=abs(int(side[1])/skill_cost)
+            side[1]=skill_quant
+            skill_dets={'skill':side[0],'quantity':side[1]}
+            skills.append(skill_dets)
+
+    char_details={'bloodline':sheet.character.acell('F3').value,
+                  'incentive_points':sheet.character.acell('G6').value,
+                  'name':sheet.character.acell('F2').value,
+                  'culture':sheet.character.acell('B4').value,
+                  'faith':sheet.character.acell('B5').value}
+
+    return Existing_Sheet(skills,char_details)
 
 from app import SKILL_REF
+
 #azzy needs to change this to use a service account
 gc = gspread.oauth()
