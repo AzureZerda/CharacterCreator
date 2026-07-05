@@ -488,11 +488,25 @@ def select_prebuilt():
 
     prebuilt = data.get("prebuilt")
 
+    session['skills_added'][f'Native Lore: {session['character_details']['culture']}']=1
+    session['skills_added'][f'Native Lore: {session['character_details']['second_culture']}']=1
+
     for skill in PREBUILTS[prebuilt]['skills']:
         input={'skill':skill, 'quantity':PREBUILTS[prebuilt]['skills'][skill]}
         input=SkillChangeInput(input)
-        skill=Construct_Skill(input)
-        add_skill(skill)
+        skill_=Construct_Skill(input)
+
+        if hasattr(skill_, "flags") and skill_.flags is not None:
+            skill_.modify_flags(1)
+        
+        if isinstance(skill_,Memory_Flaw):
+            session['skills_added']['memory_flaws']=1
+            session['character_details']['flaws_added'].append(skill)
+
+        elif isinstance(skill_, Background_Flaw):
+            session['character_details']['flaws_added'].append(skill)
+
+        session['skills_added'][skill]=PREBUILTS[prebuilt]['skills'][skill]
 
     return "", 204
 
@@ -904,7 +918,9 @@ class Skill(ABC):
         if self.missing_prereqs != []:
             raise Prereq_Not_Met("Prerequisite not met")
     
-    def modify_flags(self,modification,flag_location):
+    def modify_flags(self,modification,flag_location = None):
+        if flag_location is None:
+            flag_location = session['skills_added']
         for flag in self.flags:
             flag_location[flag]+=modification
 
