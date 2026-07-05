@@ -567,7 +567,7 @@ def create_char(data):
 
     character=Character_Details_Input(data)
 
-    session['skills_added']=constants.DEFAULT_SESSION['skills_added']
+    session['skills_added']=constants.DEFAULT_SESSION['skills_added'].copy()
 
     if character.bloodline.lower()=='newborn dream':
         skills_db.BACKGROUND_FLAWS['Tethered']={'Max':1,'Cost':-10}
@@ -588,6 +588,13 @@ def create_char(data):
     char_ref['culture']=character.culture
     char_ref['bloodline']=character.bloodline
     char_ref['faith']=character.faith
+
+    input={'skill':f'Native Lore: {data['culture']}',
+        'quantity':1,'modifer':1}
+    input=SkillChangeInput(input)
+    skill=Construct_Skill(input)
+    add_skill(skill)
+    
     if 'second_culture' in data:
         char_ref['second_culture']=data['second_culture']
         input={'skill':f'Native Lore: {data['second_culture']}',

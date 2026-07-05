@@ -13,7 +13,7 @@ FLAGS={
     }
 
 DEFAULT_SESSION={
-    "skills_added":{},
+    "skills_added":{'Literate': 0, 'Weapon_Master': 0, 'can_assassinate': 0, 'can_field_repair': 0, 'can_fortify': 0, 'can_instruct': 0, 'can_invent': 0, 'gm_mage': 0, 'has_faith': 0, 'is_crafter': 0, 'memory_flaws': 0},
 
     'character_details':{
         'points':40,
