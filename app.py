@@ -6,57 +6,15 @@ from bloodline_skills import BLOODLINE_SKILLS
 import re
 import os
 import constants
+import exceptions as exc
 from prebuilts import PREBUILTS
 
 app=Flask(__name__)
 app.secret_key=os.getenv("SECRET_KEY")
 
-class Too_Many_Points(Exception):
-    pass
-
-class UnspentPoints(Exception):
-    pass
-
-class MissingBackstory(Exception):
-    pass
-
-class ReliantSkills(Exception):
-    pass
-
-class Backstory_Is_Link(Exception):
-    pass
-
-class Bloodline_Requirement(Exception):
-    pass
-
-class Prereq_Not_Met(Exception):
-    pass
-
-class Max_Quantity_Exceeded(Exception):
-    pass
-
-class Skill_Not_Exist(Exception):
-    pass
-
-class Max_Points_Spent(Exception):
-    pass
-
-class Memory_Flaw_Already_Added(Exception):
-    pass
-
-class Prereq_Flag_Raised(Exception):
-    pass
-
-class Weapon_Master_Added(Exception):
-    pass
-
 @app.route("/")
 def buttons():
     return render_template('landing_page.html')
-
-@app.route("/new_player_landing")
-def new_player_landing():
-    return render_template('set_character.html')
 
 def construct_skill_ref():
     all_skill_sets = {
@@ -173,8 +131,9 @@ def process_person():
     email = request.form.get("email")
     discord = request.form.get("discord")
     character_name = request.form.get("character_name")
+    emergency = request.form.get('emergency_contact')
 
-    session['person_details']={'name':name,'email':email,'discord':discord}
+    session['person_details']={'name':name,'email':email,'discord':discord, 'emergency_contact':emergency}
 
     skills_db_dict = {
         k: v
@@ -227,7 +186,7 @@ def inject_globals():
 def init_session():
     for cat in constants.DEFAULT_SESSION:
         if cat not in session:
-            session[cat]=constants.DEFAULT_SESSION[cat]
+            session[cat]=constants.DEFAULT_SESSION[cat].copy()
     
     session.modified=True
 
@@ -241,13 +200,11 @@ def reset_skills():
     
     session.modified=True
 
-def reset_skills():
+def reset_session():
     for cat in constants.DEFAULT_SESSION:
         if cat=='character_details':
             continue
         session[cat]=constants.DEFAULT_SESSION[cat].copy()
-
-    session['character_details']['flaws_added']=[]
     
     session.modified=True
 
@@ -256,7 +213,10 @@ def Update_Points():
     if session['character_details']['bloodline'].lower() not in constants.FORTY_POINTS:
         base_total=20
     else:
-        base_total=40
+        base_total=40 
+
+    if 'points_earned' in session:
+        base_total+=session['points_earned']
 
     base_total+=int(session['character_details']['incentive_points'])
 
@@ -303,6 +263,7 @@ def Update_Points():
             del skills_list[skill]
 
     for skill,quantity in skills_list.items():
+  
         if skill in constants.FLAWS:
             continue
         if skill[:7]=='Native':
@@ -335,11 +296,11 @@ class SkillChangeInput:
     
     def validate(self):
         if self.name not in SKILL_REF:
-            raise Skill_Not_Exist
+            raise exc.Skill_Not_Exist
         
         if SKILL_REF[self.name]['Max'] is not None:
             if self.quant>SKILL_REF[self.name]['Max']:
-                raise Max_Quantity_Exceeded
+                raise exc.Max_Quantity_Exceeded
         
         if not isinstance(self.quant,int):
             raise TypeError
@@ -411,7 +372,15 @@ def submit_page():
 def confirm():
     return render_template('confirm_character.html')
 
-@app.errorhandler(Too_Many_Points)
+@app.errorhandler(exc.MissingBackstory)
+def handle_missing_backstory(e):
+    return {
+        "success": False,
+        "error": "MISSING_BACKSTORY",
+        "message": "Backstory is required before submission."
+    }, 400
+
+@app.errorhandler(exc.Too_Many_Points)
 def handle_missing_backstory(e):
     return {
         "success": False,
@@ -419,15 +388,7 @@ def handle_missing_backstory(e):
         "message": "You have spent more points than allowed. Please remove a skill and/or add a flaw."
     }, 400
 
-@app.errorhandler(MissingBackstory)
-def handle_missing_backstory(e):
-    return {
-        "success": False,
-        "error": "MISSING_BACKSTORY",
-        "message": "Backstory is required before submission."
-    }, 400
-
-@app.errorhandler(Backstory_Is_Link)
+@app.errorhandler(exc.Backstory_Is_Link)
 def handle_missing_backstory(e):
     return jsonify({
         "success": False,
@@ -435,11 +396,11 @@ def handle_missing_backstory(e):
         "message": "NO LINKS!!!"
     }), 400
 
-@app.errorhandler(ReliantSkills)
+@app.errorhandler(exc.ReliantSkills)
 def handle_reliant_skills(e):
     return jsonify({'success':False,'error':'Reliant skill must be removed', 'message':'slimmery'}), 400
 
-@app.errorhandler(MissingBackstory)
+@app.errorhandler(exc.MissingBackstory)
 def handle_missing_backstory(e):
     return {
         "success": False,
@@ -447,7 +408,7 @@ def handle_missing_backstory(e):
         "message": "Backstory is required before submission."
     }, 400
 
-@app.errorhandler(UnspentPoints)
+@app.errorhandler(exc.UnspentPoints)
 def handle_missing_backstory(e):
     return {
         "success": False,
@@ -499,6 +460,10 @@ def select_prebuilt():
 
     prebuilt = data.get("prebuilt")
 
+    print('\nadding skills\n')
+
+    print(session)
+
     session['skills_added'][f'Native Lore: {session['character_details']['culture']}']=1
     session['skills_added'][f'Native Lore: {session['character_details']['second_culture']}']=1
 
@@ -528,19 +493,19 @@ def confirm_submission():
     print(session['character_details']['points'])
 
     if session['character_details']['points']<0:
-        raise Too_Many_Points()
+        raise exc.Too_Many_Points()
 
     try:
         backstory=session['character_details']['backstory']
     except KeyError:
-        raise MissingBackstory()
+        raise exc.MissingBackstory()
 
     points=session['character_details']['points']
 
     if points>0 and session['flags']['points_warning_given'] is False:
         session['flags']['points_warning_given']=True
         session.modified=True
-        raise UnspentPoints()
+        raise exc.UnspentPoints()
     
     return render_template("submission_placeholder.html")
 
@@ -569,6 +534,7 @@ class Player_Details_Input:
     def __init__(self,input):
         self.name=input['player_name']
         self.email=input['email']
+        self.emergency = input['emergency_contact']
         if input['discord']=='':
             self.discord='None'
         else:
@@ -587,14 +553,21 @@ def insert_char_details(player):
     per_ref['name']=player.name
     per_ref['discord']=player.discord
     per_ref['email']=player.email
+    per_ref['emergency_contact']=player.emergency
 
 @app.route('/submission_test', methods=['POST'])
 def new_player():
+    #print('\non the slab\n')
+    #print(session)
+    session['skills_added'] = constants.DEFAULT_SESSION['skills_added'].copy()
+    session.modifed=True
+    #print(session)
     data = request.get_json()
     create_char(data)
     return '', 204
 
 def create_char(data):
+
     data = request.get_json()
 
     player=Player_Details_Input(data)
@@ -707,7 +680,7 @@ def reset_character():
 def back_to_the_death_realms_with_you():
     for cat in session:
         try:
-            session[cat]=constants.DEFAULT_SESSION[cat]
+            session[cat]=constants.DEFAULT_SESSION[cat].copy()
         except KeyError:
             continue
     session.modified=True
@@ -751,20 +724,20 @@ def add_skill(skill):
             "faith": session["character_details"].get("faith", "no faith selected"),
         }
     
-    except Prereq_Flag_Raised:
+    except exc.Prereq_Flag_Raised:
         return jsonify({'success':False, 'error':f'You need one of the following skills:\n\n {'\n'.join(skill.missing_prereqs)}'})
-    except Prereq_Not_Met:
+    except exc.Prereq_Not_Met:
         return jsonify({"success": False, "error": f"you need the following skills to add {skill.name}:\n\n{', '.join(skill.missing_prereqs)}", "message":"haahahahahahha"})
-    except Max_Points_Spent:
+    except exc.Max_Points_Spent:
         return jsonify({"success": False, "error": f"You do not have enough points."})
-    except Memory_Flaw_Already_Added:
+    except exc.Memory_Flaw_Already_Added:
         return jsonify({'success':False, 'error':'You have already added a memory flaw'})
 
 @app.route("/reset", methods=["POST"])
 def reset():
     reset_skills()
 
-    session.modified=True
+    
     skills_db_dict = {
         k: v
         for k, v in vars(skills_db).items()
@@ -774,6 +747,8 @@ def reset():
 
     Update_Points()
 
+    session.modified=True
+
     return maliks_idea()
 
 @app.route("/remove_skill", methods=["POST"])
@@ -782,11 +757,11 @@ def remove_skill(skill):
         skill.remove()
         session.modified=True
 
-    except Weapon_Master_Added:
+    except exc.Weapon_Master_Added:
         return jsonify({'success':False, 'error':'In order to remove this skill, you must instead remove WEAPON MASTER'})
-    except ReliantSkills:
+    except exc.ReliantSkills:
         return jsonify({'success':False,'error':f'You must remove these skills first:\n\n{', '.join(skill.reliant_skills)}'})
-    except Bloodline_Requirement:
+    except exc.Bloodline_Requirement:
         return jsonify({'success':False,'error':'Newborn dreams are required to take Tethered'})
 
     return {
@@ -800,26 +775,30 @@ def remove_skill(skill):
             "faith": session["character_details"].get("faith", "no faith selected"),
         }
 
-@app.route("/create_character", methods=["POST"])
-def create_character():
-
-    session["character_details"].update({
-    "name": request.form.get("name"),
-    "culture": request.form.get("culture"),
-    "bloodline": request.form.get("bloodline"),
-    "faith": request.form.get("faith")
-    })
-
-    session.modified = True
-
-    skills_db_dict = {
-        k: v
-        for k, v in vars(skills_db).items()
-        if isinstance(v, dict)
-    }
-    del skills_db_dict['__builtins__']
-
-    return maliks_idea()
+#@app.route("/create_character", methods=["POST"])
+#def create_character():
+#
+#    print(session)
+#
+#    #session['skills_added'] = constants.DEFAULT_SESSION['skills_added']
+#
+#    session["character_details"].update({
+#    "name": request.form.get("name"),
+#    "culture": request.form.get("culture"),
+#    "bloodline": request.form.get("bloodline"),
+#    "faith": request.form.get("faith")
+#    })
+#
+#    session.modified = True
+#
+#    skills_db_dict = {
+#        k: v
+#        for k, v in vars(skills_db).items()
+#        if isinstance(v, dict)
+#    }
+#    del skills_db_dict['__builtins__']
+#
+#    return maliks_idea()
 
 skill_reference=None
 
@@ -860,7 +839,7 @@ class Skill(ABC):
 
     def remove(self):
         if self.name=='Tethered':
-            raise Bloodline_Requirement
+            raise exc.Bloodline_Requirement
         new_skills = dict(session["skills_added"])
         del new_skills[self.name]
         if hasattr(self, "flags") and self.flags is not None:
@@ -892,10 +871,10 @@ class Skill(ABC):
             if hasattr(current_skill, "prereqs") and current_skill.prereqs is not None:
                 try:
                     current_skill.check_prereqs(check_dict=skill_check)
-                except Prereq_Not_Met:
+                except exc.Prereq_Not_Met:
                     self.reliant_skills.append(current_skill.name)
         if self.reliant_skills != []:
-            raise ReliantSkills
+            raise exc.ReliantSkills
 
     def validate(self):
         self.check_points()
@@ -909,11 +888,11 @@ class Skill(ABC):
         current_points=session['character_details']['points']
         new_points=current_points-self.cost
         if new_points<0:
-            raise Max_Points_Spent
+            raise exc.Max_Points_Spent
     
     def check_quantity(self):
         if self.quantity > self.max_quant:
-            raise Max_Quantity_Exceeded("Quantity exceeds maximum allowed")
+            raise exc.Max_Quantity_Exceeded("Quantity exceeds maximum allowed")
 
     def check_prereqs(self, check_dict):
         self.missing_prereqs=[]
@@ -924,15 +903,15 @@ class Skill(ABC):
                 if skill not in check_dict or check_dict[skill] < quant:
                     if skill in constants.FLAGS:
                         if skill=='Weapon_Master':
-                            raise Weapon_Master_Added
+                            raise exc.Weapon_Master_Added
                         self.missing_prereqs=constants.FLAGS[skill]
-                        raise Prereq_Flag_Raised
+                        raise exc.Prereq_Flag_Raised
                     if quant==1:
                         self.missing_prereqs.append(skill)
                     else:
                         self.missing_prereqs.append(f'{skill} x {quant}')
         if self.missing_prereqs != []:
-            raise Prereq_Not_Met("Prerequisite not met")
+            raise exc.Prereq_Not_Met("Prerequisite not met")
     
     def modify_flags(self,modification,flag_location = None):
         if flag_location is None:
@@ -1018,7 +997,7 @@ class Weapon_Master(Skill):
 class Quad_Level_Skill(Skill):
     def __init__(self, name, level, prereqs,cost_per_level=6):
         if level>4:
-            raise Skill_Not_Exist('This skill maxes out at level 4.')
+            raise exc.Skill_Not_Exist('This skill maxes out at level 4.')
         cost=level*cost_per_level
         super().__init__(name,prereqs=prereqs,quantity=level)
 
@@ -1043,7 +1022,7 @@ class Priest_Level(Quad_Level_Skill):
     def __init__(self, level, faith):
         self.prereqs={'Prayer':1}
         if session['character_details']=='':
-            raise Prereq_Not_Met
+            raise exc.Prereq_Not_Met
         super().__init__(name=f'Priesthood', level=level, prereqs=self.prereqs)
 
 class Craft(Quad_Level_Skill):
@@ -1136,7 +1115,7 @@ class Memory_Flaw(Background_Flaw):
     def check_prereq(self):
         try:
             if session['skills_added']['memory_flaws']:
-                raise Memory_Flaw_Already_Added
+                raise exc.Memory_Flaw_Already_Added
         except KeyError:
             pass
     
