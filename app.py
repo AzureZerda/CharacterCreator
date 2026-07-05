@@ -232,15 +232,19 @@ def reset_skills():
     for cat in constants.DEFAULT_SESSION:
         if cat=='character_details':
             continue
-        session[cat]=constants.DEFAULT_SESSION[cat]
+        session[cat]=constants.DEFAULT_SESSION[cat].copy()
+
+    session['character_details']['flaws_added']=[]
     
     session.modified=True
 
-def reset_session():
+def reset_skills():
     for cat in constants.DEFAULT_SESSION:
         if cat=='character_details':
             continue
-        session[cat]=constants.DEFAULT_SESSION[cat]
+        session[cat]=constants.DEFAULT_SESSION[cat].copy()
+
+    session['character_details']['flaws_added']=[]
     
     session.modified=True
 
