@@ -11,6 +11,9 @@ from prebuilts import PREBUILTS
 app=Flask(__name__)
 app.secret_key=os.getenv("SECRET_KEY")
 
+class Too_Many_Points(Exception):
+    pass
+
 class UnspentPoints(Exception):
     pass
 
@@ -408,6 +411,14 @@ def submit_page():
 def confirm():
     return render_template('confirm_character.html')
 
+@app.errorhandler(Too_Many_Points)
+def handle_missing_backstory(e):
+    return {
+        "success": False,
+        "error": "Too Many Points",
+        "message": "You have spent more points than allowed. Please remove a skill and/or add a flaw."
+    }, 400
+
 @app.errorhandler(MissingBackstory)
 def handle_missing_backstory(e):
     return {
@@ -513,6 +524,11 @@ def select_prebuilt():
 @app.route('/confirm_submission', methods=['POST'])
 def confirm_submission():
     #sheet_creator.export_char(session)
+
+    print(session['character_details']['points'])
+
+    if session['character_details']['points']<0:
+        raise Too_Many_Points()
 
     try:
         backstory=session['character_details']['backstory']
