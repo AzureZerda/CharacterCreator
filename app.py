@@ -305,6 +305,12 @@ class SkillChangeInput:
         if not isinstance(self.quant,int):
             raise TypeError
 
+@app.route("/new_player_landing")
+def new_player_landing():
+    session['character_type'] = 'new_character'
+    session.modified = True
+    return render_template('set_character.html')
+
 @app.route("/modify_skill", methods=["POST"])
 def modify_skill():
         data=request.get_json()
