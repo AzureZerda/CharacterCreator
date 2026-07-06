@@ -1,13 +1,14 @@
-#azzy made a mess in here. fix it idiot
-
-class Outside_Respec_Range(Exception):
-    pass
-
 import gspread
 from openpyxl.utils import column_index_from_string
 import constants
 from bloodline_skills import BLOODLINE_SKILLS
 import datetime
+import json
+
+#azzy made a mess in here. fix it idiot
+
+class Outside_Respec_Range(Exception):
+    pass
 
 class Layout_Manager:
     def __init__(self):
@@ -66,19 +67,38 @@ class Layout_Manager:
 class Character_Sheet:
     def __init__(self,url):
         self.workbook = gc.open_by_url(url)
+
+        pages=['Character','Progression','History','Emergency']
+
+        try:
+            self.character = self.workbook.worksheet("Character")
         
-        self.character = self.workbook.worksheet('Character')
-        self.progression = self.workbook.worksheet('Progression')
-        self.history = self.workbook.worksheet('History')
+        except gspread.WorksheetNotFound:
+            self.character = self.workbook.add_worksheet(title="Character", rows=100, cols=20)
 
-def next_letter(letter):
-    return chr(ord(letter) + 1)
+        try:
+            self.progression = self.workbook.worksheet("Progression")
+        
+        except gspread.WorksheetNotFound:
+            self.progression = self.workbook.add_worksheet(title="Progression", rows=100, cols=20)
 
-def generate_cell(value,col,row):
-    row=int(row)
-    col=column_index_from_string(col)
+        try:
+            self.history = self.workbook.worksheet("History")
+        
+        except gspread.WorksheetNotFound:
+            self.history = self.workbook.add_worksheet(title="History", rows=100, cols=20)
 
-    return gspread.Cell(row,col,value)
+        try:
+            self.emergency = self.workbook.worksheet("Emergency")
+        
+        except gspread.WorksheetNotFound:
+            self.emergency = self.workbook.add_worksheet(title="Emergency", rows=100, cols=20)
+
+        worksheet_list = self.workbook.worksheets()
+
+        for worksheet in worksheet_list:
+            if worksheet.title not in pages:
+                self.workbook.del_worksheet(worksheet)
 
 class cell_input:
     def __init__(self,value,col,row):
@@ -288,91 +308,150 @@ class Sheet_Constructor:
         return spend_cost
 
 class Existing_Sheet:
-    def __init__(self,skills,char_details):
+    def __init__(self,skills,char_details,url,per_details):
         self.skills=skills
         self.char_details=char_details
+        self.url = url
+        self.per_details = per_details
+
+class Templates:
+    def __init__(self):
+        template_sh = gc.open_by_url('https://docs.google.com/spreadsheets/d/1S4jGc7nqan4eHvhuWuqbDKQJlKUd2FEe-g2JgSHsFlg/edit?gid=38564953#gid=38564953')
+
+        self.character = template_sh.worksheet("Character")
+
+def check_respec(session):
+    old_session = session['old_session'].copy()
+    new_session = session.copy()
+    del new_session['old_session']
+
+    if new_session['skills_added'] == old_session['skills_added']:
+        skills_changed = False
+    else:
+        skills_changed = True
+    
+    if new_session['character_details']['backstory'] == old_session['character_details']['backstory']:
+        backstory_changed = False
+    else:
+        backstory_changed = True
+    
+    return skills_changed,backstory_changed
+
+def export_respec(session):
+    url = session.get('sheet_url')
+
+    skill_status, backstory_status = check_respec(session)
+
+    tracking_row = [session['character_details']['name'],skill_status, backstory_status,
+           session['character_details']['culture'],session['character_details']['bloodline'],
+           session['character_details']['backstory'],json.dumps(session['skills_added'])]
+    
+    gsheet = Character_Sheet(url)
+
+    sheet=Sheet_Constructor(session)
+
+    sheet.construct(session)
+    
+    if skill_status is True:
+        try:
+            pres_check = gsheet.workbook.worksheet('Pending_Character')
+            gsheet.workbook.del_worksheet(pres_check)
+        except:
+            pass
+
+        templates.character.copy_to(gsheet.workbook.id)
+
+        result = gsheet.workbook.worksheet("Copy of Character")
+
+        result.update_title("Pending_Character")
+
+        gsheet.pending_character = gsheet.workbook.worksheet('Pending_Character')
+
+        gsheet.pending_character.update_cells(sheet.cells)
+
+        for cell in sheet.formula_cells:
+            gsheet.pending_character.update_acell(cell.coordinate,cell.value)
+
+        for range in sheet.layout.merge_ranges:
+            gsheet.pending_character.merge_cells(range)
+
+        for line in sheet.layout.starting_line:
+            sheet.formats['skill_box_header']['cells'].extend([f'A{sheet.layout.starting_line[line]}',f'E{sheet.layout.starting_line[line]}'])
+        
+        for format in sheet.formats:
+            for cell in sheet.formats[format]['cells']:
+                gsheet.pending_character.format(cell,sheet.formats[format]['format'])
+    
+    if backstory_status is True:
+
+        try:
+            pres_check = gsheet.workbook.worksheet('Pending_History')
+            gsheet.workbook.del_worksheet(pres_check)
+        except:
+            pass
+        
+        gsheet.workbook.add_worksheet(title="Pending_History", rows=100, cols=20)
+
+        gsheet.pending_history = gsheet.workbook.worksheet('Pending_History')
+
+        gsheet.pending_history.update_cell(1,1,session['character_details']['backstory'])
+
+
+def sheet_setup(sheet):
+    templates.character.copy_to(sheet.id)
+
+    try:
+        worksheet = sheet.worksheet("Character")
+        sheet.del_worksheet(worksheet)
+    except:
+        pass
+
+        result = sheet.worksheet("Copy of Character")
+
+        result.update_title("Character")
 
 def export_char(session):
 
-    template_sh = gc.open_by_url('https://docs.google.com/spreadsheets/d/1S4jGc7nqan4eHvhuWuqbDKQJlKUd2FEe-g2JgSHsFlg/edit?gid=38564953#gid=38564953')
+    url = session.get['sheet_url']
 
-    template = template_sh.worksheet("Character")
+    if url is None:
+        sh = gc.create(f'{session['person_details']['name']} ({session['character_details']['name']})')
+        sheet_setup(sh)
+    else:
+        sh = gc.open_by_url(url)
 
-    #sh = gc.open_by_url('https://docs.google.com/spreadsheets/d/1kOFjkm8D9JxEUL-i5zz3PlUelE_3B8nGUB1meIEYZN8/edit?gid=1580168798#gid=1580168798')
-
-    #sh = gc.create('DUAL_TEST')
-    sh = gc.open_by_url('https://docs.google.com/spreadsheets/d/1q71A6Yt6spkFtRbojMFi_fwN35eaXQ-cvM41IobujLc/edit?gid=269478616#gid=269478616')
-
-    #template.copy_to(sh.id)
-
-    #try:
-    #    worksheet = sh.worksheet("Character")
-    #    sh.del_worksheet(worksheet)
-    #except:
-    #    pass
-
-    #result= sh.worksheet("Copy of Character")
-
-    #result.update_title("Character")
-
-    try:
-        worksheet = sh.worksheet("Character")
-    
-    except gspread.WorksheetNotFound:
-        worksheet = sh.add_worksheet(title="Character", rows=100, cols=20)
-
-    try:
-        worksheet1 = sh.worksheet("Progression")
-    
-    except gspread.WorksheetNotFound:
-        worksheet1 = sh.add_worksheet(title="Progression", rows=100, cols=20)
+    gsheet = Character_Sheet(sh.url)
     
     sheet=Sheet_Constructor(session)
 
     sheet.construct(session)
 
-    #worksheet.update_cells(sheet.cells)
+    gsheet.character.update_cells(sheet.cells)
 
-    #worksheet1.update_cells(sheet.progression_cells)
-
-    try:
-        emergency = sh.worksheet("Emergency")
-    
-    except gspread.WorksheetNotFound:
-        emergency = sh.add_worksheet(title="Emergency", rows=100, cols=20)
+    gsheet.progression.update_cells(sheet.progression_cells) 
 
     try:
-        history = sh.worksheet("History")
+        gsheet.history.update_acell('A1',session['character_details']['backstory'])
+    except KeyError:
+        session['character_details']['backstory']='He was forced to eat cement when he was 6'
+        gsheet.history.update_acell('A1',session['character_details']['backstory'])
+
+
+    gsheet.emergency.update_acell('A2',session['person_details']['emergency_contact'])
+
+    for cell in sheet.formula_cells:
+        gsheet.character.update_acell(cell.coordinate,cell.value)
+
+    for range in sheet.layout.merge_ranges:
+        gsheet.character.merge_cells(range)
+
+    for line in sheet.layout.starting_line:
+        sheet.formats['skill_box_header']['cells'].extend([f'A{sheet.layout.starting_line[line]}',f'E{sheet.layout.starting_line[line]}'])
     
-    except gspread.WorksheetNotFound:
-        history = sh.add_worksheet(title="History", rows=100, cols=20)
-    
+    for format in sheet.formats:
+        for cell in sheet.formats[format]['cells']:
+            gsheet.character.format(cell,sheet.formats[format]['format'])
 
-    #REMOVE FOR PROD
-
-    #try:
-    #    history.update_acell('A1',session['character_details']['backstory'])
-    #except KeyError:
-    #    session['character_details']['backstory']='He was forced to eat cement when he was 6'
-    #    history.update_acell('A1',session['character_details']['backstory'])
-
-
-    #emergency.update_acell('A2',session['person_details']['emergency_contact'])
-
-    #for cell in sheet.formula_cells:
-    #    worksheet.update_acell(cell.coordinate,cell.value)
-
-    #for range in sheet.layout.merge_ranges:
-    #    worksheet.merge_cells(range)
-
-    #for line in sheet.layout.starting_line:
-    #    sheet.formats['skill_box_header']['cells'].extend([f'A{sheet.layout.starting_line[line]}',f'E{sheet.layout.starting_line[line]}'])
-    
-    #for format in sheet.formats:
-    #    for cell in sheet.formats[format]['cells']:
-    #        worksheet.format(cell,sheet.formats[format]['format'])
-
-    #NPL_sh = gc.create('NPL_DEMO_1')
     NPL_sh = gc.open_by_url('https://docs.google.com/spreadsheets/d/1ArvwEyaAzGb3XvPSShNeEL_eHHrw2TfV9q4kbrY8Bwg/edit?gid=1599082411#gid=1599082411')
     NPL_records = NPL_sh.worksheet("Demo")
 
@@ -387,12 +466,14 @@ def export_char(session):
     except gspread.WorksheetNotFound:
         worksheet = NPL_sh.add_worksheet(title="Demo", rows=100, cols=20)
     
-    #worksheet.update_cells(NPL_Rows,num_rows)
+    worksheet.update_cells(NPL_Rows)
 
 def construct_NPL_Row(session,sheet,row):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if 'second_culture' in session['character_details']:
         culture=f'{session['character_details']['culture']}/{session['character_details']['second_culture']}'
+    else:
+        culture=session['character_details']['culture']
     timestamp_cell=gspread.Cell(row,1,timestamp)
     type_cell=gspread.Cell(row,2,'Test Character')
     player_name_cell=gspread.Cell(row,3,session['person_details']['name'])
@@ -457,7 +538,12 @@ def parse_sheet(sheet_id,session):
 
     sheet = Character_Sheet(url)
 
+    bloodline = sheet.character.acell('F3').value
+
     check_eligiblity(sheet.progression)
+
+    if 'bloodline' not in session['character_details']:
+        session['character_details']['bloodline']=bloodline
     
     session['points_earned'] = add_points(sheet.progression,session)
 
@@ -488,11 +574,26 @@ def parse_sheet(sheet_id,session):
                   'incentive_points':sheet.character.acell('G6').value,
                   'name':sheet.character.acell('F2').value,
                   'culture':sheet.character.acell('B4').value,
-                  'faith':sheet.character.acell('B5').value}
+                  'faith':sheet.character.acell('B5').value,
+                  'backstory':sheet.history.acell('A1').value}
+    
+    per_details={'name':sheet.character.acell('B2').value, 'email':sheet.character.acell('B3').value}
 
-    return Existing_Sheet(skills,char_details)
+    return Existing_Sheet(skills,char_details,url,per_details)
+
+def next_letter(letter):
+    return chr(ord(letter) + 1)
+
+def generate_cell(value,col,row):
+    row=int(row)
+    col=column_index_from_string(col)
+
+    return gspread.Cell(row,col,value)
 
 from app import SKILL_REF
 
 #azzy needs to change this to use a service account
+
 gc = gspread.oauth()
+
+templates=Templates()
