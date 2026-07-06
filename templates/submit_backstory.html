@@ -1,4 +1,4 @@
-{% extends "character_nav.html" %}
+{% extends "base.html" %}
 
 {% block title %}Skills Database{% endblock %}
 
@@ -28,6 +28,17 @@
     .container {
         max-width: 600px;
         margin: 5px auto 40px auto;
+    }
+
+    .notice {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #856404;
+        padding: 12px;
+        border-radius: 6px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-weight: bold;
     }
 
     textarea {
@@ -67,6 +78,12 @@
 </div>
 
 <div class="container">
+
+    {% if session.get('character_type') %}
+    <div class="notice">
+        Notice &ndash; Any changes to your backstory will require NPL approval.
+    </div>
+    {% endif %}
 
     <h2>Enter Backstory</h2>
 
