@@ -8,6 +8,8 @@ import os
 import constants
 import exceptions as exc
 from prebuilts import PREBUILTS
+import skills_db
+from skills_db import SKILL_REF
 
 app=Flask(__name__)
 app.secret_key=os.getenv("SECRET_KEY")
@@ -1129,10 +1131,6 @@ class Memory_Flaw(Background_Flaw):
         session['skills_added']['memory_flaws']-=1
         session.modifed=True
         super().remove()
-
-SKILL_REF = {}
-
-all_skill_sets=construct_skill_ref()
 
 #import sheet_creator
 

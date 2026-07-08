@@ -1,3 +1,32 @@
+from bloodline_skills import BLOODLINE_SKILLS
+
+def construct_skill_ref():
+    all_skill_sets = {
+        k: v
+        for k, v in globals().items()
+        if isinstance(v, dict)
+    }
+
+    if '__builtins__' in all_skill_sets:
+        del all_skill_sets['__builtins__']
+
+    new_skill_sets={}
+
+    for skills in all_skill_sets.values():
+        for skill_name, skill_details in skills.items():
+            SKILL_REF[skill_name] = skill_details
+
+    for bloodline in BLOODLINE_SKILLS:
+        pull_dict=BLOODLINE_SKILLS[bloodline]
+        for skill_name, skill_details in pull_dict.items():
+            SKILL_REF[skill_name]=skill_details
+            SKILL_REF[skill_name]['Sheet_Box']='Bloodline'
+
+    for key in all_skill_sets:
+        new_skill_sets[key.replace('_',' ')]=all_skill_sets[key]
+
+    return new_skill_sets
+
 BACKGROUND_FEATURES={
 'Magical Aptitude':{
 'Max':1,
@@ -1267,3 +1296,7 @@ CRAFTING_CIRCLES = {
     "Fletching": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a Worktable role-playing crafting an item from the Fletching chart or a craft recipe with a total Skill Level of your chosen level, then take your building tag and ingredients to Logistics.", "sheet_box":"Gathering/Crafting"},
     "Engineering": {"Max": 4, "Cost": 6, "desc":"You may spend 30 minutes at a location role-playing crafting an item from the Engineering chart or a craft recipe with a total Skill Level of your chosen level, then take your ingredients to Logistics.", "sheet_box":"Gathering/Crafting"}
 }
+
+SKILL_REF = {}
+
+construct_skill_ref()

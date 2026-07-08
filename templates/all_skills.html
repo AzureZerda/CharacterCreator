@@ -192,7 +192,7 @@ html
 
         {% for skill_name, data in category_data.items() %}
 
-        {% set maxv = data['Max'] %}
+        {% set maxv = data.get('Max', none) %}
         {% set is_selected = skill_name in display_dict %}
         {% set current_qty = display_dict.get(skill_name, 1) %}
 
