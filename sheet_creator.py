@@ -396,7 +396,6 @@ def export_respec(session):
 
         gsheet.pending_history.update_cell(1,1,session['character_details']['backstory'])
 
-
 def sheet_setup(sheet):
     templates.character.copy_to(sheet.id)
 
@@ -412,7 +411,7 @@ def sheet_setup(sheet):
 
 def export_char(session):
 
-    url = session.get['sheet_url']
+    url = session.get('sheet_url')
 
     if url is None:
         sh = gc.create(f'{session['person_details']['name']} ({session['character_details']['name']})')
@@ -426,9 +425,9 @@ def export_char(session):
 
     sheet.construct(session)
 
-    gsheet.character.update_cells(sheet.cells)
-
     gsheet.progression.update_cells(sheet.progression_cells) 
+
+    gsheet.character.update_cells(sheet.cells)
 
     try:
         gsheet.history.update_acell('A1',session['character_details']['backstory'])
