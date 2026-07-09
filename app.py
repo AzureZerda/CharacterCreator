@@ -676,10 +676,26 @@ def modify_skill():
         try:
             if input.modifier==1:
                 modification= flask_add_skill(skill)
-                session['skills_added'][skill.name] = skill.quantity
                 
             else:
                 modification = flask_remove_skill(skill)
+
+            if hasattr(skill, 'flags'):
+                skill.modify_flags(flag_location)
+
+            session.modified = True
+
+            Update_Points()
+
+            try:
+                modification['points']=Update_Points()
+            except TypeError:
+                pass
+
+            if SKILL_REF[input.name].get("redirect"):
+                modification['redirect']=SKILL_REF[input.name]['redirect']
+
+            return modification
         except exc.Prereq_Flag_Raised:
             return jsonify({'success':False, 'error':f'You need one of the following skills:\n\n {'\n'.join(prereq for prereq in skill.missing_prereqs if prereq not in constants.FLAGS)}'})
         except exc.Prereq_Not_Met:
@@ -697,34 +713,15 @@ def modify_skill():
                         character = tm.Character.from_session(session)
                         raise exc.Removal_Not_Allowed_Flag(rel, character.skills_added)
             except exc.Removal_Not_Allowed_Flag as e:
-                print('\n\nand i been liiiiiiiiiiiiicking it\n\n')
                 return jsonify({'success':False,'error':f'{e}'})
             return jsonify({'success':False,'error':f'You must remove these skills first:\n\n{', '.join(skill.reliant_skills)}'})
         except exc.Bloodline_Requirement:
             return jsonify({'success':False,'error':'Newborn dreams are required to take Tethered'})
 
-        if hasattr(skill, 'flags'):
-            print('\n we be flagging it\n')
-            print(skill.name)
-            skill.modify_flags(flag_location)
-
-        session.modified = True
-
-        Update_Points()
-
-        try:
-            modification['points']=Update_Points()
-        except TypeError:
-            pass
-
-        if SKILL_REF[input.name].get("redirect"):
-            modification['redirect']=SKILL_REF[input.name]['redirect']
-
-        return modification
-
 @app.route("/add_skill",methods=["POST"])
 def flask_add_skill(skill):
-        tm.add_skill(skill)   
+        tm.add_skill(skill)
+        session['skills_added'][skill.name] = skill.quantity   
         session.modified = True
         return {
             'success': True,

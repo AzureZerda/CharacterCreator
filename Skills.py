@@ -53,7 +53,6 @@ class Skill(ABC):
         #session['character_details']['points']-=self.cost
         if self.name=='Toughness':
             self.character.details['health points']+=self.quantity
-        self.character.skills_added[self.name] = self.quantity
 
     def remove(self):
         self.flag_modifier = -1
@@ -64,23 +63,29 @@ class Skill(ABC):
         if hasattr(self, 'flags'):
             for flag in self.flags:
                 new_skills[flag] += self.flag_modifier
+        
         for skill in new_skills:
             input = SkillChangeInput({'skill': skill, 'quantity': new_skills[skill]})
             try:
                 check_skill = Construct_Skill(input, self.character)
             except KeyError:
+                self.verify_removal
                 continue
+
             self.reliant_skills = []
             if hasattr(check_skill, 'prereqs') and check_skill.prereqs is not None:
                 for skill in check_skill.prereqs:
-                    self.verify_removal(skill,new_skills)
+                    self.verify_removal(skill,check_skill.prereqs[skill],new_skills)
             if self.reliant_skills != []:
                 raise exc.ReliantSkills
 
-    def verify_removal(self,skill,check):
-        if skill in check:
-            pass
-        else:
+    def verify_removal(self,skill,required_quantity,check):
+        try:
+            if check[skill] >= required_quantity:
+                pass
+            else:
+                self.reliant_skills.append(skill)
+        except KeyError:
             self.reliant_skills.append(skill)
     
     def check_reliance(self,skill_check):
