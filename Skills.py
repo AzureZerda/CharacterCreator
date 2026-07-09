@@ -142,6 +142,9 @@ class Skill(ABC):
                     else:
                         self.missing_prereqs.append(f'{skill} x {quant}')
         if self.missing_prereqs != []:
+            for m in self.missing_prereqs:
+                if m in constants.FLAGS:
+                    raise exc.Prereq_Flag_Raised
             raise exc.Prereq_Not_Met("Prerequisite not met")
     
     def modify_flags(self,flag_location):

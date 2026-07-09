@@ -715,9 +715,9 @@ def flask_add_skill(skill):
         }
     
     except exc.Prereq_Flag_Raised:
-        return jsonify({'success':False, 'error':f'You need one of the following skills:\n\n {'\n'.join(skill.missing_prereqs)}'})
+        return jsonify({'success':False, 'error':f'You need one of the following skills:\n\n {'\n'.join(prereq for prereq in skill.missing_prereqs if prereq not in constants.FLAGS)}'})
     except exc.Prereq_Not_Met:
-        return jsonify({"success": False, "error": f"you need the following skills to add {skill.name}:\n\n{', '.join(skill.missing_prereqs)}", "message":"haahahahahahha"})
+        return jsonify({"success": False, "error": f"you need the following skills to add {skill.name}:\n\n{', '.join(prereq for prereq in skill.missing_prereqs if prereq not in constants.FLAGS)}", "message":"haahahahahahha"})
     except exc.Max_Points_Spent:
         return jsonify({"success": False, "error": f"You do not have enough points."})
     except exc.Memory_Flaw_Already_Added:
