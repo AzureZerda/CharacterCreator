@@ -44,11 +44,10 @@ class Skill(ABC):
             self.flags=['Literate']
 
     def add(self):
+        self.flag_modifier = 1
         #if hasattr(self, "prereqs") and self.prereqs is not None:
         #    self.process_prereq_chain()
         self.validate()
-        if hasattr(self, "flags") and self.flags is not None:
-            self.modify_flags(1,self.character.skills_added)
         if 'lore' in self.name[:4].lower():
             self.character.flags['lore_score']+=4
         #session['character_details']['points']-=self.cost
@@ -57,14 +56,14 @@ class Skill(ABC):
         self.character.skills_added[self.name] = self.quantity
 
     def remove(self):
-        print('\ne\n')
+        self.flag_modifier = -1
         if self.name=='Tethered':
             raise exc.Bloodline_Requirement
         new_skills = dict(self.character.skills_added).copy()
         del new_skills[self.name]
-        if hasattr(self, "flags") and self.flags is not None:
-            self.modify_flags(-1,flag_location=new_skills)
-        print(new_skills)
+        if hasattr(self, 'flags'):
+            for flag in self.flags:
+                new_skills[flag] += self.flag_modifier
         for skill in new_skills:
             input = SkillChangeInput({'skill': skill, 'quantity': new_skills[skill]})
             try:
@@ -145,11 +144,9 @@ class Skill(ABC):
         if self.missing_prereqs != []:
             raise exc.Prereq_Not_Met("Prerequisite not met")
     
-    def modify_flags(self,modification,flag_location = None):
-        if flag_location is None:
-            flag_location = session['skills_added']
+    def modify_flags(self,flag_location):
         for flag in self.flags:
-            flag_location[flag]+=modification
+            flag_location[flag]+= self.flag_modifier
 
     def process_prereq_chain(self):
         self.prereq_chain={}

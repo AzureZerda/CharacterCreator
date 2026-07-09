@@ -288,8 +288,6 @@ def new_player_landing():
 def modify_skill():
         data=request.get_json()
 
-        print(data)
-
         global session
 
         character = tm.Character.from_session(session)
@@ -302,13 +300,16 @@ def modify_skill():
 
         skill = Construct_Skill(input, character)
 
-        location = session['skills_added']
+        flag_location = session['skills_added']
 
         if input.modifier==1:
             modification= flask_add_skill(skill)
             
         else:
             modification = flask_remove_skill(skill)
+
+        if hasattr(skill, 'flags'):
+            skill.modify_flags(flag_location)
 
         session.modified = True
 
@@ -587,7 +588,7 @@ def create_char(data):
         'quantity':1,'modifer':1}
     input=SkillChangeInput(input)
 
-    character = Character.from_session(session)
+    character = tm.Character.from_session(session)
 
     skill=Construct_Skill(input, character)
     tm.add_skill(skill)
