@@ -36,3 +36,19 @@ class Prereq_Flag_Raised(Exception):
 
 class Weapon_Master_Added(Exception):
     pass
+
+class Removal_Not_Allowed_Flag(Exception):
+    def __init__(self, flag, skills):
+        import constants
+        flag_skill = constants.FLAG_MAP[flag]
+
+        if not isinstance(flag_skill,list):
+            message = f'You must first remove {flag_skill}'
+        else:
+            for skill in flag_skill:
+                if skill in skills:
+                    present_skill = skill
+
+            message = f'You must first remove {present_skill}'
+
+        super().__init__(message)
