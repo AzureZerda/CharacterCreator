@@ -215,6 +215,7 @@ class Weapon_Master(Skill):
                 del self.character.skills_added[weapon]
             except KeyError:
                 continue
+            
         del self.character.skills_added[self.name]
         self.character.skills_added['Weapon_Master']+=1
     
