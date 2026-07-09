@@ -57,28 +57,32 @@ class Skill(ABC):
         self.character.skills_added[self.name] = self.quantity
 
     def remove(self):
+        print('\ne\n')
         if self.name=='Tethered':
             raise exc.Bloodline_Requirement
         new_skills = dict(self.character.skills_added).copy()
         del new_skills[self.name]
         if hasattr(self, "flags") and self.flags is not None:
             self.modify_flags(-1,flag_location=new_skills)
+        print(new_skills)
         for skill in new_skills:
             input = SkillChangeInput({'skill': skill, 'quantity': new_skills[skill]})
             try:
                 check_skill = Construct_Skill(input, self.character)
             except KeyError:
                 continue
+            self.reliant_skills = []
             if hasattr(check_skill, 'prereqs') and check_skill.prereqs is not None:
                 for skill in check_skill.prereqs:
                     self.verify_removal(skill,new_skills)
+            if self.reliant_skills != []:
+                raise exc.ReliantSkills
 
     def verify_removal(self,skill,check):
         if skill in check:
             pass
         else:
-            print(f'\noh fuck! We dont have {skill}\n')
-            raise exc.ReliantSkills
+            self.reliant_skills.append(skill)
     
     def check_reliance(self,skill_check):
         self.reliant_skills=[]
