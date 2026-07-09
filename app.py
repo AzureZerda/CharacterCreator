@@ -183,10 +183,7 @@ def reset_session():
 
 def Update_Points():
     # at some point the base native lore started showing up in here. Fix it azzy
-    print(session,'\n')
     character = tm.Character.from_session(session)
-
-    print(character.__dict__)
 
     if session['character_details']['bloodline'].lower() not in constants.FORTY_POINTS:
         base_total=20
@@ -288,50 +285,6 @@ def new_player_landing():
     session['character_type'] = 'new_character'
     session.modified = True
     return render_template('set_character.html')
-
-@app.route("/modify_skill", methods=["POST"])
-def modify_skill():
-        data=request.get_json()
-
-        global session
-
-        character = tm.Character.from_session(session)
-
-        input=SkillChangeInput(data)
-        input.validate()
-
-        if input.modifier not in (1,-1):
-            return {"success":False,"error":"INVALID_MODIFIER"},
-
-        skill = Construct_Skill(input, character)
-
-        flag_location = session['skills_added']
-
-        if input.modifier==1:
-            modification= flask_add_skill(skill)
-            
-        else:
-            modification = flask_remove_skill(skill)
-
-        if hasattr(skill, 'flags'):
-            skill.modify_flags(flag_location)
-
-        session.modified = True
-
-        Update_Points()
-
-        try:
-            modification['points']=Update_Points()
-        except TypeError:
-            pass
-
-        if SKILL_REF[input.name].get("redirect"):
-            modification['redirect']=SKILL_REF[input.name]['redirect']
-
-        if modification is None:
-            modification = '1'
-
-        return modification
 
 @app.route("/submit")
 def submit_page():
@@ -564,8 +517,6 @@ def create_char(data):
 
     data = request.get_json()
 
-    print(data)
-
     player=Player_Details_Input(data)
 
     character_ = Character_Details_Input(data)
@@ -704,9 +655,75 @@ def submit_backstory():
         "message": "Backstory saved"
     })
 
+@app.route("/modify_skill", methods=["POST"])
+def modify_skill():
+        data=request.get_json()
+
+        global session
+
+        character = tm.Character.from_session(session)
+
+        input=SkillChangeInput(data)
+        input.validate()
+
+        if input.modifier not in (1,-1):
+            return {"success":False,"error":"INVALID_MODIFIER"},
+
+        skill = Construct_Skill(input, character)
+
+        flag_location = session['skills_added']
+
+        try:
+            if input.modifier==1:
+                modification= flask_add_skill(skill)
+                session['skills_added'][skill.name] = skill.quantity
+                
+            else:
+                modification = flask_remove_skill(skill)
+        except exc.Prereq_Flag_Raised:
+            return jsonify({'success':False, 'error':f'You need one of the following skills:\n\n {'\n'.join(prereq for prereq in skill.missing_prereqs if prereq not in constants.FLAGS)}'})
+        except exc.Prereq_Not_Met:
+            return jsonify({"success": False, "error": f"you need the following skills to add {skill.name}:\n\n{', '.join(prereq for prereq in skill.missing_prereqs if prereq not in constants.FLAGS)}", "message":"haahahahahahha"})
+        except exc.Max_Points_Spent:
+            return jsonify({"success": False, "error": f"You do not have enough points."})
+        except exc.Memory_Flaw_Already_Added:
+            return jsonify({'success':False, 'error':'You have already added a memory flaw'})
+        except exc.Weapon_Master_Added:
+            return jsonify({'success':False, 'error':'In order to remove this skill, you must instead remove WEAPON MASTER'})
+        except exc.ReliantSkills as e:
+            try:
+                for rel in skill.reliant_skills:
+                    if rel in constants.FLAGS:
+                        character = tm.Character.from_session(session)
+                        raise exc.Removal_Not_Allowed_Flag(rel, character.skills_added)
+            except exc.Removal_Not_Allowed_Flag as e:
+                print('\n\nand i been liiiiiiiiiiiiicking it\n\n')
+                return jsonify({'success':False,'error':f'{e}'})
+            return jsonify({'success':False,'error':f'You must remove these skills first:\n\n{', '.join(skill.reliant_skills)}'})
+        except exc.Bloodline_Requirement:
+            return jsonify({'success':False,'error':'Newborn dreams are required to take Tethered'})
+
+        if hasattr(skill, 'flags'):
+            print('\n we be flagging it\n')
+            print(skill.name)
+            skill.modify_flags(flag_location)
+
+        session.modified = True
+
+        Update_Points()
+
+        try:
+            modification['points']=Update_Points()
+        except TypeError:
+            pass
+
+        if SKILL_REF[input.name].get("redirect"):
+            modification['redirect']=SKILL_REF[input.name]['redirect']
+
+        return modification
+
 @app.route("/add_skill",methods=["POST"])
 def flask_add_skill(skill):
-    try:
         tm.add_skill(skill)   
         session.modified = True
         return {
@@ -719,15 +736,22 @@ def flask_add_skill(skill):
             "bloodline": session["character_details"].get("bloodline", "no bloodline selected"),
             "faith": session["character_details"].get("faith", "no faith selected"),
         }
-    
-    except exc.Prereq_Flag_Raised:
-        return jsonify({'success':False, 'error':f'You need one of the following skills:\n\n {'\n'.join(prereq for prereq in skill.missing_prereqs if prereq not in constants.FLAGS)}'})
-    except exc.Prereq_Not_Met:
-        return jsonify({"success": False, "error": f"you need the following skills to add {skill.name}:\n\n{', '.join(prereq for prereq in skill.missing_prereqs if prereq not in constants.FLAGS)}", "message":"haahahahahahha"})
-    except exc.Max_Points_Spent:
-        return jsonify({"success": False, "error": f"You do not have enough points."})
-    except exc.Memory_Flaw_Already_Added:
-        return jsonify({'success':False, 'error':'You have already added a memory flaw'})
+
+@app.route("/remove_skill", methods=["POST"])
+def flask_remove_skill(skill):
+    tm.remove_skill(skill)
+    del session['skills_added'][skill.name]
+
+    return {
+            'success': True,
+            "message": "Added Skill",
+            "points": session["character_details"]["points"],
+            "HP": session["character_details"]["health points"],
+            "name": session["character_details"].get("name", "no name selected"),
+            "culture": session["character_details"].get("culture", "no culture selected"),
+            "bloodline": session["character_details"].get("bloodline", "no bloodline selected"),
+            "faith": session["character_details"].get("faith", "no faith selected"),
+        }
 
 @app.route("/reset", methods=["POST"])
 def reset():
@@ -746,37 +770,6 @@ def reset():
     session.modified=True
 
     return maliks_idea()
-
-@app.route("/remove_skill", methods=["POST"])
-def flask_remove_skill(skill):
-    try:
-        tm.remove_skill(skill)
-        del session['skills_added'][skill.name]
-
-    except exc.Weapon_Master_Added:
-        return jsonify({'success':False, 'error':'In order to remove this skill, you must instead remove WEAPON MASTER'})
-    except exc.ReliantSkills as e:
-        try:
-            for rel in skill.reliant_skills:
-                if rel in constants.FLAGS:
-                    character = tm.Character.from_session(session)
-                    raise exc.Removal_Not_Allowed_Flag(rel, character.skills_added)
-        except exc.Removal_Not_Allowed_Flag as e:
-            return jsonify({'success':False,'error':f'{e}'})
-        return jsonify({'success':False,'error':f'You must remove these skills first:\n\n{', '.join(skill.reliant_skills)}'})
-    except exc.Bloodline_Requirement:
-        return jsonify({'success':False,'error':'Newborn dreams are required to take Tethered'})
-
-    return {
-            'success': True,
-            "message": "Added Skill",
-            "points": session["character_details"]["points"],
-            "HP": session["character_details"]["health points"],
-            "name": session["character_details"].get("name", "no name selected"),
-            "culture": session["character_details"].get("culture", "no culture selected"),
-            "bloodline": session["character_details"].get("bloodline", "no bloodline selected"),
-            "faith": session["character_details"].get("faith", "no faith selected"),
-        }
 
 #@app.route("/create_character", methods=["POST"])
 #def create_character():
