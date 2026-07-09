@@ -183,6 +183,11 @@ def reset_session():
 
 def Update_Points():
     # at some point the base native lore started showing up in here. Fix it azzy
+    print(session,'\n')
+    character = tm.Character.from_session(session)
+
+    print(character.__dict__)
+
     if session['character_details']['bloodline'].lower() not in constants.FORTY_POINTS:
         base_total=20
     else:
@@ -191,7 +196,7 @@ def Update_Points():
     if 'points_earned' in session:
         base_total+=session['points_earned']
 
-    base_total+=int(session['character_details']['incentive_points'])
+    base_total+=int(character.details['incentive_points'])
 
     flaw_points=0
     
@@ -536,6 +541,7 @@ class Character_Details_Input:
         self.culture=input['culture']
         self.bloodline=input['bloodline']
         self.faith=input['faith']
+        self.incentive_points = input['incentive_points']
 
 def insert_char_details(player):
     session['person_details']={}
@@ -558,11 +564,13 @@ def create_char(data):
 
     data = request.get_json()
 
+    print(data)
+
     player=Player_Details_Input(data)
 
     character_ = Character_Details_Input(data)
 
-    session['skills_added']=constants.DEFAULT_SESSION['skills_added'].copy()
+    session=constants.DEFAULT_SESSION.copy()
 
     if character_.bloodline.lower()=='newborn dream':
         skills_db.BACKGROUND_FLAWS['Tethered']={'Max':1,'Cost':-10}
@@ -606,8 +614,6 @@ def create_char(data):
         char_ref['incentive_points']=0
 
     session['character_details']['points']=Update_Points()
-
-    session.modified=True
 
 @app.route("/set_character/<category>")
 def set_character(category):
@@ -749,7 +755,14 @@ def flask_remove_skill(skill):
 
     except exc.Weapon_Master_Added:
         return jsonify({'success':False, 'error':'In order to remove this skill, you must instead remove WEAPON MASTER'})
-    except exc.ReliantSkills:
+    except exc.ReliantSkills as e:
+        try:
+            for rel in skill.reliant_skills:
+                if rel in constants.FLAGS:
+                    character = tm.Character.from_session(session)
+                    raise exc.Removal_Not_Allowed_Flag(rel, character.skills_added)
+        except exc.Removal_Not_Allowed_Flag as e:
+            return jsonify({'success':False,'error':f'{e}'})
         return jsonify({'success':False,'error':f'You must remove these skills first:\n\n{', '.join(skill.reliant_skills)}'})
     except exc.Bloodline_Requirement:
         return jsonify({'success':False,'error':'Newborn dreams are required to take Tethered'})
