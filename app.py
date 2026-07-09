@@ -15,25 +15,6 @@ import twin_maskify as tm
 app=Flask(__name__)
 app.secret_key=os.getenv("SECRET_KEY")
 
-class Character:
-    def __init__(self):
-        self.flags = {}
-        self.skills_added = {}
-        self.details = {}
-
-    @classmethod
-    def from_session(cls, session):
-        character = cls()
-        character.flags = session.get("flags", {})
-        character.skills_added = session["skills_added"]
-        character.details = session.get("character_details", {})
-        return character
-
-    def sync(self, persistence_layer):
-        self.skills_added = persistence_layer['skills_added']
-
-        return persistence_layer
-
 @app.route("/")
 def buttons():
     return render_template('landing_page.html')
@@ -311,7 +292,7 @@ def modify_skill():
 
         global session
 
-        character = Character.from_session(session)
+        character = tm.Character.from_session(session)
 
         input=SkillChangeInput(data)
         input.validate()
