@@ -10,6 +10,14 @@ import skills_db
 from skills_db import SKILL_REF, construct_skill_ref
 from Skills import Construct_Skill
 import twin_maskify as tm
+from session_manager import (
+    reset_skills,
+    reset_session,
+    reset_skill_selections,
+    back_to_the_death_realms_with_you,
+    inject_bloodline_skills,
+    Update_Points,
+)
 
 app=Flask(__name__)
 app.secret_key=os.getenv("SECRET_KEY")
@@ -67,106 +75,6 @@ def init_session():
             session[cat]=constants.DEFAULT_SESSION[cat].copy()
     
     session.modified=True
-
-def reset_skills():
-    for cat in constants.DEFAULT_SESSION:
-        if cat=='character_details':
-            continue
-        session[cat]=constants.DEFAULT_SESSION[cat].copy()
-
-    session['character_details']['flaws_added']=[]
-    
-    session.modified=True
-
-def reset_session():
-    for cat in constants.DEFAULT_SESSION:
-        if cat=='character_details':
-            continue
-        session[cat]=constants.DEFAULT_SESSION[cat].copy()
-    
-    session.modified=True
-
-def Update_Points():
-    # at some point the base native lore started showing up in here. Fix it azzy
-    character = tm.Character.from_session(session)
-
-    if session['character_details']['bloodline'].lower() not in constants.FORTY_POINTS:
-        base_total=20
-    else:
-        base_total=40 
-
-    if 'points_earned' in session:
-        base_total+=session['points_earned']
-
-    base_total+=int(character.details['incentive_points'])
-
-    flaw_points=0
-    
-    skills_list= dict(session['skills_added'])
-
-    native_skips=0
-
-    for skill in skills_list.copy(): 
-        if skill[:6]=='Native' and native_skips==0:
-            del skills_list[skill]
-            native_skips+=1
-
-    if session['character_details']['bloodline'].lower() != 'newborn dream' and 'Tethered' in session['character_details']['flaws_added']:
-        session['character_details']['flaws_added'].remove('Tethered')
-
-    for flaw in session['character_details']['flaws_added']:
-        new_flaw_points = flaw_points + -SKILL_REF[flaw]['Cost']
-        
-        if new_flaw_points >= 10:
-            flaw_points = 10
-            break
-        elif new_flaw_points<10:
-            flaw_points=new_flaw_points
-
-    base_total+=flaw_points
-    
-    if 'Pursuit of Knowledge' in skills_list:
-        lore_score=session['flags']['lore_score']
-
-        if lore_score>=12:
-            base_total+=12
-        elif lore_score==0:
-            pass
-        else:
-            base_total+=lore_score
-
-    dict_ref=session['Point_Cats']
-    lore_score=dict_ref['lore_score']
-
-    if 'Weapon Master' in skills_list:
-        for skill in constants.WEAPON_MASTER_SKILLS:
-            del skills_list[skill]
-
-    for skill,quantity in skills_list.items():
-  
-        if skill in constants.FLAWS:
-            continue
-        if skill[:7]=='Native':
-            continue
-        try:
-            skill_cost=SKILL_REF[skill]['Cost']
-        except KeyError:
-            if skill[:6]=='Native':
-                skill_cost=4
-            else:
-                continue
-
-        base_total-=skill_cost*quantity
-
-    if 'Pursuit of Knowledge' in skills_list:
-        if lore_score >= 12:
-            base_total+=12
-        else:
-            base_total+=lore_score
-    
-    session['character_details']['points']=base_total
-
-    return base_total
 
 @app.route("/new_player_landing")
 def new_player_landing():
@@ -274,16 +182,6 @@ def show_prebuilts():
 def custom_or_prebuilt():
     return render_template('premade_or_custom.html')
 
-def reset_skill_selections():
-    session['character_details']['health_points']=5
-    char_ref=session['character_details']
-    char_ref['flaws_added']=[]
-    session['skills_added']={'Literate': 0, 'Weapon_Master': 0, 
-                             'can_assassinate': 0, 'can_field_repair': 0, 'can_fortify': 0, 
-                             'can_instruct': 0, 'can_invent': 0, 'gm_mage': 0, 'has_faith': 0, 
-                             'is_crafter': 0, 'memory_flaws': 0}
-    session.modified=True
-
 @app.route("/select_prebuilt", methods=["POST"])
 def select_prebuilt():
     # there's some oddity going on in here. Azzy thinks she fixed it. We will see.
@@ -344,13 +242,6 @@ def confirm_submission():
 @app.route("/character_setup", methods=["GET"])
 def character_setup():
     return render_template("character_setup.html")
-
-def inject_bloodline_skills(session,dictionary):
-    bloodline=session["character_details"]["bloodline"]
-
-    dictionary[f'{bloodline.upper()} ONLY SKILLS']=BLOODLINE_SKILLS.get(bloodline,{})
-
-    return dictionary
 
 @app.route("/all_skills")
 def maliks_idea():
@@ -520,14 +411,6 @@ def reset_character():
     back_to_the_death_realms_with_you()
     return render_template('set_character.html')
 
-def back_to_the_death_realms_with_you():
-    for cat in session:
-        try:
-            session[cat]=constants.DEFAULT_SESSION[cat].copy()
-        except KeyError:
-            continue
-    session.modified=True
-
 @app.route("/enter_backstory", methods=["POST"])
 def trauma_dump_and_or_explode():
     return render_template('submit_backstory.html')
@@ -674,52 +557,6 @@ def reset():
     session.modified=True
 
     return maliks_idea()
-
-#@app.route("/create_character", methods=["POST"])
-#def create_character():
-#
-#    #session['skills_added'] = constants.DEFAULT_SESSION['skills_added']
-#
-#    session["character_details"].update({
-#    "name": request.form.get("name"),
-#    "culture": request.form.get("culture"),
-#    "bloodline": request.form.get("bloodline"),
-#    "faith": request.form.get("faith")
-#    })
-#
-#    session.modified = True
-#
-#    skills_db_dict = {
-#        k: v
-#        for k, v in vars(skills_db).items()
-#        if isinstance(v, dict)
-#    }
-#    del skills_db_dict['__builtins__']
-#
-#    return maliks_idea()
-
-#@app.route("/process_person", methods=["POST"])
-#def process_person():
-#    name = request.form.get("name")
-#    email = request.form.get("email")
-#    discord = request.form.get("discord")
-##    character_name = request.form.get("character_name")
-#    emergency = request.form.get('emergency_contact')
-#
-#    session['person_details']={'name':name,'email':email,'discord':discord, 'emergency_contact':emergency}#
-#
-#    skills_db_dict = {
-#        k: v
-#        for k, v in vars(skills_db).items()
-#        if isinstance(v, dict)
-#    }
-#    del skills_db_dict['__builtins__']
-#
-#    return render_template('character_setup.html',back_url=url_for("home"))
-
-#@app.route("/confirm_character")
-#def confirm():
-#    return render_template('confirm_character.html')
 
 skill_reference=None
 
