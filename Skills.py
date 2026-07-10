@@ -51,8 +51,6 @@ class Skill(ABC):
         if 'lore' in self.name[:4].lower():
             self.character.flags['lore_score']+=4
         #session['character_details']['points']-=self.cost
-        if self.name=='Toughness':
-            self.character.details['health points']+=self.quantity
 
     def remove(self):
         if self.name in constants.WEAPON_MASTER_SKILLS and 'Weapon Master' in self.character.skills_added:
