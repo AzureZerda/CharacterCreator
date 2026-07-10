@@ -1,6 +1,4 @@
 from flask import Flask, render_template, request, session, jsonify, redirect, url_for, flash
-from abc import ABC
-import json
 from bloodline_skills import BLOODLINE_SKILLS
 import re
 import os
@@ -9,7 +7,7 @@ import exceptions as exc
 from prebuilts import PREBUILTS
 import Skills
 import skills_db
-from skills_db import SKILL_REF
+from skills_db import SKILL_REF, construct_skill_ref
 from Skills import Construct_Skill
 import twin_maskify as tm
 
@@ -20,103 +18,9 @@ app.secret_key=os.getenv("SECRET_KEY")
 def buttons():
     return render_template('landing_page.html')
 
-def construct_skill_ref():
-    all_skill_sets = {
-        k: v
-        for k, v in vars(skills_db).items()
-        if isinstance(v, dict)
-    }
-
-    if '__builtins__' in all_skill_sets:
-        del all_skill_sets['__builtins__']
-
-    new_skill_sets={}
-
-    for skills in all_skill_sets.values():
-        for skill_name, skill_details in skills.items():
-            SKILL_REF[skill_name] = skill_details
-
-    for bloodline in BLOODLINE_SKILLS:
-        pull_dict=BLOODLINE_SKILLS[bloodline]
-        for skill_name, skill_details in pull_dict.items():
-            SKILL_REF[skill_name]=skill_details
-            SKILL_REF[skill_name]['Sheet_Box']='Bloodline'
-
-    for key in all_skill_sets:
-        new_skill_sets[key.replace('_',' ')]=all_skill_sets[key]
-
-    return new_skill_sets
-
 def contains_google_doc_link(text):
     LINK_REGEX = re.compile(r"(https?://[^\s]+|www\.[^\s]+)", re.IGNORECASE)
     return bool(re.search(LINK_REGEX, text))
-
-def Determine_Route(skill):
-    router={
-        'short weapons':0,
-        'thrown weapons':0,
-        'bow and arrow':0,
-        'lockpicking':1,
-        'alchemy':2,
-        'channeling':2,
-        'divination':2,
-        'sorcery':2,
-        'warding':2,
-        'priesthood':3,
-        'blacksmithing':4,
-        'armorsmithing':4,
-        'weaponsmithing':4,
-        'shieldsmithing':4,
-        'enchanting':4,
-        'scroll scribing':4,
-        'artificing':4,
-        'cooking':4,
-        'stable alchemy':4,
-        'tailoring':4,
-        'fletching':4,
-        'engineering':4,
-        'defensive instruction':5,
-        'offensive instruction':5,
-        'evasive instruction':5,
-        'repair shield':6,
-        'fortify armor':6,
-        'clouded memory':7,
-        'fractured memory':7,
-        'fading memory':7,
-        'sovereign zeal':8,
-        'religious zeal':8,
-        'corrupted':8,
-        'oathbound':8,
-        'frail':8,
-        'illiterate':8,
-        'weapon master':9
-        }
-    
-    try:
-        route=router[skill]
-    except KeyError:
-        route=99
-    
-    return route
-
-@app.route("/process_person", methods=["POST"])
-def process_person():
-    name = request.form.get("name")
-    email = request.form.get("email")
-    discord = request.form.get("discord")
-    character_name = request.form.get("character_name")
-    emergency = request.form.get('emergency_contact')
-
-    session['person_details']={'name':name,'email':email,'discord':discord, 'emergency_contact':emergency}
-
-    skills_db_dict = {
-        k: v
-        for k, v in vars(skills_db).items()
-        if isinstance(v, dict)
-    }
-    del skills_db_dict['__builtins__']
-
-    return render_template('character_setup.html',back_url=url_for("home"))
 
 @app.context_processor
 def inject_globals():
@@ -264,23 +168,6 @@ def Update_Points():
 
     return base_total
 
-class SkillChangeInput:
-    def __init__(self,data):
-        self.name=data['skill']
-        self.quant=data['quantity']
-        self.modifier=data.get('modifier')
-    
-    def validate(self):
-        if self.name not in SKILL_REF:
-            raise exc.Skill_Not_Exist
-        
-        if SKILL_REF[self.name]['Max'] is not None:
-            if self.quant>SKILL_REF[self.name]['Max']:
-                raise exc.Max_Quantity_Exceeded
-        
-        if not isinstance(self.quant,int):
-            raise TypeError
-
 @app.route("/new_player_landing")
 def new_player_landing():
     session['character_type'] = 'new_character'
@@ -322,10 +209,6 @@ def submit_page():
     char_info=char_dict,
     skill_info=display_dict,
     char_backstory=backstory)
-
-@app.route("/confirm_character")
-def confirm():
-    return render_template('confirm_character.html')
 
 @app.errorhandler(exc.MissingBackstory)
 def handle_missing_backstory(e):
@@ -420,7 +303,7 @@ def select_prebuilt():
 
     for skill in PREBUILTS[prebuilt]['skills']:
         input={'skill':skill, 'quantity':PREBUILTS[prebuilt]['skills'][skill]}
-        input=SkillChangeInput(input)
+        input = tm.SkillChangeInput(input)
         skill_=Construct_Skill(input)
 
         if hasattr(skill_, "flags") and skill_.flags is not None:
@@ -557,7 +440,7 @@ def create_char(data):
 
     input={'skill':f'Native Lore: {data['culture']}',
         'quantity':1,'modifer':1}
-    input=SkillChangeInput(input)
+    input = tm.SkillChangeInput(input)
 
     character = tm.Character.from_session(session)
 
@@ -568,7 +451,7 @@ def create_char(data):
         char_ref['second_culture']=data['second_culture']
         input={'skill':f'Native Lore: {data['second_culture']}',
         'quantity':1,'modifer':1}
-        input=SkillChangeInput(input)
+        input= tm.SkillChangeInput(input)
         skill=Construct_Skill(input, character)
         tm.add_skill(skill)
     if 'incentive_points' in data:
@@ -675,7 +558,7 @@ def modify_skill():
 
         character = tm.Character.from_session(session)
 
-        input=SkillChangeInput(data)
+        input = tm.SkillChangeInput(data)
         input.validate()
 
         if input.modifier not in (1,-1):
@@ -814,6 +697,29 @@ def reset():
 #    del skills_db_dict['__builtins__']
 #
 #    return maliks_idea()
+
+#@app.route("/process_person", methods=["POST"])
+#def process_person():
+#    name = request.form.get("name")
+#    email = request.form.get("email")
+#    discord = request.form.get("discord")
+##    character_name = request.form.get("character_name")
+#    emergency = request.form.get('emergency_contact')
+#
+#    session['person_details']={'name':name,'email':email,'discord':discord, 'emergency_contact':emergency}#
+#
+#    skills_db_dict = {
+#        k: v
+#        for k, v in vars(skills_db).items()
+#        if isinstance(v, dict)
+#    }
+#    del skills_db_dict['__builtins__']
+#
+#    return render_template('character_setup.html',back_url=url_for("home"))
+
+#@app.route("/confirm_character")
+#def confirm():
+#    return render_template('confirm_character.html')
 
 skill_reference=None
 
