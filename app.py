@@ -472,7 +472,10 @@ def inject_bloodline_skills(session,dictionary):
 def maliks_idea():
     skills_db_dict = construct_skill_ref()
 
-    del skills_db_dict['SKILL REF']
+    utilities = ['SKILL REF','BLOODLINE SKILLS']
+
+    for ut in utilities:
+        del skills_db_dict[ut]
 
     skills_db_dict=inject_bloodline_skills(session,skills_db_dict)
 
