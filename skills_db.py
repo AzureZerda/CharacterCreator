@@ -130,7 +130,6 @@ WEAPON_PROFICIENCIES={
         "Max":1,
         "Cost":1,
         "Prereq":{
-          "Weapon_Master":0
         },
         "desc":"You may wield and use weapons up to 24 inches in length.",
         "sheet_box":"General Skills"
@@ -140,8 +139,7 @@ WEAPON_PROFICIENCIES={
         "Max":1,
         "Cost":2,
         "Prereq":{
-          "Short Weapons":1,
-          "Weapon_Master":0
+          "Short Weapons":1
         },
         "desc":"You may wield and use weapons up to 48 inches in length.",
         "sheet_box":"General Skills"
@@ -151,8 +149,7 @@ WEAPON_PROFICIENCIES={
         "Max":1,
         "Cost":3,
         "Prereq":{
-          "One-Handed Weapons":1,
-          "Weapon_Master":0
+          "One-Handed Weapons":1
         },
         "desc":"You may wield and use weapons of any length, as long as they are wielded in two hands.",
         "sheet_box":"General Skills"
@@ -162,8 +159,7 @@ WEAPON_PROFICIENCIES={
         "Max":1,
         "Cost":2,
         "Prereq":{
-          "Two-Handed Weapons":1,
-          "Weapon_Master":0
+          "Two-Handed Weapons":1
         },
         "desc":"You may wield and use weapons of any length in one hand.",
         "sheet_box":"General Skills"
@@ -173,7 +169,6 @@ WEAPON_PROFICIENCIES={
         "Max":1,
         "Cost":2,
         "Prereq":{
-          "Weapon_Master":0
         },
         "desc":"You may wield and use thrown weapons.",
         "sheet_box":"General Skills"
@@ -183,7 +178,6 @@ WEAPON_PROFICIENCIES={
         "Max":1,
         "Cost":3,
         "Prereq":{
-          "Weapon_Master":0
         },
         "desc":"You may wield and use a bow.",
         "sheet_box":"General Skills"
