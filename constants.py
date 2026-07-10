@@ -14,11 +14,13 @@ FLAGS={
 
 FLAG_MAP={
     'gm_mage':'Arcane Tutelage',
-    'can_assassinate':'Stealth Attack',
     'can_invent':'Inventor',
     'is_crafter':'Reconstruct',
     'can_fortify':'Fortify Armor',
-    'can_instruct':'Military Drill'
+    'can_assassinate':['Stealth Attack','10-Damage Strike'],
+    'can_instruct':['Military Drill','Self-Observation'],
+    'can_field_repair':'Field Repair',
+    #'Weapon_Master':'Weapon Master'
 }
 
 DEFAULT_SESSION={
