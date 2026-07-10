@@ -521,7 +521,13 @@ def create_char(data):
 
     character_ = Character_Details_Input(data)
 
-    session=constants.DEFAULT_SESSION.copy()
+    global session
+
+    for cat in session:
+        try:
+            session[cat] = constants.DEFAULT_SESSION[cat].copy()
+        except KeyError:
+            continue
 
     if character_.bloodline.lower()=='newborn dream':
         skills_db.BACKGROUND_FLAWS['Tethered']={'Max':1,'Cost':-10}
@@ -714,7 +720,7 @@ def modify_skill():
                         raise exc.Removal_Not_Allowed_Flag(rel, character.skills_added)
             except exc.Removal_Not_Allowed_Flag as e:
                 return jsonify({'success':False,'error':f'{e}'})
-            return jsonify({'success':False,'error':f'You must remove these skills first:\n\n{', '.join(skill.reliant_skills)}'})
+            return jsonify({'success':False,'error':f'You must remove these skills first:\n\n{skill.failed_skill}'})
         except exc.Bloodline_Requirement:
             return jsonify({'success':False,'error':'Newborn dreams are required to take Tethered'})
 
@@ -737,7 +743,14 @@ def flask_add_skill(skill):
 @app.route("/remove_skill", methods=["POST"])
 def flask_remove_skill(skill):
     tm.remove_skill(skill)
-    del session['skills_added'][skill.name]
+
+    try:
+        del session['skills_added'][skill.name]
+    except KeyError:
+        if skill.name == 'Weapon Master':
+            pass
+        else:
+            raise KeyError
 
     return {
             'success': True,
