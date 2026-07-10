@@ -55,6 +55,8 @@ class Skill(ABC):
             self.character.details['health points']+=self.quantity
 
     def remove(self):
+        if self.name in constants.WEAPON_MASTER_SKILLS and 'Weapon Master' in self.character.skills_added:
+            raise exc.Weapon_Master_Added
         self.flag_modifier = -1
         if self.name=='Tethered':
             raise exc.Bloodline_Requirement
@@ -64,8 +66,8 @@ class Skill(ABC):
             for flag in self.flags:
                 new_skills[flag] += self.flag_modifier
         
-        for skill in new_skills:
-            input = SkillChangeInput({'skill': skill, 'quantity': new_skills[skill]})
+        for reliant_skill in new_skills:
+            input = SkillChangeInput({'skill': reliant_skill, 'quantity': new_skills[reliant_skill]})
             try:
                 check_skill = Construct_Skill(input, self.character)
             except KeyError:
@@ -77,6 +79,7 @@ class Skill(ABC):
                 for skill in check_skill.prereqs:
                     self.verify_removal(skill,check_skill.prereqs[skill],new_skills)
             if self.reliant_skills != []:
+                self.failed_skill = reliant_skill
                 raise exc.ReliantSkills
 
     def verify_removal(self,skill,required_quantity,check):
@@ -163,7 +166,6 @@ class Skill(ABC):
         if self.prereq_cost>points:
             pass #something that happens when prereq chain costs too much
         
-    
     def add_prereqs(self):
         self.prereq_cost=0
         if hasattr(self,'prereqs') and self.prereqs is not None:
@@ -215,15 +217,15 @@ class Weapon_Master(Skill):
             skill_info=SkillChangeInput({'skill':weapon,'quantity':1})
             skill=Construct_Skill(skill_info,self.character)
             add_skill(skill)
-        self.character.skills_added[self.name]=1
+            self.character.skills_added[weapon]=1
+            if hasattr(skill,'flags'):
+                skill.modify_flags(self.character.skills_added)
         self.character.skills_added['Weapon_Master']-=1
 
     def remove(self):
         for weapon in self.weapons_gained[::-1]:
-            try:
-                del self.character.skills_added[weapon]
-            except KeyError:
-                continue
+            del self.character.skills_added[weapon]
+        self.character.skills_added['can_assassinate'] = 0
             
         del self.character.skills_added[self.name]
         self.character.skills_added['Weapon_Master']+=1
