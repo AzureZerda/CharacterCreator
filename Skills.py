@@ -317,14 +317,14 @@ class Background_Flaw(Skill):
     
     def remove(self):
         if self.name=='Illiterate':
-            session['skills_added']['Literate']+=1
+            self.character.details['Literate']+=1
         if self.name=='Frail':
-            session['character_details']['health points']+=self.quantity
+            self.character.details['health points']+=self.quantity
         for i in range(self.quantity):
-            session['character_details']['flaws_added'].remove(self.name)
+            self.character.details['flaws_added'].remove(self.name)
 
     def check_flaw_count(self):
-        current_flaw_points=session['character_details']['flaw_points']
+        current_flaw_points=self.character.details['flaw_points']
         new_total=self.cost+current_flaw_points
         if new_total>=-10:
             return self.cost
@@ -336,7 +336,7 @@ class Background_Flaw(Skill):
     
     def add(self):
         if hasattr(self, "prereqs") and self.prereqs is not None:
-            super().check_prereqs(session)
+            super().check_prereqs(self. character.skills_added)
         if self.name=='Frail':
             self.character.details['health points']-=self.quantity
         if self.name=='Illiterate':
@@ -362,8 +362,7 @@ class Memory_Flaw(Background_Flaw):
             pass
     
     def remove(self):
-        session['skills_added']['memory_flaws']-=1
-        session.modifed=True
+        self.character.skills_added['memory_flaws']-=1
         super().remove()
 
 def Determine_Route(skill):
