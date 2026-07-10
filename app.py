@@ -7,6 +7,7 @@ import os
 import constants
 import exceptions as exc
 from prebuilts import PREBUILTS
+import Skills
 import skills_db
 from skills_db import SKILL_REF
 from Skills import Construct_Skill
@@ -425,11 +426,11 @@ def select_prebuilt():
         if hasattr(skill_, "flags") and skill_.flags is not None:
             skill_.modify_flags(1)
         
-        if isinstance(skill_,Memory_Flaw):
+        if isinstance(skill_, Skills.Memory_Flaw):
             session['skills_added']['memory_flaws']=1
             session['character_details']['flaws_added'].append(skill)
 
-        elif isinstance(skill_, Background_Flaw):
+        elif isinstance(skill_, Skills.Background_Flaw):
             session['character_details']['flaws_added'].append(skill)
 
         session['skills_added'][skill]=PREBUILTS[prebuilt]['skills'][skill]
@@ -691,18 +692,23 @@ def modify_skill():
             else:
                 modification = flask_remove_skill(skill)
 
+            print(modification)
+
             if hasattr(skill, 'flags'):
                 skill.modify_flags(flag_location)
 
-            session.modified = True
-
             Update_Points()
+
+            t_points = session['skills_added'].get('Toughness',0)
+            modification['HP'] = 5 + t_points
 
             try:
                 modification['points']=Update_Points()
             except TypeError:
                 pass
 
+            session.modified = True
+            
             if SKILL_REF[input.name].get("redirect"):
                 modification['redirect']=SKILL_REF[input.name]['redirect']
 
