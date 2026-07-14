@@ -111,7 +111,7 @@ def submit_page():
         backstory=session['character_details']['backstory']
     except KeyError:
         backstory='No backstory submitted...'
-
+    
     return render_template(
     "submit_character.html",
     player_info=player_details,
@@ -181,7 +181,11 @@ def show_prebuilts():
 
 @app.route("/make_choice")
 def custom_or_prebuilt():
-    return render_template('premade_or_custom.html')
+    print(session)
+    if session['character_details']['bloodline'].lower() in ['human', 'effendal']:
+        return render_template('premade_or_custom.html')
+    else: 
+        return maliks_idea()
 
 @app.route("/select_prebuilt", methods=["POST"])
 def select_prebuilt():
@@ -220,6 +224,40 @@ def select_prebuilt():
         session['skills_added'][skill]=PREBUILTS[prebuilt]['skills'][skill]
 
     return "", 204
+
+@app.route('/start_planning')
+def start_plan():
+    return render_template('load_character_sheet.html')
+
+def plan_skills():
+    skills_db_dict = construct_skill_ref()
+
+    utilities = ['SKILL REF','BLOODLINE SKILLS']
+
+    for ut in utilities:
+        del skills_db_dict[ut]
+
+    skills_db_dict=inject_bloodline_skills(session,skills_db_dict)
+
+    Update_Points()
+
+    if session['character_details']['faith'] == 'Total CP:':
+        session['character_details']['faith'] = 'None'
+        session.updated = True
+
+    return render_template('planning_skills.html', skills_db=skills_db_dict,back_url=url_for("character_setup"))
+
+@app.route('/load_existing_character')
+def load_existing_character():
+    sheet_url = 'https://docs.google.com/spreadsheets/d/1wWdYO1cG0quM27GoRpCLJvbZGmxcZs60Lnb-Z8rxv3w/edit?usp=sharing'
+    details = sheet_creator.character_sheet_to_dict(sheet_url)
+
+    session['character_type'] = 'character_plan'
+
+    for cat in details:
+        session[cat] = details[cat]
+
+    return plan_skills()
 
 @app.route('/confirm_submission', methods=['POST'])
 def confirm_submission():
@@ -261,14 +299,18 @@ def maliks_idea():
 
     return render_template('all_skills.html', skills_db=skills_db_dict,back_url=url_for("character_setup"))
 
+@app.route('/premade_or_custom')
+def premade_or_custom():
+    return render_template('premade_or_custom.html')
+
 @app.route('/submission_test', methods=['POST'])
 def new_player():
     session['skills_added'] = constants.DEFAULT_SESSION['skills_added'].copy()
-    session.modifed=True
+    session.modified = True  # note: was "modifed" (typo) before
 
     data = request.get_json()
     create_char(data)
-    return '', 204
+    return ('', 204)
 
 @app.route("/set_character/<category>")
 def set_character(category):
@@ -376,8 +418,6 @@ def modify_skill():
             else:
                 modification = flask_remove_skill(skill)
 
-            print(modification)
-
             if hasattr(skill, 'flags'):
                 skill.modify_flags(flag_location)
 
@@ -480,7 +520,7 @@ skill_reference=None
 
 skills_added={}
 
-#import sheet_creator
+import sheet_creator
 
 if __name__=="__main__":
     app.run(debug=True)
