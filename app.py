@@ -187,7 +187,7 @@ def custom_or_prebuilt():
 def select_prebuilt():
     # there's some oddity going on in here. Azzy thinks she fixed it. We will see.
     #Azzy the health points calculation is broken. Fix!!!
-    # oh also charismatic courtier is throwing a key error. fix it azzy! Fixed- Azzy
+    # oh also charisx   ic courtier is throwing a key error. fix it azzy! Fixed- Azzy
 
     reset_skill_selections()
 
@@ -203,10 +203,12 @@ def select_prebuilt():
     for skill in PREBUILTS[prebuilt]['skills']:
         input={'skill':skill, 'quantity':PREBUILTS[prebuilt]['skills'][skill]}
         input = tm.SkillChangeInput(input)
-        skill_=Construct_Skill(input)
+        character = tm.Character.from_session(session)
+        skill_=Construct_Skill(input, character)
 
         if hasattr(skill_, "flags") and skill_.flags is not None:
-            skill_.modify_flags(1)
+            skill_.flag_modifier = 1 
+            skill_.modify_flags(character.skills_added)
         
         if isinstance(skill_, Skills.Memory_Flaw):
             session['skills_added']['memory_flaws']=1
