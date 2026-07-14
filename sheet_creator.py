@@ -1,3 +1,4 @@
+import re
 import gspread
 from openpyxl.utils import column_index_from_string
 import constants
@@ -580,6 +581,56 @@ def parse_sheet(sheet_id,session):
 
     return Existing_Sheet(skills,char_details,url,per_details)
 
+def extract_character_sheet_skills(sheet):
+    legacy_discount = 0
+    list_of_rows = sheet.character.get_all_values()[9:]
+
+    notes_index = next(
+        (i for i, row in enumerate(list_of_rows) if row[0] == "Notes:"),
+        None
+    )
+
+    list_of_rows = list_of_rows[:notes_index]
+
+    skills={}
+
+    for row in list_of_rows:
+        sides=[row[:2],row[4:6]]
+
+        for side in sides:
+            if side[0] in ['','General Skills','Magical Arts','Knowledge','Gathering/Crafting']:
+                continue
+            if side[1] in ['N/A','0']:
+                continue
+            if ' x' in side[0]:
+                side[0]=side[0][:-3]
+            
+            if 'Rank' in side[0]:
+                match = re.search(r"Rank (\d+)", side[0])
+                if match:
+                    rank = int(match.group(1))
+                    if 'Legacy' in side[0]:
+                        side[1] = int(side[1]) + rank
+                        legacy_discount += rank
+                    match = re.search(r"L(\d+)", side[0])
+                    if match:
+                        side[1] = str(int(side[1]) + int(match.group(1)))
+                        legacy_discount += int(match.group(1))
+
+            if side[0] == 'Oathbound':
+                side[0] = 'Oath Bound'
+            if side[0][:11] == 'Native Lore':
+                continue
+            if side[0][:4] != 'Lore':
+                side[0] = side[0].split(":", 1)[0]
+            
+            skill_cost=SKILL_REF[side[0]]['Cost']
+            skill_quant=abs(int(side[1])/skill_cost)
+
+            skills[side[0]] = skill_quant
+
+    return skills, legacy_discount
+
 def next_letter(letter):
     return chr(ord(letter) + 1)
 
@@ -588,6 +639,48 @@ def generate_cell(value,col,row):
     col=column_index_from_string(col)
 
     return gspread.Cell(row,col,value)
+
+def extract_character_sheet_character_details(sheet):
+    list_of_rows = sheet.character.get_all_values()[:8]
+    details={}
+    details['bloodline'] = list_of_rows[2][5].lower()
+    details['culture'] = list_of_rows[3][1]
+    details['faith'] = list_of_rows[6][1]
+    details['flaw_points'] = 0
+    details['flaws_added'] = []
+    details['health points'] = 5
+    details['name'] = list_of_rows[1][5]
+    details['points'] = list_of_rows[6][2]
+    details['incentive_points'] = 0
+
+    return details
+
+def extract_recent_sesh(sheet):
+    list_of_rows = sheet.progression.get_all_values()
+
+    for row in list_of_rows.copy():
+        if row[0] == '':
+            list_of_rows.remove(row)
+    
+    last_event = {'event':list_of_rows[0], 'date':list_of_rows[1], 'cp earned':list_of_rows[2],
+                  'ip to cp':list_of_rows[3], 'food_tag':list_of_rows[4]}
+    
+    return last_event
+
+def character_sheet_to_dict(url):
+    sheet = Character_Sheet(url)
+    
+    session={}
+
+    skills, legacy = extract_character_sheet_skills(sheet)
+    char_details = extract_character_sheet_character_details(sheet)
+    last_event = extract_recent_sesh(sheet)
+
+    session['character_details'] = char_details
+    session['skills_added'] = skills
+    session['legacy_discount'] = legacy
+
+    return session
 
 from app import SKILL_REF
 

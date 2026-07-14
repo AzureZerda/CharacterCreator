@@ -55,17 +55,25 @@ def inject_bloodline_skills(session, dictionary):
  
 def Update_Points():
     # at some point the base native lore started showing up in here. Fix it azzy
+    
     character = tm.Character.from_session(session)
  
-    if session['character_details']['bloodline'].lower() not in constants.FORTY_POINTS:
-        base_total = 20
+    if session['character_type'] != 'character_plan':
+        if session['character_details']['bloodline'].lower() not in constants.FORTY_POINTS:
+            base_total = 20
+        else:
+            base_total = 40
+    
+        if 'points_earned' in session:
+            base_total += session['points_earned']
+    
+        base_total += int(character.details['incentive_points'])
     else:
-        base_total = 40
- 
-    if 'points_earned' in session:
-        base_total += session['points_earned']
- 
-    base_total += int(character.details['incentive_points'])
+        base_total = int(session['character_details']['points'])
+        base_total += session['legacy_discount']
+
+    print('\nawooga\n')
+    print(base_total)
  
     flaw_points = 0
  

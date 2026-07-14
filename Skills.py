@@ -154,6 +154,9 @@ class Skill(ABC):
             raise exc.Prereq_Not_Met("Prerequisite not met")
     
     def modify_flags(self,flag_location):
+        print(self.name)
+        print(self.flags)
+        print(flag_location)
         for flag in self.flags:
             flag_location[flag]+= self.flag_modifier
 

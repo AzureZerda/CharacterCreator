@@ -31,6 +31,10 @@ class Character:
         character.skills_added = session["skills_added"]
         character.details = session.get("character_details", {})
         return character
+    
+    @classmethod
+    def from_character_sheet(cls, sheet):
+        pass
 
     def sync(self, persistence_layer):
         self.skills_added = persistence_layer['skills_added']
