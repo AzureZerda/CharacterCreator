@@ -176,19 +176,19 @@ PREBUILTS={
             "Mercantile": 2
         }
     },
-    'Dream of Potential':{
-        'description':'A little bit of everything.',
-        'required_equipment':'Sword up to 48"',
-        'skills':{
-            "Infinite Possibility": 1,
-            "Short Weapons": 1,
-            "One-Handed Weapons": 1,
-            "Toughness": 1,
-            "Dodge": 1,
-            "Stun": 1,
-            "Leap": 1,
-            "Drawn To The Muse": 1,
-            "Slumber Sight": 1
-        }
-    }
+    #'Dream of Potential':{
+    #    'description':'A little bit of everything.',
+    #    'required_equipment':'Sword up to 48"',
+    #    'skills':{
+    #        "Infinite Possibility": 1,
+    #        "Short Weapons": 1,
+    #        "One-Handed Weapons": 1,
+    #        "Toughness": 1,
+    #        "Dodge": 1,
+    #        "Stun": 1,
+    #        "Leap": 1,
+    #        "Drawn To The Muse": 1,
+    #        "Slumber Sight": 1
+    #    }
+    #}
 }
