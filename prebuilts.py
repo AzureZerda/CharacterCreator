@@ -127,7 +127,7 @@ PREBUILTS={
             "Magical Aptitude": 1,
             "Lore: Sorcery": 1,
             "Mana Focus": 16,
-            "Sorcery": 1
+            "Sorcery": 3
         }
     },
     'Practiced Surgeon':{
