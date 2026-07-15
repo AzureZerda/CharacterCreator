@@ -46,6 +46,10 @@
     </div>
 
     <div class="top-right">
+
+    <details class="dropdown">
+        <summary>Navigation</summary>
+
         <form method="GET" action="{{ url_for('maliks_idea') }}">
             <button type="submit">Skills</button>
         </form>
@@ -54,6 +58,15 @@
             <button type="submit">Backstory</button>
         </form>
 
+        <form method="GET" action="{{ url_for('submit_page') }}">
+            <button type="submit">Submit</button>
+        </form>
+    </details>
+
+
+    <details class="dropdown">
+        <summary>Reset</summary>
+
         <form method="POST" action="{{ url_for('reset') }}">
             <button type="submit">Reset Skills</button>
         </form>
@@ -61,11 +74,9 @@
         <form method="GET" action="{{ url_for('reset_character') }}">
             <button type="submit">Reset Character</button>
         </form>
+    </details>
 
-        <form method="GET" action="{{ url_for('submit_page') }}">
-            <button type="submit">Submit</button>
-        </form>
-    </div>
+</div>
 </div>
 
 <div class="page-wrapper">
