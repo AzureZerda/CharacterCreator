@@ -58,6 +58,10 @@
             <button type="submit">Backstory</button>
         </form>
 
+        <form method="GET" action="{{ url_for('custom_or_prebuilt') }}">
+            <button type="submit">Premades</button>
+        </form>
+
         <form method="GET" action="{{ url_for('submit_page') }}">
             <button type="submit">Submit</button>
         </form>
