@@ -20,8 +20,11 @@ from session_manager import (
 )
 from character_builder import create_char
 
-app=Flask(__name__)
-app.secret_key=os.getenv("SECRET_KEY")
+try:
+    app
+except NameError:
+    app = Flask(__name__)
+    app.secret_key = os.getenv("SECRET_KEY")
 
 @app.route("/")
 def buttons():
@@ -101,8 +104,6 @@ def submit_page():
 
     char_dict={'name':char_ref['name'],'Culture':char_ref['culture'],'bloodline':char_ref['bloodline'],'faith':char_ref['faith'],'HP':char_ref['health points']}
 
-    display_dict[f'Native Lore: {char_dict['Culture']}']=1
-
     player_ref=session['person_details']
 
     player_details={'name':player_ref['name'],'email':player_ref['email'],'discord':player_ref['discord']}
@@ -111,7 +112,7 @@ def submit_page():
         backstory=session['character_details']['backstory']
     except KeyError:
         backstory='No backstory submitted...'
-    
+
     return render_template(
     "submit_character.html",
     player_info=player_details,
@@ -181,7 +182,7 @@ def show_prebuilts():
 
 @app.route("/make_choice")
 def custom_or_prebuilt():
-    print(session)
+    
     if session['character_details']['bloodline'].lower() in ['human', 'effendal']:
         return render_template('premade_or_custom.html')
     else: 
@@ -306,10 +307,11 @@ def premade_or_custom():
 @app.route('/submission_test', methods=['POST'])
 def new_player():
     session['skills_added'] = constants.DEFAULT_SESSION['skills_added'].copy()
-    session.modified = True  # note: was "modifed" (typo) before
+    session.modified = True  
 
     data = request.get_json()
     create_char(data)
+
     return ('', 204)
 
 @app.route("/set_character/<category>")

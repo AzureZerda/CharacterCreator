@@ -20,8 +20,10 @@ class Player_Details_Input:
  
 class Character_Details_Input:
     def __init__(self, input):
+        
         self.name = input['name']
-        self.culture = input['culture']
+        self.culture1 = input['culture']
+        self.culture2 = input.get('second_culture','')
         self.bloodline = input['bloodline']
         self.faith = input['faith']
         self.incentive_points = input['incentive_points']
@@ -43,7 +45,7 @@ def create_char(data):
  
     character_ = Character_Details_Input(data)
  
-    for cat in session:
+    for cat in constants.DEFAULT_SESSION:
         try:
             session[cat] = constants.DEFAULT_SESSION[cat].copy()
         except KeyError:
@@ -65,26 +67,33 @@ def create_char(data):
  
     char_ref = session['character_details']
     char_ref['name'] = character_.name
-    char_ref['culture'] = character_.culture
+    if character_.culture2 != '':
+        char_ref['culture'] = character_.culture1+' / '+character_.culture2
+    else:
+        char_ref['culture'] = character_.culture1 
     char_ref['bloodline'] = character_.bloodline
     char_ref['faith'] = character_.faith
  
-    input = {'skill': f'Native Lore: {data["culture"]}',
+    n_lores = []
+
+    input = {'skill': f'Native Lore: {character_.culture1}',
              'quantity': 1, 'modifer': 1}
     input = tm.SkillChangeInput(input)
+
+    n_lores.append(input)
+
+    if character_.culture2:
+        input = {'skill': f'Native Lore: {character_.culture2}',
+             'quantity': 1, 'modifer': 1}
+        input = tm.SkillChangeInput(input)
+        n_lores.append(input)
  
     character = tm.Character.from_session(session)
  
-    skill = Construct_Skill(input, character)
-    tm.add_skill(skill)
+    session['skills_added'][f'Native Lore: {character_.culture1}'] = 1
+    if character_.culture2:
+        session['skills_added'][f'Native Lore: {character_.culture2}'] = 1
  
-    if 'second_culture' in data:
-        char_ref['second_culture'] = data['second_culture']
-        input = {'skill': f'Native Lore: {data["second_culture"]}',
-                 'quantity': 1, 'modifer': 1}
-        input = tm.SkillChangeInput(input)
-        skill = Construct_Skill(input, character)
-        tm.add_skill(skill)
     if 'incentive_points' in data:
         char_ref['incentive_points'] = data['incentive_points']
     else:
