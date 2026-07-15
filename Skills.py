@@ -3,7 +3,7 @@ from skills_db import SKILL_REF
 import exceptions as exc
 import skills_db
 import constants
-from twin_maskify import add_skill
+from twin_maskify import add_skill, craft_level_map
 
 class SkillChangeInput:
     def __init__(self,data):
@@ -80,6 +80,10 @@ class Skill(ABC):
                 self.failed_skill = reliant_skill
                 raise exc.ReliantSkills
 
+    def construct_display_name(self):
+        self.display_name = self.name
+        self.display_quant = self.quantity
+    
     def verify_removal(self,skill,required_quantity,check):
         try:
             if check[skill] >= required_quantity:
@@ -243,6 +247,10 @@ class Quad_Level_Skill(Skill):
             raise exc.Skill_Not_Exist('This skill maxes out at level 4.')
         cost=level*cost_per_level
         super().__init__(character,name,prereqs=prereqs,quantity=level)
+    
+    def construct_display_name(self):
+        self.display_name = self.name + ': ' + craft_level_map[self.quantity]
+        self.display_quant = 1
 
 class Lockpicking(Quad_Level_Skill):
     def __init__(self,name,level, character):

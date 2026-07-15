@@ -46,3 +46,10 @@ def add_skill(skill):
 
 def remove_skill(skill):
     skill.remove()
+
+craft_level_map = {
+    1:'Apprentice',
+    2:'Journeyman',
+    3:'Master',
+    4:'Grandmaster'
+}

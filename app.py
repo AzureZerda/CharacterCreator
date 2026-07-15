@@ -26,6 +26,28 @@ except NameError:
     app = Flask(__name__)
     app.secret_key = os.getenv("SECRET_KEY")
 
+def construct_display_dict(character): 
+    display_dict = {}
+    skill_dict = character.skills_added.copy()
+    flags=constants.FLAGS
+    for flag in flags:
+        try:
+            del skill_dict[flag]
+        except KeyError:
+            pass
+    for skill in skill_dict:
+        input = Skills.SkillChangeInput({'skill': skill, 'quantity': skill_dict[skill]})
+        character = tm.Character.from_session(session)
+        skill_ = Construct_Skill(input, character)
+        skill_.construct_display_name()
+        display_dict[skill_.display_name] = skill_.display_quant
+
+    if 'Weapon Master' in display_dict:
+        for weapon in constants.WEAPON_MASTER_SKILLS:
+            del display_dict[weapon]
+
+    return display_dict
+
 @app.route("/")
 def buttons():
     return render_template('landing_page.html')
@@ -40,13 +62,9 @@ def inject_globals():
         session['character_details']['health points']=5+session['skills_added']['Toughness']
     else:
         session['character_details']['health points']=5
-    display_dict=dict(session['skills_added'])
-    flags=constants.FLAGS
-    for flag in flags:
-        try:
-            del display_dict[flag]
-        except KeyError:
-            pass
+    character = tm.Character.from_session(session)
+    display_dict = construct_display_dict(character)
+
     char_dict=dict(session['character_details'])
     flags=['points','flaw_points','memory_flaws','health points','flaws_added']
     for flag in flags:
@@ -88,18 +106,10 @@ def new_player_landing():
 
 @app.route("/submit")
 def submit_page():
-    print(session)
-    display_dict=dict(session['skills_added'])
-    flags=constants.FLAGS
-    for flag in flags:
-        try:
-            del display_dict[flag]
-        except KeyError:
-            pass
 
-    if 'Weapon Master' in display_dict:
-        for weapon in constants.WEAPON_MASTER_SKILLS:
-            del display_dict[weapon]
+    character = tm.Character.from_session(session)
+
+    display_dict = construct_display_dict(character)
 
     char_ref=dict(session['character_details'])
 
@@ -113,10 +123,6 @@ def submit_page():
         backstory=session['character_details']['backstory']
     except KeyError:
         backstory='No backstory submitted...'
-    
-    print(session)
-
-    print(display_dict)
 
     return render_template(
     "submit_character.html",
@@ -374,9 +380,9 @@ def skills_page(category):
 
     flags = ['can_assassinate', 'can_instruct', 'can_invent', 'gm_mage', 'is_crafter', 'Literate','has_faith', 'can_field_repair']
 
-    display_dict = dict(session.get("skills_added", {}))
-    for flag in flags:
-        display_dict.pop(flag, None)
+    character = tm.Character.from_session(session)
+
+    display_dict = construct_display_dict(character)
 
     return render_template(
         "skill_page.html",
@@ -521,8 +527,6 @@ def flask_remove_skill(skill):
 @app.route("/reset", methods=["POST"])
 def reset():
     reset_skills()
-
-    print('slipperyyyyyyyyy')
     
     skills_db_dict = {
         k: v
