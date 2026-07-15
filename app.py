@@ -212,7 +212,10 @@ def select_prebuilt():
     prebuilt = data.get("prebuilt")
 
     session['skills_added'][f'Native Lore: {session['character_details']['culture']}']=1
-    session['skills_added'][f'Native Lore: {session['character_details']['second_culture']}']=1
+    try:
+        session['skills_added'][f'Native Lore: {session['character_details']['second_culture']}']=1
+    except KeyError:
+        pass
 
     for skill in PREBUILTS[prebuilt]['skills']:
         input={'skill':skill, 'quantity':PREBUILTS[prebuilt]['skills'][skill]}
