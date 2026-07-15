@@ -9,19 +9,15 @@
     <form action="{{ url_for('new_player_landing') }}" method="get">
         <button type="submit">New Player</button>
     </form>
-    {#
-        Azzy wanted this removed, take it up with her.
 
-        <form action="{{ url_for('') }}" method="get">
-            <button type="submit">Alt Character</button>
-        </form>
-        #}
+    <form action="{{ url_for('start_respec') }}" method="get">
+        <button type="submit">Respec</button>
+    </form>
 
-    {#
-        Respecs not in there yet. Bleh
-        <form action="{{ url_for('start_respec') }}" method="get">
-            <button type="submit">Respec</button>
-        </form>
-        #}
+    <!--- Azzy wanted this removed. Alt stuff coming soon ig, take it up with her
+    <form action="{{ url_for('alt_char_landing') }}" method="get">
+        <button type="submit">Alt Character</button>
+    </form>
+    --->
 </body>
 </html>

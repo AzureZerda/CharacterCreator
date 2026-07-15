@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Character Creation{% endblock %}
+
+{% block content %}
+
+<style>
+    .page-container {
+        display:flex;
+        justify-content:center;
+        gap:40px;
+        flex-wrap:wrap;
+    }
+
+    .form-container {
+        width:400px;
+        padding:20px;
+        border:2px solid #000;
+        border-radius:6px;
+        background:#f9f9f9;
+    }
+
+    .form-title {
+        font-size:20px;
+        font-weight:bold;
+        margin-bottom:15px;
+        border-bottom:2px solid #000;
+        padding-bottom:5px;
+    }
+
+    .field {
+        margin-bottom:15px;
+    }
+
+    label {
+        display:block;
+        font-weight:bold;
+        margin-bottom:5px;
+    }
+
+    input, select {
+        width:100%;
+        padding:8px;
+        font-size:14px;
+        box-sizing:border-box;
+    }
+
+    .display-value {
+        width:100%;
+        padding:8px;
+        box-sizing:border-box;
+        background:#eee;
+        border:1px solid #ccc;
+        border-radius:4px;
+    }
+
+    .required {
+        color:red;
+        margin-left:4px;
+    }
+
+    button {
+        padding:10px 15px;
+        cursor:pointer;
+        width:100%;
+        margin-top:20px;
+    }
+</style>
+
+<form id="combined-form">
+
+<div class="page-container">
+
+    <!-- PLAYER INFO -->
+    <div class="form-container">
+
+        <div class="form-title">Player Information</div>
+
+        <div class="field">
+            <label>Name <span class="required">*</span></label>
+            <div class="display-value">{{ player_name }}</div>
+            <input type="hidden" name="player_name" value="{{ player_name }}">
+        </div>
+
+        <div class="field">
+            <label>Email <span class="required">*</span></label>
+            <div class="display-value">{{ email }}</div>
+            <input type="hidden" name="email" value="{{ email }}">
+        </div>
+
+        <div class="field">
+            <label>Discord Username</label>
+            <input type="text" name="discord">
+        </div>
+
+    </div>
+
+    <!-- CHARACTER SETUP -->
+    <div class="form-container">
+
+        <div class="form-title">Character Information</div>
+
+        <div class="field">
+            <label>Name</label>
+            <input type="text" name="name" required>
+        </div>
+
+        <div class="field">
+            <label>Culture</label>
+            <select name="culture">
+                <option value="Castle Thorn">Castle Thorn</option>
+                <option value="The Celestine Empire">Celestine</option>
+                <option value="Cestral">Cestral</option>
+                <option value="Cole">Cole</option>
+                <option value="Dace">Dace</option>
+                <option value="The Kingdom of Hastings">Hastings</option>
+                <option value="The Nadine Empire">Nadine</option>
+                <option value="The Vein">Vein</option>
+                <option value="The Drir">Drir</option>
+                <option value="The Ko'aat">Ko'aat</option>
+                <option value="Myre">Myre</option>
+                <option value="The Saek">Saek</option>
+                <option value="The Trahazi">Trahazi</option>
+                <option value="The Vicaul">Vicaul</option>
+                <option value="Paradox: Dawn">Paradox: Dawn</option>
+                <option value="Paradox: Dusk">Paradox: Dusk</option>
+                <option value="Bastion">Bastion</option>
+                <option value="The Breach">The Breach</option>
+                <option value="Redemption">Redemption</option>
+                <option value="The Citadel">Citadel</option>
+                <option value="Endurant Tribes">Endurant Tribes</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Bloodline</label>
+            <select name="bloodline">
+                <option value="human">Human</option>
+                <option value="effendal">Effendal</option>
+                <option value="fae-blooded">Fae-Blooded</option>
+                <option value="celestial-blooded">Celestial-Blooded</option>
+                <option value="demon-blooded">Demon-Blooded</option>
+                <option value="dragon-blooded">Dragon-Blooded</option>
+                <option value="newborn dream">Newborn Dream</option>
+            </select>
+        </div>
+
+        <div class="field">
+            <label>Faith</label>
+            <input type="text" name="faith" />
+        </div>
+
+    </div>
+
+</div>
+
+<button type="submit">Submit All</button>
+
+</form>
+
+<script>
+document.getElementById("combined-form").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    const formDict = {};
+
+    new FormData(this).forEach((value, key) => {
+        formDict[key] = value;
+    });
+
+    fetch("{{ url_for('new_player') }}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formDict)
+    })
+    .then(async res => {
+        if(!res.ok){
+            const text = await res.text();
+            throw new Error(text || "Submission failed");
+        }
+        return res;
+    })
+    .then(() => {
+        window.location.href = "/all_skills";
+    })
+    .catch(err => {
+        console.error(err);
+        showPopup("ERROR", err.message);
+    });
+});
+</script>
+
+{% endblock %}

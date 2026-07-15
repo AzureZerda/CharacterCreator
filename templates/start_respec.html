@@ -1,0 +1,68 @@
+{% extends "popup_handler.html" %}
+
+{% block title %}Start Respec{% endblock %}
+
+{% block content %}
+
+<h1>Start Respec</h1>
+
+<form id="respecForm">
+    <label for="character_id">Input Character ID</label><br>
+    <input
+        type="text"
+        id="character_id"
+        name="character_id"
+        required
+    >
+    <br><br>
+
+    <button type="submit">Submit</button>
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+
+<script>
+document.getElementById("respecForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    try {
+        const res = await fetch("{{ url_for('check_respec') }}", {
+            method: "POST",
+            body: formData
+        });
+
+        const data = await res.json();
+
+        // HANDLE HARD ERRORS (HTTP errors like 400/500)
+        if (!res.ok || data.success === false) {
+            showPopup(
+                data.error || "Error",
+                data.message || "Request failed"
+            );
+            return;
+        }
+
+        // HANDLE REDIRECTS (IMPORTANT)
+        if (data.redirect) {
+            window.location.href = data.redirect;
+            return;
+        }
+
+        // HANDLE SUCCESS MESSAGE
+        showPopup(
+            "Success",
+            data.message || "Respec completed"
+        );
+
+    } catch (err) {
+        showPopup("Network Error", "Could not reach server.");
+    }
+});
+</script>
+
+{% endblock %}

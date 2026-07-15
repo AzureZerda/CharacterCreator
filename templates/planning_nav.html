@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+
+{% block page_head %}
+<style>
+    body {
+        padding-top: 50px;
+    }
+
+    .top-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: #222;
+        color: white;
+        padding: 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        z-index: 999;
+    }
+
+    .top-left, .top-right {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding-right: 30px;
+    }
+
+    button {
+        padding: 5px 10px;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <div class="top-left">
+        Points: <span id="ui-points">{{ points }}</span> |
+        HP: <span id="ui-hp">{{ HP }}</span> |
+        Name: <span id="ui-name">{{ name }}</span> |
+        Culture: <span id="ui-culture">{{ culture }}</span> |
+        Bloodline: <span id="ui-bloodline">{{ bloodline }}</span> |
+        Faith: <span id="ui-faith">{{ faith }}</span>
+    </div>
+
+    <div class="top-right">
+        <form method="POST" action="{{ url_for('reset') }}">
+            <button type="submit">Reset</button>
+        </form>
+    </div>
+</div>
+
+<div class="page-wrapper">
+    <div class="content">
+        {% block page_content %}{% endblock %}
+    </div>
+
+    <div class="footer">
+        made by Azure | This is a skibbidi |
+        <a href="https://github.com/AzureZerda/CharacterCreator"
+           target="_blank"
+           rel="noopener noreferrer">
+            code
+        </a>
+    </div>
+</div>
+{% endblock %}

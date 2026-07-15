@@ -79,12 +79,9 @@ button {
 </style>
 
 
-
 <form id="combined-form">
 
-
 <div class="page-container">
-
 
 
 <div class="form-container">
@@ -162,7 +159,6 @@ required>
 
 
 </div>
-
 
 
 
@@ -249,10 +245,6 @@ Unlisted
 </select>
 
 </div>
-
-
-
-
 
 <div class="field"
 id="legacy-container"
@@ -367,7 +359,8 @@ Second Culture
 
 
 <select
-name="second_culture">
+id="second-culture-select"
+disabled>
 
 
 <option value="Castle Thorn">Castle Thorn</option>
@@ -433,7 +426,8 @@ type="text"
 name="faith">
 
 </div>
-<!-- INCENTIVE POINTS -->
+
+
 
 <div class="field">
 
@@ -465,10 +459,6 @@ this is only for IP you have already earned.
 
 
 </div>
-
-
-
-
 
 <div class="field"
 id="incentive-container"
@@ -562,6 +552,10 @@ const secondCultureCheck =
 document.getElementById("second-culture-check");
 
 
+const secondCultureSelect =
+document.getElementById("second-culture-select");
+
+
 
 
 
@@ -641,6 +635,7 @@ bloodlineSelect.addEventListener("change", function(){
 
         cultureSelect.value = "Newborn Dream";
 
+
         cultureSelect.style.pointerEvents = "none";
         cultureSelect.style.backgroundColor = "#e9ecef";
         cultureSelect.style.opacity = "0.85";
@@ -656,9 +651,9 @@ bloodlineSelect.addEventListener("change", function(){
         secondCultureCheck.checked=false;
 
 
-        document.querySelector(
-            'select[name="second_culture"]'
-        ).value="";
+        secondCultureSelect.value="";
+        secondCultureSelect.disabled=true;
+        secondCultureSelect.removeAttribute("name");
 
 
 
@@ -699,6 +694,12 @@ secondCultureCheck.addEventListener("change", function(){
         secondCultureContainer.style.display="block";
 
 
+        secondCultureSelect.disabled=false;
+
+
+        secondCultureSelect.name="second_culture";
+
+
     }
 
     else {
@@ -707,20 +708,19 @@ secondCultureCheck.addEventListener("change", function(){
         secondCultureContainer.style.display="none";
 
 
-        document.querySelector(
-            'select[name="second_culture"]'
-        ).value="";
+        secondCultureSelect.value="";
+
+
+        secondCultureSelect.disabled=true;
+
+
+        secondCultureSelect.removeAttribute("name");
 
 
     }
 
 
 });
-
-
-
-
-
 
 document.getElementById("incentive-check")
 .addEventListener("change", function(){
@@ -770,11 +770,48 @@ else {
 
 
 
+
+
 document.getElementById("combined-form")
 .addEventListener("submit", function(e){
 
 
 e.preventDefault();
+
+
+
+
+/*
+    Ensure unchecked second culture is completely absent
+    from FormData before sending.
+*/
+
+if(!secondCultureCheck.checked){
+
+
+    secondCultureSelect.value="";
+
+
+    secondCultureSelect.disabled=true;
+
+
+    secondCultureSelect.removeAttribute("name");
+
+
+}
+
+else {
+
+
+    secondCultureSelect.disabled=false;
+
+
+    secondCultureSelect.name="second_culture";
+
+
+}
+
+
 
 
 
@@ -789,6 +826,7 @@ new FormData(this).forEach((value,key)=>{
 
 
 });
+
 
 
 
