@@ -88,6 +88,7 @@ def new_player_landing():
 
 @app.route("/submit")
 def submit_page():
+    print(session)
     display_dict=dict(session['skills_added'])
     flags=constants.FLAGS
     for flag in flags:
@@ -112,6 +113,10 @@ def submit_page():
         backstory=session['character_details']['backstory']
     except KeyError:
         backstory='No backstory submitted...'
+    
+    print(session)
+
+    print(display_dict)
 
     return render_template(
     "submit_character.html",
@@ -167,6 +172,10 @@ def handle_missing_backstory(e):
 @app.route('/submission_placeholder')
 def submission_placeholder():
     return render_template('submission_placeholder.html')
+
+@app.route("/alt_char_landing")
+def alt_char_landing():
+    return render_template('enter_sheet_id.html')
 
 @app.route("/show_prebuilts")
 def show_prebuilts():
@@ -247,6 +256,12 @@ def plan_skills():
         session.updated = True
 
     return render_template('planning_skills.html', skills_db=skills_db_dict,back_url=url_for("character_setup"))
+
+@app.route("/start_respec", methods=["GET"])
+def start_respec():
+    session['character_type']='respec'
+    session.modified = True
+    return render_template("start_respec.html") 
 
 @app.route('/load_existing_character')
 def load_existing_character():
@@ -504,6 +519,7 @@ def flask_remove_skill(skill):
 def reset():
     reset_skills()
 
+    print('slipperyyyyyyyyy')
     
     skills_db_dict = {
         k: v
@@ -514,8 +530,16 @@ def reset():
 
     Update_Points()
 
-    session.modified=True
+    if '/' in session['character_details']['culture']:
+        cultures = session['character_details']['culture'].split('/')
+    else:
+        cultures = [session['character_details']['culture'],]
+    
+    for culture in cultures:
+        session['skills_added'][f'Native Lore: {culture}'] = 1
 
+    session.modified=True
+    
     return maliks_idea()
 
 skill_reference=None

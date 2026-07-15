@@ -71,9 +71,6 @@ def Update_Points():
     else:
         base_total = int(session['character_details']['points'])
         base_total += session['legacy_discount']
-
-    print('\nawooga\n')
-    print(base_total)
  
     flaw_points = 0
  
