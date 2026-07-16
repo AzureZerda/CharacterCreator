@@ -1,3 +1,4 @@
+import os
 import re
 import gspread
 from openpyxl.utils import column_index_from_string
@@ -695,6 +696,8 @@ from app import SKILL_REF
 
 #azzy needs to change this to use a service account
 
-gc = gspread.oauth()
+creds = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
+
+gc = gspread.service_account_from_dict(creds)
 
 templates=Templates()
