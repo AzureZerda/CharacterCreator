@@ -32,6 +32,7 @@ class Skill(ABC):
             if name[:6]=='Native':
                 self.cost=4
             else:
+                print(self.name)
                 raise KeyError
         self.quantity = quantity
         if prereqs is None:
@@ -158,9 +159,6 @@ class Skill(ABC):
             raise exc.Prereq_Not_Met("Prerequisite not met")
     
     def modify_flags(self,flag_location):
-        print(self.name)
-        print(self.flags)
-        print(flag_location)
         for flag in self.flags:
             flag_location[flag]+= self.flag_modifier
 

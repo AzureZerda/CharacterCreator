@@ -50,7 +50,7 @@ def construct_display_dict(character):
 
 @app.route("/")
 def buttons():
-    return render_template('landing_page.html')
+    return render_template('load_character_sheet.html')
 
 def contains_google_doc_link(text):
     LINK_REGEX = re.compile(r"(https?://[^\s]+|www\.[^\s]+)", re.IGNORECASE)
@@ -79,6 +79,7 @@ def inject_globals():
         player_details={}
 
     return {
+        'gathering': session.get('gathering', 0),
         "points": session.get("character_details", {}).get("points", 0), 
         'display_dict': display_dict,
         'char_dict': char_dict,
@@ -203,6 +204,126 @@ def custom_or_prebuilt():
     else: 
         return maliks_idea()
 
+@app.route("/add_gathering_row", methods=["POST"])
+def add_gathering_row():
+    # Table as it currently exists in the HTML, sent from the client
+    incoming_table = request.get_json(silent=True) or []
+
+    last_gathering_row = incoming_table[-1]
+
+
+    if last_gathering_row[4]:
+        food_tag = 1
+    else:
+        food_tag = 0
+
+    last_gathering = tm.Gathering(last_gathering_row[0],last_gathering_row[1],last_gathering_row[2],
+                                  last_gathering_row[3],food_tag,last_gathering_row[5])
+    last_gathering.sum_CP()
+ 
+    if incoming_table:
+        next_gathering = int(incoming_table[-1][0]) + 1
+    else:
+        next_gathering = 1
+ 
+    new_row = [
+        next_gathering,  
+        "",              
+        3,               
+        0,               
+        False,           
+        last_gathering.new_cp         
+    ]
+ 
+    incoming_table.append(new_row)
+
+    session['gatherings_skills'][str(next_gathering)] = session['gatherings_skills'][str(next_gathering-1)].copy()
+
+    session["gatherings_table"] = incoming_table
+    session.modified = True
+
+ 
+    return jsonify(new_row)
+
+@app.route('/remove_gathering_row', methods=['POST'])
+def remove_gathering_row():
+    data = request.get_json()
+    index = data.get("index")
+    table = data.get("table", [])
+
+    if index is None or not (0 <= index < len(table)):
+        return jsonify({"error": "Invalid index"}), 400
+
+    table = table[:index]
+
+    for gat in session['gatherings_skills'].copy():
+        if int(gat) >= int(index):
+            del session['gatherings_skills'][gat]
+
+    session['gatherings_table'] = table
+    return jsonify({"success": True})
+
+@app.route("/submit_gathering_row", methods=["POST"])
+def submit_gathering_row():
+    row_data = request.get_json()
+
+    gathering = tm.Gathering(
+        row_data['gathering'],
+        row_data['date'],
+        row_data['cp_earned'],
+        row_data['ip_converted'],
+        row_data['food_tag'],
+        row_data['total_cp']
+    )
+
+    global session
+
+    session['character_details']['points'] = gathering.total_cp
+
+    session['character_details']['base_points'] = gathering.total_cp
+
+    Update_Points()
+
+    session = substitute_gathering(session['gatherings_skills'], row_data['gathering'])
+
+    Update_Points()
+
+    session.modified = True
+
+    return redirect(url_for('planning_skills'))
+
+def substitute_gathering(skills_ref, gathering):
+    session['gathering'] = gathering
+    session['skills_added'] = skills_ref[gathering].copy()
+    return session
+
+@app.route("/planning_skills", methods=["GET"])
+def planning_skills():
+    skills_db_dict = construct_skill_ref()
+
+    utilities = ['SKILL REF', 'BLOODLINE SKILLS']
+    for ut in utilities:
+        del skills_db_dict[ut]
+
+    skills_db_dict = inject_bloodline_skills(session, skills_db_dict)
+
+    return render_template(
+        'planning_skills.html',
+        skills_db=skills_db_dict,
+        back_url=url_for("character_setup")
+    )
+
+@app.route("/gatherings_table", methods=["GET"])
+def gatherings_table():
+    for gat in session['gatherings_skills']:
+        if int(gat) >= int(session['gathering']):
+            for key, value in session['skills_added'].items():
+                if key not in session['gatherings_skills'][gat] or value > session['gatherings_skills'][gat][key]:
+                    session['gatherings_skills'][gat][key] = value
+    session['gatherings_skills'][session['gathering']] = session['skills_added'].copy()
+    session.modified = True
+    return render_template("gatherings_table.html")
+
 @app.route("/select_prebuilt", methods=["POST"])
 def select_prebuilt():
     # there's some oddity going on in here. Azzy thinks she fixed it. We will see.
@@ -248,6 +369,24 @@ def select_prebuilt():
 def start_plan():
     return render_template('load_character_sheet.html')
 
+@app.route('/skill_plan')
+def skill_plan():
+    skills_db_dict = construct_skill_ref()
+
+    utilities = ['SKILL REF','BLOODLINE SKILLS']
+
+    for ut in utilities:
+        del skills_db_dict[ut]
+
+    skills_db_dict=inject_bloodline_skills(session,skills_db_dict)
+
+    if session['character_details']['faith'] == 'Total CP:':
+        session['character_details']['faith'] = 'None'
+        session.updated = True
+
+    return render_template('planning_skills.html', skills_db=skills_db_dict,back_url=url_for("character_setup"))
+
+@app.route('/plan_skills')
 def plan_skills():
     skills_db_dict = construct_skill_ref()
 
@@ -274,13 +413,38 @@ def start_respec():
 
 @app.route('/load_existing_character')
 def load_existing_character():
-    sheet_url = 'https://docs.google.com/spreadsheets/d/1wWdYO1cG0quM27GoRpCLJvbZGmxcZs60Lnb-Z8rxv3w/edit?usp=sharing'
+    sheet_url = request.args.get('sheet_url')
+
+    if not sheet_url:
+        return "Missing sheet_url parameter", 400
+
     details = sheet_creator.character_sheet_to_dict(sheet_url)
+
+    session.clear()
+
+    for cat in constants.DEFAULT_SESSION:
+        session[cat] = constants.DEFAULT_SESSION[cat].copy()
 
     session['character_type'] = 'character_plan'
 
     for cat in details:
         session[cat] = details[cat]
+
+    for flag in constants.DEFAULT_SESSION['skills_added']:
+        if flag not in session['skills_added']:
+            session['skills_added'][flag] = constants.DEFAULT_SESSION['skills_added'][flag]
+    
+    for skill in session['skills_added']:
+        if skill in constants.DEFAULT_SESSION['skills_added']:
+            continue
+        input = Skills.SkillChangeInput({'skill': skill, 'quantity': session['skills_added'][skill]})
+        character = tm.Character.from_session(session)
+        skill_ = Construct_Skill(input, character)
+        if hasattr(skill_,'flags'):
+            skill_.flag_modifier = 1
+            skill_.modify_flags(session['skills_added'])
+
+    session['gatherings_skills'][session['gathering']] = session['skills_added'].copy()
 
     return plan_skills()
 
@@ -482,6 +646,8 @@ def modify_skill():
             except exc.Removal_Not_Allowed_Flag as e:
                 return jsonify({'success':False,'error':f'{e}'})
             return jsonify({'success':False,'error':f'You must remove these skills first:\n\n{skill.failed_skill}'})
+        except exc.Future_Gat_Dependancy as e:
+            return jsonify({'success':False,'error': e.message})
         except exc.Bloodline_Requirement:
             return jsonify({'success':False,'error':'Newborn dreams are required to take Tethered'})
 
@@ -512,6 +678,16 @@ def flask_remove_skill(skill):
             pass
         else:
             raise KeyError
+        
+    if session['character_type'] == 'character_plan':
+        check = session['skills_added'].copy()
+        skill.flag_modifier = -1
+        skill.modify_flags(check)
+        try:
+            check_downstream_sessions(check)
+        except exc.Future_Gat_Dependancy as e:
+            session['skills_added'][skill.name] = skill.quantity
+            raise exc.Future_Gat_Dependancy(e.gat, e.skill)
 
     return {
             'success': True,
@@ -523,6 +699,22 @@ def flask_remove_skill(skill):
             "bloodline": session["character_details"].get("bloodline", "no bloodline selected"),
             "faith": session["character_details"].get("faith", "no faith selected"),
         }
+
+def check_downstream_sessions(check):
+    for gat in session['gatherings_skills']:
+        if int(gat) > int(session['gathering']):
+            for skill in session['gatherings_skills'][gat]:
+                if skill in constants.FLAGS:
+                    continue
+                input={'skill':skill, 'quantity':session['gatherings_skills'][gat][skill]}
+                input = tm.SkillChangeInput(input)
+                character = tm.Character.from_session(session)
+                skill_=Construct_Skill(input, character)
+                if hasattr(skill_, 'prereqs'):
+                    if skill_.prereqs is not None:
+                        for prereq in skill_.prereqs:
+                            if skill_.prereqs[prereq] > check[prereq]:
+                                raise exc.Future_Gat_Dependancy(gat, skill)
 
 @app.route("/reset", methods=["POST"])
 def reset():

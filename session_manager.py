@@ -69,8 +69,11 @@ def Update_Points():
     
         base_total += int(character.details['incentive_points'])
     else:
-        base_total = int(session['character_details']['points'])
+        if 'char_points' not in session['character_details']:
+            session['character_details']['base_points'] = int(session['character_details']['points'])
+        base_total = int(session['character_details']['base_points'])
         base_total += session['legacy_discount']
+        session['character_details']['char_points'] = int(session['character_details']['points'])
  
     flaw_points = 0
  
@@ -138,4 +141,6 @@ def Update_Points():
  
     session['character_details']['points'] = base_total
  
+    print(base_total)
+
     return base_total

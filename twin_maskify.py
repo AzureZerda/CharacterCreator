@@ -18,6 +18,18 @@ class SkillChangeInput:
         if not isinstance(self.quant,int):
             raise TypeError
 
+class Gathering:
+    def __init__(self, number, date, cp_earned=3, ip_converted=0, food_tag=False, total_cp = 0):
+        self.number = number
+        self.date = date
+        self.cp_earned = cp_earned
+        self.ip_converted = ip_converted
+        self.food_tag = food_tag
+        self.total_cp = total_cp
+
+    def sum_CP(self):
+        self.new_cp = int(self.cp_earned) + int(self.ip_converted) + int(self.food_tag) + int(self.total_cp)
+
 class Character:
     def __init__(self):
         self.flags = {}

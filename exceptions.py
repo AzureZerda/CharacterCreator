@@ -37,6 +37,12 @@ class Prereq_Flag_Raised(Exception):
 class Weapon_Master_Added(Exception):
     pass
 
+class Future_Gat_Dependancy(Exception):
+    def __init__(self, gathering, skill):
+        self.gat = gathering
+        self.skill = skill
+        self.message = f'You must remove {skill} from {gathering} first'
+
 class Removal_Not_Allowed_Flag(Exception):
     def __init__(self, flag, skills):
         import constants

@@ -5,6 +5,7 @@ import constants
 from bloodline_skills import BLOODLINE_SKILLS
 import datetime
 import json
+import twin_maskify as tm
 
 #azzy made a mess in here. fix it idiot
 
@@ -658,12 +659,14 @@ def extract_character_sheet_character_details(sheet):
 def extract_recent_sesh(sheet):
     list_of_rows = sheet.progression.get_all_values()
 
+    total_cp = sheet.character.acell('C7').value
+
     for row in list_of_rows.copy():
         if row[0] == '':
             list_of_rows.remove(row)
     
-    last_event = {'event':list_of_rows[0], 'date':list_of_rows[1], 'cp earned':list_of_rows[2],
-                  'ip to cp':list_of_rows[3], 'food_tag':list_of_rows[4]}
+    last_event = [list_of_rows[-1][0].split(' ')[1], list_of_rows[-1][1], list_of_rows[-1][2],
+                  list_of_rows[-1][3], list_of_rows[-1][4],total_cp]
     
     return last_event
 
@@ -675,10 +678,16 @@ def character_sheet_to_dict(url):
     skills, legacy = extract_character_sheet_skills(sheet)
     char_details = extract_character_sheet_character_details(sheet)
     last_event = extract_recent_sesh(sheet)
+    total_cp = sheet.character.acell('C7').value
 
+    session['gatherings_skills'] = {}
     session['character_details'] = char_details
     session['skills_added'] = skills
     session['legacy_discount'] = legacy
+    session['gatherings_table'] = [last_event,]
+    session['gathering'] = last_event[0]
+    session['gatherings_skills'][last_event[0]] = skills.copy()
+    session['total_cp'] = total_cp
 
     return session
 

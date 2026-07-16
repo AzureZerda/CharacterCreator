@@ -1,0 +1,279 @@
+{% extends "planning_nav.html" %}
+
+{% block page_head %}
+{{ super() }}
+<style>
+    .table-controls {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 10px;
+    }
+    .add-row-btn {
+        font-size: 24px;
+        width: 40px;
+        height: 40px;
+        cursor: pointer;
+    }
+    .table-wrapper {
+        overflow: visible;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+    th, td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: left;
+    }
+    th {
+        background-color: #444;
+        color: white;
+    }
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+    input[type="date"], select {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .checkbox-cell {
+        text-align: center;
+    }
+    .locked {
+        background-color: #e9e9e9;
+    }
+
+    /* Actions column: the cell itself has no border/background (so it doesn't
+       pick up the grey striping/locked coloring of the rest of the row), but
+       the Submit button keeps its normal button appearance. The remove "x"
+       visually spills outside the table's right edge. */
+    .actions-header {
+        border: none;
+        background: transparent;
+    }
+    .actions-cell {
+        border: none;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        padding-right: 0;
+    }
+    .remove-row-btn {
+        cursor: pointer;
+        font-size: 20px;
+        line-height: 1;
+        color: #900;
+        font-weight: bold;
+        user-select: none;
+        margin-left: 10px;
+        transform: translateX(100%); /* push it past the table's edge */
+    }
+    .remove-row-btn:hover {
+        color: #c00;
+    }
+</style>
+{% endblock %}
+
+{% block page_content %}
+<h1>Gatherings</h1>
+
+{% set table = session.get('gatherings_table', []) %}
+
+<div class="table-controls">
+    <button type="button" class="add-row-btn" onclick="addRow()">+</button>
+</div>
+
+<div class="table-wrapper">
+<table id="gatherings-table">
+    <thead>
+        <tr>
+            <th>Gathering</th>
+            <th>Date</th>
+            <th>Total CP</th>
+            <th>CP Earned</th>
+            <th>IP Converted</th>
+            <th>Food Tag</th>
+            <th class="actions-header">Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in table %}
+        <tr {% if loop.first or not loop.last %}class="locked"{% endif %}>
+            <td>{{ row[0] }}</td>
+            <td>
+                <input type="date" value="{{ row[1] }}" {% if loop.first or not loop.last %}disabled{% endif %}>
+            </td>
+            <td>
+                {{ row[5] }}
+            </td>
+            <td>
+                {{ row[2] }}
+            </td>
+            <td>
+                <select {% if loop.first or not loop.last %}disabled{% endif %}>
+                    <option value="0" {% if row[3] == 0 %}selected{% endif %}>0</option>
+                    <option value="1" {% if row[3] == 1 %}selected{% endif %}>1</option>
+                    <option value="2" {% if row[3] == 2 %}selected{% endif %}>2</option>
+                    <option value="3" {% if row[3] == 3 %}selected{% endif %}>3</option>
+                </select>
+            </td>
+            <td class="checkbox-cell">
+                <input type="checkbox" class="food-tag-checkbox" {% if row[4] %}checked{% endif %} {% if loop.first or not loop.last %}disabled{% endif %}>
+            </td>
+            <td class="actions-cell">
+                <button type="button" onclick="submitRow(this)">Submit</button>
+                <span class="remove-row-btn" onclick="removeRow(this)" title="Remove row">&times;</span>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+</div>
+
+<script>
+    // Reads the table exactly as it currently exists in the DOM (including
+    // any unsubmitted edits sitting in the inputs), in the index order that
+    // the backend row shape expects:
+    // [0] Gathering, [1] Date, [2] CP Earned, [3] IP Converted, [4] Food Tag, [5] Total CP
+    function readTableFromDOM() {
+        const rows = document.querySelectorAll("#gatherings-table tbody tr");
+        return Array.from(rows).map(row => {
+            const cells = row.querySelectorAll("td");
+            return [
+                cells[0].textContent.trim(),                       // Gathering
+                cells[1].querySelector("input").value,              // Date
+                cells[3].textContent.trim(),                        // CP Earned
+                parseInt(cells[4].querySelector("select").value, 10), // IP Converted
+                cells[5].querySelector(".food-tag-checkbox").checked, // Food Tag
+                cells[2].textContent.trim()                         // Total CP
+            ];
+        });
+    }
+
+    async function addRow() {
+    const currentTable = readTableFromDOM();
+
+    const response = await fetch("/add_gathering_row", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(currentTable)
+    });
+
+    if (!response.ok) {
+        alert("Failed to add gathering");
+        return;
+    }
+
+    const rowData = await response.json();
+
+    const tbody = document.querySelector("#gatherings-table tbody");
+
+    // Lock the previous last row
+    const previousRow = tbody.lastElementChild;
+    if (previousRow) {
+        previousRow.classList.add("locked");
+
+        const dateInput = previousRow.querySelector('input[type="date"]');
+        if (dateInput) dateInput.disabled = true;
+
+        const select = previousRow.querySelector("select");
+        if (select) select.disabled = true;
+
+        const checkbox = previousRow.querySelector(".food-tag-checkbox");
+        if (checkbox) checkbox.disabled = true;
+    }
+
+    // Create the new editable row
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td>${rowData[0]}</td>
+        <td>
+            <input type="date" value="${rowData[1]}">
+        </td>
+        <td>
+            ${rowData[5]}
+        </td>
+        <td>
+            ${rowData[2]}
+        </td>
+        <td>
+            <select>
+                <option value="0" ${rowData[3] == 0 ? "selected" : ""}>0</option>
+                <option value="1" ${rowData[3] == 1 ? "selected" : ""}>1</option>
+                <option value="2" ${rowData[3] == 2 ? "selected" : ""}>2</option>
+                <option value="3" ${rowData[3] == 3 ? "selected" : ""}>3</option>
+            </select>
+        </td>
+        <td class="checkbox-cell">
+            <input type="checkbox" class="food-tag-checkbox" ${rowData[4] ? "checked" : ""}>
+        </td>
+        <td class="actions-cell">
+            <button type="button" onclick="submitRow(this)">Submit</button>
+            <span class="remove-row-btn" onclick="removeRow(this)" title="Remove row">&times;</span>
+        </td>
+    `;
+
+    tbody.appendChild(row);
+    }
+
+    async function submitRow(button) {
+        const row = button.closest("tr");
+        const cells = row.querySelectorAll("td");
+
+        const rowData = {
+            gathering: cells[0].textContent.trim(),
+            date: cells[1].querySelector("input").value,
+            total_cp: cells[2].textContent.trim(),
+            cp_earned: cells[3].textContent.trim(),
+            ip_converted: cells[4].querySelector("select").value,
+            food_tag: cells[5].querySelector(".food-tag-checkbox").checked
+        };
+
+        const response = await fetch("/submit_gathering_row", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(rowData)
+        });
+
+        if (!response.ok) {
+            alert("Failed to submit row");
+            return;
+        }
+
+        // fetch() follows the server's redirect internally but can't make the
+        // browser itself navigate. Do that explicitly, matching where the
+        // backend's redirect(url_for('planning_skills')) actually points.
+        window.location.href = "/planning_skills";
+    }
+
+    async function removeRow(el) {
+    const row = el.closest("tr");
+    const tbody = document.querySelector("#gatherings-table tbody");
+    const index = Array.from(tbody.children).indexOf(row);
+
+    const currentTable = readTableFromDOM();
+
+    const response = await fetch("/remove_gathering_row", {
+        method: "POST",
+        headers: { 
+            "Content-Type": "application/json" 
+        },
+        body: JSON.stringify({ 
+            index: index, 
+            table: currentTable 
+        })
+    });
+
+    if (!response.ok) {
+        alert("Failed to remove gathering");
+        return;
+    }
+
+    // Reload the page so Jinja rebuilds the table from session['gatherings_table']
+    window.location.reload();
+}
+</script>
+{% endblock %}
