@@ -15,6 +15,19 @@
             background-color: #f4f4f4;
         }
 
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            width: 400px;
+        }
+
         button {
             padding: 15px 30px;
             font-size: 18px;
@@ -25,6 +38,7 @@
 <body>
 
     <form action="{{ url_for('load_existing_character') }}" method="GET">
+        <input type="text" name="sheet_url" placeholder="Paste Google Sheet URL here" required>
         <button type="submit">Load Character</button>
     </form>
 
