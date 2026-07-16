@@ -745,7 +745,7 @@ skill_reference=None
 
 skills_added={}
 
-#import sheet_creator
+import sheet_creator
 
 if __name__=="__main__":
     app.run(debug=True)
