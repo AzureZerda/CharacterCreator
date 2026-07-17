@@ -250,6 +250,7 @@ def remove_gathering_row():
     data = request.get_json()
     index = data.get("index")
     table = data.get("table", [])
+    removing_gat = data['table'][index][0]
 
     if index is None or not (0 <= index < len(table)):
         return jsonify({"error": "Invalid index"}), 400
@@ -257,11 +258,15 @@ def remove_gathering_row():
     table = table[:index]
 
     for gat in session['gatherings_skills'].copy():
-        if int(gat) >= int(index):
+        if int(gat) >= int(removing_gat):
             del session['gatherings_skills'][gat]
 
     session['gatherings_table'] = table
     return jsonify({"success": True})
+
+@app.route("/create_character")
+def create_character():
+    return render_template('landing_page.html')
 
 @app.route("/submit_gathering_row", methods=["POST"])
 def submit_gathering_row():
@@ -286,9 +291,9 @@ def submit_gathering_row():
 
     session = substitute_gathering(session['gatherings_skills'], row_data['gathering'])
 
-    Update_Points()
-
     session.modified = True
+
+    Update_Points()
 
     return redirect(url_for('planning_skills'))
 
@@ -444,7 +449,11 @@ def load_existing_character():
             skill_.flag_modifier = 1
             skill_.modify_flags(session['skills_added'])
 
+    session['original_skills'] = session['skills_added'].copy()
+    
     session['gatherings_skills'][session['gathering']] = session['skills_added'].copy()
+
+    session['first_gat'] = session['gathering']
 
     return plan_skills()
 
@@ -505,6 +514,24 @@ def new_player():
 @app.route("/set_character/<category>")
 def set_character(category):
     return render_template("set_character.html", category=category)
+
+@app.route("/planning_reset", methods=["POST"])
+def planning_reset():
+    session['skills_added'] = session['original_skills'].copy()
+    for gat in session['gatherings_skills']:
+        session['gatherings_skills'][gat] = session['skills_added'].copy()
+    return plan_skills()
+
+@app.route("/reset_plan", methods=["POST"])
+def reset_plan():
+    first_gat = session['first_gat']
+    session['skills_added'] = session['original_skills'].copy()
+    for gat in session['gatherings_skills'].copy():
+        if gat != first_gat:
+            del session['gatherings_skills'][gat]
+    session['gatherings_table'] = session['gatherings_table'][:1]
+    session['gatherings_skills'][first_gat] = session['skills_added'].copy()
+    return plan_skills()
 
 @app.route("/submit_character", methods=["POST"])
 def submit_character():
