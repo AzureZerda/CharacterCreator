@@ -509,7 +509,7 @@ THE_ART_OF_DUELING={
     "sheet_box":"General Skills"
   },
 
-  "Pure Of Heart":{
+  "Pure of Heart":{
     "Max":1,
     "Cost":3,
     "desc":"You may use this skill as if it were a WILLPOWER while you wear your token of devotion prominently.",
@@ -948,6 +948,34 @@ MAGICAL_ARTS={
         "Max":4,
         "Cost":6,
         'desc':"You can cast Warding spells up to the level you choose",
+        "sheet_box":"Magical Arts"
+    },
+
+    "Blood Magic":{
+        "Max":4,
+        "Cost":6,
+        'desc':"You can cast Blood Magic spells up to the level you choose",
+        "sheet_box":"Magical Arts"
+    },
+
+    "Necromancy":{
+        "Max":4,
+        "Cost":6,
+        'desc':"You can cast Necromancy spells up to the level you choose",
+        "sheet_box":"Magical Arts"
+    },
+
+    "Summoning":{
+        "Max":4,
+        "Cost":6,
+        'desc':"You can cast Summoning spells up to the level you choose",
+        "sheet_box":"Magical Arts"
+    },
+
+    "Dream Magic":{
+        "Max":4,
+        "Cost":6,
+        'desc':"You can cast Dream Magic spells up to the level you choose",
         "sheet_box":"Magical Arts"
     },
 
