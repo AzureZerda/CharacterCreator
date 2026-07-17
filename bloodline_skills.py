@@ -9,7 +9,7 @@ BLOODLINE_SKILLS={
 
     'Good Enough':{
       'Max':1,
-      'Cost':3,
+      'Cost':4,
       'desc':'You may reduce the crafting time of non-COOKING crafting skills by 5 minutes.',
       'sheet_box':'Bloodline'
       },
