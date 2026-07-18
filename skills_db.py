@@ -571,7 +571,7 @@ THE_SCHOOL_OF_SUFFERING={
 
   "Torture Immunity":{
     "Max":1,
-    "Cost":4,
+    "Cost":13,
     "Prereq":{
       "Torture Resistance":3
     },
@@ -846,6 +846,15 @@ RELIGIOUS_WORSHIP={
     }
 }
 
+RITE_MASTERY={}
+
+RITES=['Absolution','Community','Death','Guidance','Life',
+            'Mysticism','Nature','Prosperity','Protection','War']
+
+for rite in RITES:
+  RITE_MASTERY[f'Rite Mastery: {rite}']={'Max':1,'Cost':4,'desc':'You may perform this rite using PRIESTHOOD with 30 minutes of role-play at a Shrine to your faith.',
+                                         'Prereq':{'Prayer':1},'sheet_box':'Knowledge'}
+
 BARDIC_ARTS={
   "Commanding Presence":{
     "Max":None,
@@ -1085,7 +1094,7 @@ SKULLDUGGERY={
 
 "Poison Immunity": {
 "Max": 1,
-"Cost": 4,
+"Cost": 10,
 "Prereq": {
 "Poison Resistance": 3
 },
@@ -1287,7 +1296,7 @@ RELIGION_LORES={}
 RELIGION_LORE=['Church of Chours','Old Ways','Dragon Worship','The Celestine Faith','The Lady of the Mists','The Nameless Faith','Trahazi Zodiac','The Blood Cauldron','Demon Faiths']
 
 for lore in RELIGION_LORE:
-    RELIGION_LORES[f'Lore Religion: {lore}']={'Max':1,'Cost':4,'desc':f'You may call “Bid Lore: {lore}” and ask a question of a nearby Twin Mask Story Staff member. This question may be as simple as, “Do I know anything about this?” or as specific as you like.','sheet_box':'Knowledge'}
+    RELIGION_LORES[f'Lore: {lore}']={'Max':1,'Cost':4,'desc':f'You may call “Bid Lore: {lore}” and ask a question of a nearby Twin Mask Story Staff member. This question may be as simple as, “Do I know anything about this?” or as specific as you like.','sheet_box':'Knowledge'}
 
 HISTORICAL_LORES={}
 

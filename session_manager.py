@@ -1,3 +1,4 @@
+import re
 from flask import session
 import constants
 import twin_maskify as tm
@@ -54,6 +55,9 @@ def inject_bloodline_skills(session, dictionary):
  
  
 def Update_Points():
+    cost_ref={}
+    CP_Spent = 0
+
     # at some point the base native lore started showing up in here. Fix it azzy
     
     character = tm.Character.from_session(session)
@@ -72,75 +76,65 @@ def Update_Points():
         if 'char_points' not in session['character_details']:
             session['character_details']['base_points'] = int(session['character_details']['points'])
         base_total = int(session['character_details']['base_points'])
-        base_total += session['legacy_discount']
         session['character_details']['char_points'] = int(session['character_details']['points'])
- 
-    flaw_points = 0
  
     skills_list = dict(session['skills_added'])
  
     native_skips = 0
  
-    for skill in skills_list.copy():
-        if skill[:6] == 'Native' and native_skips == 0:
-            del skills_list[skill]
-            native_skips += 1
- 
     if session['character_details']['bloodline'].lower() != 'newborn dream' and 'Tethered' in session['character_details']['flaws_added']:
         session['character_details']['flaws_added'].remove('Tethered')
- 
-    for flaw in session['character_details']['flaws_added']:
-        new_flaw_points = flaw_points + -SKILL_REF[flaw]['Cost']
- 
-        if new_flaw_points >= 10:
-            flaw_points = 10
-            break
-        elif new_flaw_points < 10:
-            flaw_points = new_flaw_points
- 
-    base_total += flaw_points
- 
+
     if 'Pursuit of Knowledge' in skills_list:
-        lore_score = session['flags']['lore_score']
- 
-        if lore_score >= 12:
-            base_total += 12
-        elif lore_score == 0:
-            pass
-        else:
-            base_total += lore_score
- 
-    dict_ref = session['Point_Cats']
-    lore_score = dict_ref['lore_score']
+        lore_elims = 3
+    else:
+        lore_elims = 0
  
     if 'Weapon Master' in skills_list:
         for skill in constants.WEAPON_MASTER_SKILLS:
             del skills_list[skill]
- 
+    
     for skill, quantity in skills_list.items():
+        audit_printout = ''
+        audit_printout += f'Before processing {skill}, the total CP is {base_total}. '
+        if 'Legacy' in skill:
+            discount = quantity
+        else:
+            match = re.search(r"L\d+", skill)
+            if match:
+                discount = skill[-2]
+            else:
+                discount = 0
  
-        if skill in constants.FLAWS:
-            continue
-        if skill[:7] == 'Native':
-            continue
         try:
-            skill_cost = SKILL_REF[skill]['Cost']
+            skill_cost = SKILL_REF[skill.split(' (',1)[0]]['Cost']
         except KeyError:
-            if skill[:6] == 'Native':
-                skill_cost = 4
+            if skill[:2] == 'R.' or skill[:4] == 'Lore':
+                if lore_elims > 0:
+                    skill_cost = 0
+                    lore_elims -= 1
+                else:
+                    skill_cost = 4
+            elif skill[:6] == 'Native':
+                if native_skips==0:
+                    skill_cost=0
+                    native_skips += 1
+                else:
+                    skill_cost = 4
+                    quantity= 1
             else:
                 continue
- 
-        base_total -= skill_cost * quantity
- 
-    if 'Pursuit of Knowledge' in skills_list:
-        if lore_score >= 12:
-            base_total += 12
-        else:
-            base_total += lore_score
- 
+
+        audit_printout += f'the cost of {skill} is {(skill_cost * int(quantity))-int(discount)}. '
+        
+        base_total -= (skill_cost * int(quantity))-int(discount)
+
+        CP_Spent += (skill_cost * int(quantity))-int(discount)
+
+        cost_ref[skill] = (skill_cost * int(quantity))-int(discount)
+
+        audit_printout += f'After accounting for cost of {skill}, there are now {base_total} points\n'
+
     session['character_details']['points'] = base_total
- 
-    print(base_total)
 
     return base_total

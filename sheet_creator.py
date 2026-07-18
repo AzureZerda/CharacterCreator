@@ -7,6 +7,7 @@ from bloodline_skills import BLOODLINE_SKILLS
 import datetime
 import json
 import twin_maskify as tm
+import exceptions as exc
 
 #azzy made a mess in here. fix it idiot
 
@@ -583,7 +584,16 @@ def parse_sheet(sheet_id,session):
 
     return Existing_Sheet(skills,char_details,url,per_details)
 
+def clean_skill_entry(text):
+    text = text.strip().replace('*','')
+
+    if text == 'Tainted':
+        text = 'Corrupted'
+
+    return text
+
 def extract_character_sheet_skills(sheet):
+    unrecognized = []
     legacy_discount = 0
     list_of_rows = sheet.character.get_all_values()[9:]
 
@@ -600,12 +610,17 @@ def extract_character_sheet_skills(sheet):
         sides=[row[:2],row[4:6]]
 
         for side in sides:
-            if side[0] in ['','General Skills','Magical Arts','Knowledge','Gathering/Crafting']:
-                continue
-            if side[1] in ['N/A','0']:
-                continue
             if ' x' in side[0]:
                 side[0]=side[0][:-3]
+            if side[0][:2] == 'R.' and '*' not in side[0]:
+                SKILL_REF[side[0]] = {'Max':1,'Cost':4}
+            side [0] = clean_skill_entry(side[0])
+            if side[0] in ['','General Skills','Magical Arts','Knowledge','Gathering/Crafting']:
+                continue
+            if side[1] == 'N/A':
+                continue
+            if side[1] in ['N/A','0'] and side[0] in constants.DEFAULT_SKILLS:
+                continue
             
             if 'Rank' in side[0]:
                 match = re.search(r"Rank (\d+)", side[0])
@@ -613,25 +628,47 @@ def extract_character_sheet_skills(sheet):
                     rank = int(match.group(1))
                     if 'Legacy' in side[0]:
                         side[1] = int(side[1]) + rank
-                        legacy_discount += rank
                     match = re.search(r"L(\d+)", side[0])
                     if match:
                         side[1] = str(int(side[1]) + int(match.group(1)))
                         legacy_discount += int(match.group(1))
 
+
+            if side[1] == '':
+                side[1] = 0
+
             if side[0] == 'Oathbound':
                 side[0] = 'Oath Bound'
-            if side[0][:11] == 'Native Lore':
-                continue
-            if side[0][:4] != 'Lore':
-                side[0] = side[0].split(":", 1)[0]
+            if side[0][:4] not in ['Lore','R. L','Nati']:
+                if side[0][:4] != 'Rite':
+                    split = side[0].split(":", 1)
+                else:
+                    split=[side[0],]
+                if len(split)>1:
+                    side[0] = split[0]
+                    if re.search(r"\(L", split[1]):
+                        idx = split[1].find("(")
+
+                        if idx != -1:
+                            new_string = split[1][idx:]
+                        else:
+                            new_string = ""
+                        side[0] = side[0]+' '+new_string
+                else:
+                    side[0] = split[0]
             
-            skill_cost=SKILL_REF[side[0]]['Cost']
+            skill_id = side[0].split("(")[0].strip()
+            
+            try:
+                skill_cost=SKILL_REF[skill_id]['Cost']
+            except KeyError:
+                unrecognized.append(skill_id)
+        
             skill_quant=abs(int(side[1])/skill_cost)
 
             skills[side[0]] = skill_quant
 
-    return skills, legacy_discount
+    return skills, legacy_discount, unrecognized
 
 def next_letter(letter):
     return chr(ord(letter) + 1)
@@ -676,7 +713,7 @@ def character_sheet_to_dict(url):
     
     session={}
 
-    skills, legacy = extract_character_sheet_skills(sheet)
+    skills, legacy, unrecognized = extract_character_sheet_skills(sheet)
     char_details = extract_character_sheet_character_details(sheet)
     last_event = extract_recent_sesh(sheet)
     total_cp = sheet.character.acell('C7').value

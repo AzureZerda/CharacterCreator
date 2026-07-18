@@ -25,15 +25,14 @@ class SkillChangeInput:
 class Skill(ABC):   
     def __init__(self, character, name: str, quantity=1, max_quant=None, prereqs: dict = None):
         self.character = character
-        self.name = name
+        self.name = name.strip()
         try:
-            self.cost = SKILL_REF[name]['Cost']*quantity
+            self.cost = SKILL_REF[self.name]['Cost']*quantity
         except KeyError:
             if name[:6]=='Native':
                 self.cost=4
             else:
-                print(self.name)
-                raise KeyError
+                raise exc.Skill_Not_Exist
         self.quantity = quantity
         if prereqs is None:
             try:
@@ -241,13 +240,13 @@ class Weapon_Master(Skill):
 
 class Quad_Level_Skill(Skill):
     def __init__(self, name, level, prereqs, character, cost_per_level=6):
-        if level>4:
+        if int(level)>4:
             raise exc.Skill_Not_Exist('This skill maxes out at level 4.')
         cost=level*cost_per_level
         super().__init__(character,name,prereqs=prereqs,quantity=level)
     
     def construct_display_name(self):
-        self.display_name = self.name + ': ' + craft_level_map[self.quantity]
+        self.display_name = self.name + ': ' + craft_level_map[int(self.quantity)]
         self.display_quant = 1
 
 class Lockpicking(Quad_Level_Skill):
