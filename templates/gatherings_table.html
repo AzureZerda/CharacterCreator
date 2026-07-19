@@ -124,8 +124,12 @@
                 <input type="checkbox" class="food-tag-checkbox" {% if row[4] %}checked{% endif %} {% if loop.first or not loop.last %}disabled{% endif %}>
             </td>
             <td class="actions-cell">
-                <button type="button" onclick="submitRow(this)">Submit</button>
+                {% if not loop.first %}
+                <button type="button" onclick="submitRow(this)">Load</button>
+                {% endif %}
+                {% if loop.index0 > 1 %}
                 <span class="remove-row-btn" onclick="removeRow(this)" title="Remove row">&times;</span>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}
@@ -211,7 +215,7 @@
             <input type="checkbox" class="food-tag-checkbox" ${rowData[4] ? "checked" : ""}>
         </td>
         <td class="actions-cell">
-            <button type="button" onclick="submitRow(this)">Submit</button>
+            <button type="button" onclick="submitRow(this)">Load</button>
             <span class="remove-row-btn" onclick="removeRow(this)" title="Remove row">&times;</span>
         </td>
     `;

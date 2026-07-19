@@ -277,6 +277,8 @@
 
 <script>
 
+const MODIFY_SKILL_ROUTE = "{{ modify_route }}";
+
 function syncTopBar(data){
 
     document.getElementById("ui-points").textContent=data.points ?? "";
@@ -534,7 +536,7 @@ function toggleSkill(btn){
 
     }
 
-    fetch("/modify_skill",{
+    fetch(MODIFY_SKILL_ROUTE, {
 
         method:"POST",
 

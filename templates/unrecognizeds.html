@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Replace Unrecognizeds</title>
+
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 70%;
+            margin: 40px auto;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        form {
+            margin: 0;
+            text-align: center;
+        }
+
+        #submit-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+        }
+
+        #submit-button:disabled {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+<table>
+    <tr>
+        <th>Unrecognized</th>
+        <th>Replacement</th>
+        <th></th>
+    </tr>
+
+    {% for key, value in session['unrecognizeds'].items() %}
+    <tr>
+        <td>{{ key }}</td>
+
+        <td>
+            {% if value == '' %}
+                No substitution selected
+            {% else %}
+                {{ value }}
+            {% endif %}
+        </td>
+
+        <td>
+            <form method="POST" action="{{ url_for('replace_unrecognized') }}">
+                <input type="hidden" name="unrecognized" value="{{ key }}">
+                <button type="submit">Replace</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+
+</table>
+
+
+<form method="POST" action="{{ url_for('submit_substitutions') }}">
+    <button id="submit-button" type="submit" disabled>
+        Submit Substitutions
+    </button>
+</form>
+
+
+<script>
+    // Passed from Flask session into JS
+    const substitutions = {{ session['unrecognizeds'] | tojson }};
+
+    function checkSubstitutions() {
+        const submitButton = document.getElementById("submit-button");
+
+        const allSelected = Object.values(substitutions).every(
+            value => value !== ""
+        );
+
+        submitButton.disabled = !allSelected;
+    }
+
+    checkSubstitutions();
+</script>
+
+</body>
+</html>

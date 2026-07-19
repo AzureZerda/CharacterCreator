@@ -1,0 +1,62 @@
+{% extends "layout.html" %}
+
+{% block page_head %}
+<style>
+    body {
+        padding-top: 50px;
+    }
+
+    .top-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        background: #222;
+        color: white;
+        padding: 10px 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 999;
+    }
+
+    .top-bar-hidden {
+        display: none;
+    }
+
+    button {
+        padding: 5px 10px;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="top-bar">
+    <span class="top-bar-center">Replacing: {{ session['unrecognized'] }}</span>
+
+    <span class="top-bar-hidden">
+        Points: <span id="ui-points">{{ points }}</span> |
+        HP: <span id="ui-hp">{{ HP }}</span> |
+        Name: <span id="ui-name">{{ name }}</span> |
+        Culture: <span id="ui-culture">{{ culture }}</span> |
+        Bloodline: <span id="ui-bloodline">{{ bloodline }}</span> |
+        Faith: <span id="ui-faith">{{ faith }}</span>
+    </span>
+</div>
+
+<div class="page-wrapper">
+    <div class="content">
+        {% block page_content %}{% endblock %}
+    </div>
+
+    <div class="footer">
+        made by Azure | This is a prototype |
+        <a href="https://github.com/AzureZerda/CharacterCreator"
+           target="_blank"
+           rel="noopener noreferrer">
+            code
+        </a>
+    </div>
+</div>
+{% endblock %}
