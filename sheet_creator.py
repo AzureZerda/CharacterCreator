@@ -704,7 +704,7 @@ def extract_recent_sesh(sheet):
             list_of_rows.remove(row)
     
     last_event = [list_of_rows[-1][0].split(' ')[1], list_of_rows[-1][1], list_of_rows[-1][2],
-                  list_of_rows[-1][3], list_of_rows[-1][4],total_cp]
+                  int(list_of_rows[-1][3]), list_of_rows[-1][4],total_cp]
     
     return last_event
 
@@ -726,6 +726,8 @@ def character_sheet_to_dict(url):
     session['gathering'] = last_event[0]
     session['gatherings_skills'][last_event[0]] = skills.copy()
     session['total_cp'] = total_cp
+
+    print(char_details)
 
     return session
 
