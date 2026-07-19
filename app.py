@@ -38,7 +38,10 @@ def construct_display_dict(character):
     for skill in skill_dict:
         input = Skills.SkillChangeInput({'skill': skill, 'quantity': skill_dict[skill]})
         character = tm.Character.from_session(session)
-        skill_ = Construct_Skill(input, character)
+        try:
+            skill_ = Construct_Skill(input, character)
+        except exc.Skill_Not_Exist:
+            continue
         skill_.construct_display_name()
         display_dict[skill_.display_name] = skill_.display_quant
 
@@ -410,14 +413,57 @@ def plan_skills():
 
     return render_template('planning_skills.html', skills_db=skills_db_dict,back_url=url_for("character_setup"))
 
+@app.route("/skills_display")
+def skills_display():
+    return render_template('skills_display.html')
+
 @app.route("/start_respec", methods=["GET"])
 def start_respec():
     session['character_type']='respec'
     session.modified = True
     return render_template("start_respec.html") 
 
+@app.route('/add_replacement', methods=['POST'])
+def add_replacement():
+    data = request.get_json()
+
+    session['unrecognizeds'][session['unrecognized']] = f'{data['skill']} x{data['quantity']}'
+
+    return jsonify(
+        success=True,
+        redirect=url_for("insert_unrecognizeds")
+    )   
+
+@app.route("/replace_unrecognized", methods=["POST"])
+def replace_unrecognized():
+    session['unrecognized'] = request.form["unrecognized"]
+    skills_db_dict = construct_skill_ref()
+
+    utilities = ['SKILL REF','BLOODLINE SKILLS']
+
+    for ut in utilities:
+        del skills_db_dict[ut]
+
+    skills_db_dict=inject_bloodline_skills(session,skills_db_dict)
+    return render_template('all_skills.html', modify_route=url_for("add_replacement"), skills_db=skills_db_dict,back_url=url_for("character_setup"))
+
+@app.route("/submit_substitutions", methods=["POST"])
+def submit_substitutions():
+    for skill in session['unrecognizeds']:
+        entry = session['unrecognizeds'][skill]
+        entry = entry.split('x')
+        session['skills_added'][entry[0].strip()] = entry[1]
+    session.modified = True
+    return plan_skills()
+
+@app.route('/insert_unrecognizeds')
+def insert_unrecognizeds():
+    return render_template('unrecognizeds.html')
+
 @app.route('/load_existing_character')
 def load_existing_character():
+    unrecognized = {}
+
     sheet_url = request.args.get('sheet_url')
 
     if not sheet_url:
@@ -438,22 +484,41 @@ def load_existing_character():
     for flag in constants.DEFAULT_SESSION['skills_added']:
         if flag not in session['skills_added']:
             session['skills_added'][flag] = constants.DEFAULT_SESSION['skills_added'][flag]
-    
-    for skill in session['skills_added']:
+
+    for skill in session['skills_added'].copy():
         if skill in constants.DEFAULT_SESSION['skills_added']:
             continue
+
         input = Skills.SkillChangeInput({'skill': skill, 'quantity': session['skills_added'][skill]})
         character = tm.Character.from_session(session)
-        skill_ = Construct_Skill(input, character)
+        if ' (' in skill:
+            skill = skill.split(' (',1)
+            input.name = skill[0]
+        try:
+            skill_ = Construct_Skill(input, character)
+        except exc.Skill_Not_Exist:
+            unrecognized[skill] = ''
         if hasattr(skill_,'flags'):
             skill_.flag_modifier = 1
             skill_.modify_flags(session['skills_added'])
 
+    session['first_gat'] = session['gathering']
+
+    for sk in unrecognized.copy():
+        if sk[:2] == 'R.':
+            session['skills_added'][sk] = 1
+            del unrecognized[sk]
+
+    if unrecognized != {}:
+        session['unrecognizeds'] = unrecognized
+        session.modified = True
+        session['original_skills'] = session['skills_added'].copy()
+        session['gatherings_skills'][session['gathering']] = session['skills_added'].copy()
+        return insert_unrecognizeds()
+    
     session['original_skills'] = session['skills_added'].copy()
     
     session['gatherings_skills'][session['gathering']] = session['skills_added'].copy()
-
-    session['first_gat'] = session['gathering']
 
     return plan_skills()
 
@@ -495,7 +560,7 @@ def maliks_idea():
 
     Update_Points()
 
-    return render_template('all_skills.html', skills_db=skills_db_dict,back_url=url_for("character_setup"))
+    return render_template('all_skills.html', modify_route=url_for("modify_skill"), skills_db=skills_db_dict,back_url=url_for("character_setup"))
 
 @app.route('/premade_or_custom')
 def premade_or_custom():
