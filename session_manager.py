@@ -135,6 +135,8 @@ def Update_Points():
 
         audit_printout += f'After accounting for cost of {skill}, there are now {base_total} points\n'
 
+
     session['character_details']['points'] = base_total
+    session['cost_ref'] = cost_ref
 
     return base_total
