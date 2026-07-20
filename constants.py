@@ -47,7 +47,8 @@ DEFAULT_SESSION={
     }
 }
 
-DARK_FUTURE_LORES = ['R. Lore: Contracts and Deals','R. Lore: Smuggling', 'R. Lore: Blood Sommelier','R. Lore: Demon Etiquette']
+DARK_FUTURE_LORES = ['R. Lore: Contracts and Deals','R. Lore: Smuggling', 'R. Lore: Blood Sommelier',
+                     'R. Lore: Demon Etiquette','R. Lore: Guerilla Warfare']
 
 FORTY_POINTS=['human','effendal']
 
