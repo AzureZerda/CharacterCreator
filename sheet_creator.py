@@ -706,6 +706,19 @@ def extract_recent_sesh(sheet):
     for row in list_of_rows.copy():
         if row[0] == '':
             list_of_rows.remove(row)
+
+    print(list_of_rows)
+
+    val_rows = [3,4]
+
+    for row in val_rows:
+        if list_of_rows[-1][row] == '':
+            list_of_rows[-1][row] = 0
+
+    try:
+        check = int(list_of_rows[-1][0])
+    except ValueError:
+        list_of_rows[-1][0] = '0 0'
     
     last_event = [list_of_rows[-1][0].split(' ')[1], list_of_rows[-1][1], list_of_rows[-1][2],
                   int(list_of_rows[-1][3]), list_of_rows[-1][4],total_cp]
@@ -715,7 +728,10 @@ def extract_recent_sesh(sheet):
 def create_next_event(event):
     new_event = []
 
-    new_event.append(int(event[0])+1)
+    try:
+        new_event.append(int(event[0])+1)
+    except ValueError:
+        new_event.append(1)
     new_event.append('')
     new_event.append(3)
     new_event.append(0)
