@@ -12,6 +12,10 @@ FLAGS={
     'Weapon_Master':[]
     }
 
+LEGACY_COSTS={
+    'Effendal Agility':2
+}
+
 FLAG_MAP={
     'gm_mage':'Arcane Tutelage',
     'can_invent':'Inventor',

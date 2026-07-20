@@ -667,7 +667,6 @@ def extract_character_sheet_skills(sheet):
                 else:
                     skill_quant=abs(int(side[1])/skill_cost)
             except KeyError:
-                print(f'did not recognize {skill_id}')
                 skill_quant = 1
 
             skills[side[0]] = skill_quant
@@ -707,8 +706,6 @@ def extract_recent_sesh(sheet):
         if row[0] == '':
             list_of_rows.remove(row)
 
-    print(list_of_rows)
-
     val_rows = [3,4]
 
     for row in val_rows:
@@ -718,6 +715,8 @@ def extract_recent_sesh(sheet):
     try:
         check = int(list_of_rows[-1][0])
     except ValueError:
+        if list_of_rows[-1][0].split(' ')[1] == 'Bonus':
+            list_of_rows[-1][2] = 3
         list_of_rows[-1][0] = '0 0'
     
     last_event = [list_of_rows[-1][0].split(' ')[1], list_of_rows[-1][1], list_of_rows[-1][2],
@@ -756,7 +755,16 @@ def character_sheet_to_dict(url):
                 skills[weapon] = 1
 
     for skill in skills.copy():
-        prereqs = SKILL_REF[skill].get('Prereq')
+        try:
+            prereqs = SKILL_REF[skill].get('Prereq')
+        except KeyError:
+            if 'Legacy' in skill:
+                skill_id = skill.split('(',1)[0].strip()
+                try:
+                    SKILL_REF[skill_id]['Cost'] = constants.LEGACY_COSTS[skill_id]
+                except KeyError:
+                    pass
+                prereqs = SKILL_REF[skill_id].get('Prereq')
         if prereqs:
             for prereq in prereqs:
                 if prereq not in skills:
