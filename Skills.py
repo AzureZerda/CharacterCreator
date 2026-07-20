@@ -68,16 +68,16 @@ class Skill(ABC):
             if reliant_skill in constants.FLAGS:
                 continue
             input = SkillChangeInput({'skill': reliant_skill, 'quantity': new_skills[reliant_skill]})
-            try:
-                check_skill = Construct_Skill(input, self.character)
-            except KeyError:
-                self.verify_removal
-                continue
+            check_skill = Construct_Skill(input, self.character)
 
             self.reliant_skills = []
             if hasattr(check_skill, 'prereqs') and check_skill.prereqs is not None:
                 for skill in check_skill.prereqs:
-                    self.verify_removal(skill,check_skill.prereqs[skill],new_skills)
+                    try:
+                        if new_skills[skill] < check_skill.prereqs[skill]:
+                            self.reliant_skills.append(skill)
+                    except KeyError:
+                        self.reliant_skills.append(skill)
             if self.reliant_skills != []:
                 self.failed_skill = reliant_skill
                 raise exc.ReliantSkills

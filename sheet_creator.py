@@ -680,7 +680,7 @@ def extract_character_sheet_character_details(sheet):
     details={}
     details['bloodline'] = list_of_rows[2][5].lower()
     details['culture'] = list_of_rows[3][1]
-    details['faith'] = list_of_rows[6][1]
+    details['faith'] = list_of_rows[4][1]
     details['flaw_points'] = 0
     details['flaws_added'] = []
     details['health points'] = 5
@@ -725,6 +725,16 @@ def character_sheet_to_dict(url):
     char_details = extract_character_sheet_character_details(sheet)
     last_event = extract_recent_sesh(sheet)
     total_cp = sheet.character.acell('C7').value
+
+    if 'Weapon Master' in skills:
+        for weapon in constants.WEAPON_MASTER_SKILLS:
+            if weapon not in skills:
+                skills[weapon] = 1
+
+    if 'Poison Immunity' in skills and 'Poison Resistance' not in skills:
+        skills['Poison Resistance'] = 3
+    if 'Torture Immunity' in skills and 'Torture Resistance' not in skills:
+        skills['Torture Resistance'] = 3
 
     next_event = create_next_event(last_event)
 

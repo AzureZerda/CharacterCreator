@@ -511,6 +511,8 @@ def submit_substitutions():
         entry = session['unrecognizeds'][skill]
         entry = entry.split('x')
         session['skills_added'][entry[0].strip()] = entry[1]
+        if skill in session['skills_added']:
+            del session['skills_added'][skill]
     Update_Points()
     session.modified = True
     return gatherings_table()
@@ -539,6 +541,11 @@ def load_existing_character():
 
     for cat in details:
         session[cat] = details[cat]
+
+    if session['character_details']['faith'] != 'None':
+        session['skills_added']['has_faith'] = 1\
+        
+    
 
     for flag in constants.DEFAULT_SESSION['skills_added']:
         if flag not in session['skills_added']:
