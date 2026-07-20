@@ -93,6 +93,19 @@ def Update_Points():
     if 'Weapon Master' in skills_list:
         for skill in constants.WEAPON_MASTER_SKILLS:
             del skills_list[skill]
+
+    immunities = []
+
+    if 'Poison Immunity' in skills_list:
+        immunities.append('Poison')
+    if 'Torture Immunity' in skills_list:
+        immunities.append('Torture')
+
+    if immunities != []:
+        for immunity in immunities:
+            skills_list[f'{immunity} Resistance'] -= 3
+            if skills_list[f'{immunity} Resistance'] <= 0:
+                del skills_list[f'{immunity} Resistance']
     
     for skill, quantity in skills_list.items():
         audit_printout = ''
@@ -124,6 +137,13 @@ def Update_Points():
                     quantity= 1
             else:
                 continue
+
+        if 'Immunity' in skill:
+            thing = skill.split(' ',1)[0]
+            thing = thing + ' Resistance'
+            thing_cost = SKILL_REF[thing]['Cost']
+            resistance_cost = thing_cost*3
+            base_total -= resistance_cost
 
         audit_printout += f'the cost of {skill} is {(skill_cost * int(quantity))-int(discount)}. '
         

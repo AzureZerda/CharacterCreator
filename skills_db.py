@@ -571,7 +571,7 @@ THE_SCHOOL_OF_SUFFERING={
 
   "Torture Immunity":{
     "Max":1,
-    "Cost":13,
+    "Cost":4,
     "Prereq":{
       "Torture Resistance":3
     },
@@ -1094,7 +1094,7 @@ SKULLDUGGERY={
 
 "Poison Immunity": {
 "Max": 1,
-"Cost": 10,
+"Cost": 4,
 "Prereq": {
 "Poison Resistance": 3
 },
