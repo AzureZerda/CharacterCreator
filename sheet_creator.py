@@ -661,10 +661,14 @@ def extract_character_sheet_skills(sheet):
             except KeyError:
                 unrecognized.append(skill_id)
             
-            if SKILL_REF[skill_id]['Max'] == 1:
+            try:
+                if SKILL_REF[skill_id]['Max'] == 1:
+                    skill_quant = 1
+                else:
+                    skill_quant=abs(int(side[1])/skill_cost)
+            except KeyError:
+                print(f'did not recognize {skill_id}')
                 skill_quant = 1
-            else:
-                skill_quant=abs(int(side[1])/skill_cost)
 
             skills[side[0]] = skill_quant
 
