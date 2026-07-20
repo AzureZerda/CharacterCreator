@@ -47,7 +47,8 @@ def construct_display_dict(character):
 
     if 'Weapon Master' in display_dict:
         for weapon in constants.WEAPON_MASTER_SKILLS:
-            del display_dict[weapon]
+            if weapon in display_dict:
+                del display_dict[weapon]
 
     return display_dict
 
@@ -775,7 +776,6 @@ def modify_skill(data=None):
 
         try:
             if input.modifier==1:
-                print(session['skills_added'])
                 modification= flask_add_skill(skill)
                 
             else:
@@ -802,7 +802,6 @@ def modify_skill(data=None):
             return modification
         
         except exc.Not_Same_Gathering:
-            print(session['skills_added'])
             return jsonify({'success':False, 'error':f'A skill and its prerequisite cannot be added in the same gathering'})
         except exc.Prereq_Flag_Raised:
             return jsonify({'success':False, 'error':f'You need one of the following skills:\n\n {'\n'.join(prereq for prereq in skill.missing_prereqs if prereq not in constants.FLAGS)}'})
@@ -901,7 +900,6 @@ def check_downstream_sessions(check):
                                 if skill_.prereqs[prereq] > check[prereq]:
                                     raise exc.Future_Gat_Dependancy(gat, skill)
                             except KeyError:
-                                print('e')
                                 raise exc.Future_Gat_Dependancy(gat, skill)
 
 @app.route("/reset", methods=["POST"])
