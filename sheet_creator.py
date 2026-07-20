@@ -8,6 +8,7 @@ import datetime
 import json
 import twin_maskify as tm
 import exceptions as exc
+from Skills import Construct_Skill
 
 #azzy made a mess in here. fix it idiot
 
@@ -636,7 +637,7 @@ def extract_character_sheet_skills(sheet):
             if side[0] == 'Oathbound':
                 side[0] = 'Oath Bound'
             if side[0][:4] not in ['Lore','R. L','Nati']:
-                if side[0][:4] != 'Rite':
+                if side[0][:4] not in ['Rite','Armo']:
                     split = side[0].split(":", 1)
                 else:
                     split=[side[0],]
@@ -658,9 +659,13 @@ def extract_character_sheet_skills(sheet):
             try:
                 skill_cost=SKILL_REF[skill_id]['Cost']
             except KeyError:
+                print('\ndrench that man in cum\n')
                 unrecognized.append(skill_id)
-        
-            skill_quant=abs(int(side[1])/skill_cost)
+            
+            if SKILL_REF[skill_id]['Max'] == 1:
+                skill_quant = 1
+            else:
+                skill_quant=abs(int(side[1])/skill_cost)
 
             skills[side[0]] = skill_quant
 
@@ -731,10 +736,12 @@ def character_sheet_to_dict(url):
             if weapon not in skills:
                 skills[weapon] = 1
 
-    if 'Poison Immunity' in skills and 'Poison Resistance' not in skills:
-        skills['Poison Resistance'] = 3
-    if 'Torture Immunity' in skills and 'Torture Resistance' not in skills:
-        skills['Torture Resistance'] = 3
+    for skill in skills.copy():
+        prereqs = SKILL_REF[skill].get('Prereq')
+        if prereqs:
+            for prereq in prereqs:
+                if prereq not in skills:
+                    skills[prereq] = prereqs[prereq]
 
     next_event = create_next_event(last_event)
 
