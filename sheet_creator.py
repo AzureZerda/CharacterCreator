@@ -96,7 +96,7 @@ class Character_Sheet:
             self.emergency = self.workbook.worksheet("Emergency")
         
         except gspread.WorksheetNotFound:
-            self.emergency = self.workbook.add_worksheet(title="Emergency", rows=100, cols=20)
+            pass
 
         worksheet_list = self.workbook.worksheets()
 
