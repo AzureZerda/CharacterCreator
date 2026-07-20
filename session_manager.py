@@ -137,6 +137,6 @@ def Update_Points():
 
 
     session['character_details']['points'] = base_total
-    session['cost_ref'] = cost_ref
+    session['cost_ref'] = cost_ref  
 
     return base_total

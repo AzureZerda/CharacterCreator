@@ -318,8 +318,62 @@ def planning_skills():
     return render_template(
         'planning_skills.html',
         skills_db=skills_db_dict,
-        back_url=url_for("character_setup")
+        back_url=url_for("character_setup"),
+        modify_route=url_for("modify_skill"),
+        increase_route = url_for('increase_skill')
     )
+
+@app.route("/increase_skill", methods=["POST"])
+def increase_skill():
+    data = request.get_json(silent=True) or {}
+ 
+    delta = data['quantity'] - session['skills_added'][data['skill']]
+ 
+    input={'skill':data['skill'], 'quantity':delta}
+    input = tm.SkillChangeInput(input)
+    character = tm.Character.from_session(session)
+    skill = Construct_Skill(input, character)
+ 
+    if delta>0:
+        try:
+            skill.add()
+        except exc.Max_Points_Spent:
+            return jsonify({"success": False, "error": f"You do not have enough points."})
+    else:
+        skill_check = session['skills_added'].copy()
+        skill_check[data['skill']] = session['skills_added'][data['skill']]-abs(delta)
+        print(skill_check)
+        for skill in skill_check:
+            if skill in constants.FLAGS:
+                continue
+            input={'skill':skill, 'quantity':skill_check[skill]}
+            input = tm.SkillChangeInput(input)
+            character = tm.Character.from_session(session)
+            skill_ = Construct_Skill(input, character)
+            print(skill_.name)
+            if hasattr(skill_,'prereqs') and skill_.prereqs is not None:
+                print(skill_.prereqs)
+                for prereq in skill_.prereqs:
+                    print(prereq)
+                    print(skill_check[skill])
+                    if skill_.prereqs[prereq] > skill_check[prereq]:
+                        return jsonify({'success':False, "error": f"You must first remove {skill}"})
+
+ 
+    session['skills_added'][data['skill']] = data['quantity']
+ 
+    Update_Points()
+ 
+    return {
+            'success': True,
+            "message": "Added Skill",
+            "points": session["character_details"]["points"],
+            "HP": session["character_details"]["health points"],
+            "name": session["character_details"].get("name", "no name selected"),
+            "culture": session["character_details"].get("culture", "no culture selected"),
+            "bloodline": session["character_details"].get("bloodline", "no bloodline selected"),
+            "faith": session["character_details"].get("faith", "no faith selected"),
+        }
 
 @app.route("/gatherings_table", methods=["GET"])
 def gatherings_table():
@@ -330,6 +384,12 @@ def gatherings_table():
                     session['gatherings_skills'][gat][key] = value
     session['gatherings_skills'][session['gathering']] = session['skills_added'].copy()
     session.modified = True
+    next_gathering_num = str(session['gatherings_table'][1][0])
+    if next_gathering_num not in session['gatherings_skills']:
+        session['gatherings_skills'][next_gathering_num] = session['skills_added'].copy()
+    if session['character_details']['faith'] == 'Total CP:':
+        session['character_details']['faith'] = 'None'
+        session.updated = True
     return render_template("gatherings_table.html")
 
 @app.route("/select_prebuilt", methods=["POST"])
@@ -429,6 +489,8 @@ def add_replacement():
 
     session['unrecognizeds'][session['unrecognized']] = f'{data['skill']} x{data['quantity']}'
 
+    session['original_skills'][data['skill']] = data['quantity']
+
     return jsonify(
         success=True,
         redirect=url_for("insert_unrecognizeds")
@@ -445,7 +507,7 @@ def replace_unrecognized():
         del skills_db_dict[ut]
 
     skills_db_dict=inject_bloodline_skills(session,skills_db_dict)
-    return render_template('all_skills.html', modify_route=url_for("add_replacement"), skills_db=skills_db_dict,back_url=url_for("character_setup"))
+    return render_template('replace_skills.html', modify_route=url_for("add_replacement"), skills_db=skills_db_dict,back_url=url_for("character_setup"))
 
 @app.route("/submit_substitutions", methods=["POST"])
 def submit_substitutions():
@@ -454,7 +516,7 @@ def submit_substitutions():
         entry = entry.split('x')
         session['skills_added'][entry[0].strip()] = entry[1]
     session.modified = True
-    return plan_skills()
+    return gatherings_table()
 
 @app.route('/insert_unrecognizeds')
 def insert_unrecognizeds():
@@ -479,6 +541,8 @@ def load_existing_character():
     session['character_type'] = 'character_plan'
 
     for cat in details:
+        print(cat)
+        print(details[cat])
         session[cat] = details[cat]
 
     for flag in constants.DEFAULT_SESSION['skills_added']:
@@ -520,7 +584,7 @@ def load_existing_character():
     
     session['gatherings_skills'][session['gathering']] = session['skills_added'].copy()
 
-    return plan_skills()
+    return gatherings_table()
 
 @app.route('/confirm_submission', methods=['POST'])
 def confirm_submission():
@@ -582,21 +646,47 @@ def set_character(category):
 
 @app.route("/planning_reset", methods=["POST"])
 def planning_reset():
+    skills_db_dict = construct_skill_ref()
+
+    utilities = ['SKILL REF', 'BLOODLINE SKILLS']
+    for ut in utilities:
+        del skills_db_dict[ut]
+
+    skills_db_dict = inject_bloodline_skills(session, skills_db_dict)
     session['skills_added'] = session['original_skills'].copy()
-    for gat in session['gatherings_skills']:
+    for gat in session['gatherings_skills' ]:
         session['gatherings_skills'][gat] = session['skills_added'].copy()
-    return plan_skills()
+    return render_template(
+        'planning_skills.html',
+        skills_db=skills_db_dict,
+        back_url=url_for("character_setup"),
+        modify_route=url_for("modify_skill"),
+        increase_route = url_for('increase_skill')
+    )
 
 @app.route("/reset_plan", methods=["POST"])
 def reset_plan():
-    first_gat = session['first_gat']
+    skills_db_dict = construct_skill_ref()
+
+    utilities = ['SKILL REF', 'BLOODLINE SKILLS']
+    for ut in utilities:
+        del skills_db_dict[ut]
+
+    skills_db_dict = inject_bloodline_skills(session, skills_db_dict)
+    second_gat = str(int(session['first_gat'])+1)
     session['skills_added'] = session['original_skills'].copy()
     for gat in session['gatherings_skills'].copy():
-        if gat != first_gat:
+        if int(gat) > int(second_gat):
             del session['gatherings_skills'][gat]
-    session['gatherings_table'] = session['gatherings_table'][:1]
-    session['gatherings_skills'][first_gat] = session['skills_added'].copy()
-    return plan_skills()
+    session['gatherings_table'] = session['gatherings_table'][:2]
+    session['gatherings_skills'][second_gat] = session['skills_added'].copy()
+    return render_template(
+        'planning_skills.html',
+        skills_db=skills_db_dict,
+        back_url=url_for("character_setup"),
+        modify_route=url_for("modify_skill"),
+        increase_route = url_for('increase_skill')
+    )
 
 @app.route("/submit_character", methods=["POST"])
 def submit_character():
@@ -676,7 +766,7 @@ def submit_backstory():
     })
 
 @app.route("/modify_skill", methods=["POST"])
-def modify_skill():
+def modify_skill(data=None):
         data=request.get_json()
 
         global session
@@ -774,7 +864,8 @@ def flask_remove_skill(skill):
     if session['character_type'] == 'character_plan':
         check = session['skills_added'].copy()
         skill.flag_modifier = -1
-        skill.modify_flags(check)
+        if hasattr(skill,'flags'):
+            skill.modify_flags(check)
         try:
             check_downstream_sessions(check)
         except exc.Future_Gat_Dependancy as e:

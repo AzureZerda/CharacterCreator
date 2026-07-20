@@ -25,11 +25,11 @@ class SkillChangeInput:
 class Skill(ABC):   
     def __init__(self, character, name: str, quantity=1, max_quant=None, prereqs: dict = None):
         self.character = character
-        self.name = name.strip()
+        self.name = clean_skill_name(name)
         try:
             self.cost = SKILL_REF[self.name]['Cost']*quantity
         except KeyError:
-            if name[:6]=='Native':
+            if name[:6]=='Native' or name[:2] == 'R.':
                 self.cost=4
             else:
                 raise exc.Skill_Not_Exist
@@ -65,6 +65,8 @@ class Skill(ABC):
                 new_skills[flag] += self.flag_modifier
         
         for reliant_skill in new_skills:
+            if reliant_skill in constants.FLAGS:
+                continue
             input = SkillChangeInput({'skill': reliant_skill, 'quantity': new_skills[reliant_skill]})
             try:
                 check_skill = Construct_Skill(input, self.character)
@@ -370,6 +372,10 @@ class Memory_Flaw(Background_Flaw):
     def remove(self):
         self.character.skills_added['memory_flaws']-=1
         super().remove()
+
+def clean_skill_name(skill):
+    skill = skill.split('(',1)[0].strip()
+    return skill
 
 def Determine_Route(skill):
     router={

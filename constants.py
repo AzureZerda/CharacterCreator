@@ -43,6 +43,8 @@ DEFAULT_SESSION={
     }
 }
 
+DARK_FUTURE_LORES = ['R. Lore: Contracts and Deals','R. Lore: Smuggling', 'R. Lore: Blood Sommelier','R. Lore: Demon Etiquette']
+
 FORTY_POINTS=['human','effendal']
 
 FLAWS=['Sovereign Zeal','Religious Zeal','Religious Zeal','Corrupted','Frail',
