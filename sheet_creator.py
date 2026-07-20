@@ -659,7 +659,6 @@ def extract_character_sheet_skills(sheet):
             try:
                 skill_cost=SKILL_REF[skill_id]['Cost']
             except KeyError:
-                print('\ndrench that man in cum\n')
                 unrecognized.append(skill_id)
             
             if SKILL_REF[skill_id]['Max'] == 1:
