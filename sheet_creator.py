@@ -100,10 +100,6 @@ class Character_Sheet:
 
         worksheet_list = self.workbook.worksheets()
 
-        for worksheet in worksheet_list:
-            if worksheet.title not in pages:
-                self.workbook.del_worksheet(worksheet)
-
 class cell_input:
     def __init__(self,value,col,row):
         self.value=value

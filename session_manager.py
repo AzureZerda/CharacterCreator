@@ -92,7 +92,8 @@ def Update_Points():
  
     if 'Weapon Master' in skills_list:
         for skill in constants.WEAPON_MASTER_SKILLS:
-            del skills_list[skill]
+            if skill in skills_list:
+                del skills_list[skill]
 
     immunities = []
 
@@ -103,9 +104,10 @@ def Update_Points():
 
     if immunities != []:
         for immunity in immunities:
-            skills_list[f'{immunity} Resistance'] -= 3
-            if skills_list[f'{immunity} Resistance'] <= 0:
-                del skills_list[f'{immunity} Resistance']
+            if f'{immunity} Resistance' in skills_list:
+                skills_list[f'{immunity} Resistance'] -= 3
+                if skills_list[f'{immunity} Resistance'] <= 0:
+                    del skills_list[f'{immunity} Resistance']
     
     for skill, quantity in skills_list.items():
         audit_printout = ''
