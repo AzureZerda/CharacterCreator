@@ -342,7 +342,6 @@ def increase_skill():
     else:
         skill_check = session['skills_added'].copy()
         skill_check[data['skill']] = session['skills_added'][data['skill']]-abs(delta)
-        print(skill_check)
         for skill in skill_check:
             if skill in constants.FLAGS:
                 continue
@@ -350,12 +349,8 @@ def increase_skill():
             input = tm.SkillChangeInput(input)
             character = tm.Character.from_session(session)
             skill_ = Construct_Skill(input, character)
-            print(skill_.name)
             if hasattr(skill_,'prereqs') and skill_.prereqs is not None:
-                print(skill_.prereqs)
                 for prereq in skill_.prereqs:
-                    print(prereq)
-                    print(skill_check[skill])
                     if skill_.prereqs[prereq] > skill_check[prereq]:
                         return jsonify({'success':False, "error": f"You must first remove {skill}"})
 
@@ -515,6 +510,7 @@ def submit_substitutions():
         entry = session['unrecognizeds'][skill]
         entry = entry.split('x')
         session['skills_added'][entry[0].strip()] = entry[1]
+    Update_Points()
     session.modified = True
     return gatherings_table()
 
@@ -541,8 +537,6 @@ def load_existing_character():
     session['character_type'] = 'character_plan'
 
     for cat in details:
-        print(cat)
-        print(details[cat])
         session[cat] = details[cat]
 
     for flag in constants.DEFAULT_SESSION['skills_added']:
@@ -681,11 +675,7 @@ def reset_plan():
     session['gatherings_table'] = session['gatherings_table'][:2]
     session['gatherings_skills'][second_gat] = session['skills_added'].copy()
     return render_template(
-        'planning_skills.html',
-        skills_db=skills_db_dict,
-        back_url=url_for("character_setup"),
-        modify_route=url_for("modify_skill"),
-        increase_route = url_for('increase_skill')
+        'gatherings_table.html'
     )
 
 @app.route("/submit_character", methods=["POST"])
@@ -785,6 +775,7 @@ def modify_skill(data=None):
 
         try:
             if input.modifier==1:
+                print(session['skills_added'])
                 modification= flask_add_skill(skill)
                 
             else:
@@ -809,6 +800,10 @@ def modify_skill(data=None):
                 modification['redirect']=SKILL_REF[input.name]['redirect']
 
             return modification
+        
+        except exc.Not_Same_Gathering:
+            print(session['skills_added'])
+            return jsonify({'success':False, 'error':f'A skill and its prerequisite cannot be added in the same gathering'})
         except exc.Prereq_Flag_Raised:
             return jsonify({'success':False, 'error':f'You need one of the following skills:\n\n {'\n'.join(prereq for prereq in skill.missing_prereqs if prereq not in constants.FLAGS)}'})
         except exc.Prereq_Not_Met:
@@ -836,6 +831,12 @@ def modify_skill(data=None):
 @app.route("/add_skill",methods=["POST"])
 def flask_add_skill(skill):
         tm.add_skill(skill)
+        if session['character_type'] == 'character_plan':
+            if hasattr(skill,'prereqs'):
+                try:
+                    skill.check_prereqs(session['gatherings_skills'][str(int(session['gathering'])-1)])
+                except exc.Prereq_Not_Met or exc.Prereq_Flag_Raised:
+                    raise exc.Not_Same_Gathering
         session['skills_added'][skill.name] = skill.quantity   
         session.modified = True
         return {
@@ -896,7 +897,11 @@ def check_downstream_sessions(check):
                 if hasattr(skill_, 'prereqs'):
                     if skill_.prereqs is not None:
                         for prereq in skill_.prereqs:
-                            if skill_.prereqs[prereq] > check[prereq]:
+                            try:
+                                if skill_.prereqs[prereq] > check[prereq]:
+                                    raise exc.Future_Gat_Dependancy(gat, skill)
+                            except KeyError:
+                                print('e')
                                 raise exc.Future_Gat_Dependancy(gat, skill)
 
 @app.route("/reset", methods=["POST"])

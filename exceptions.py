@@ -41,7 +41,7 @@ class Future_Gat_Dependancy(Exception):
     def __init__(self, gathering, skill):
         self.gat = gathering
         self.skill = skill
-        self.message = f'You must remove {skill} from {gathering} first'
+        self.message = f'You must remove {skill} from Gathering {gathering} first'
 
 class Removal_Not_Allowed_Flag(Exception):
     def __init__(self, flag, skills):
@@ -58,3 +58,6 @@ class Removal_Not_Allowed_Flag(Exception):
             message = f'You must first remove {present_skill}'
 
         super().__init__(message)
+
+class Not_Same_Gathering(Exception):
+    pass

@@ -612,7 +612,7 @@ def extract_character_sheet_skills(sheet):
         for side in sides:
             if ' x' in side[0]:
                 side[0]=side[0][:-3]
-            if side[0][:2] == 'R.' and '*' not in side[0]:
+            if side[0][:2] == 'R.':
                 SKILL_REF[side[0]] = {'Max':1,'Cost':4}
             side [0] = clean_skill_entry(side[0])
             if side[0] in ['','General Skills','Magical Arts','Knowledge','Gathering/Crafting']:
@@ -708,6 +708,18 @@ def extract_recent_sesh(sheet):
     
     return last_event
 
+def create_next_event(event):
+    new_event = []
+
+    new_event.append(int(event[0])+1)
+    new_event.append('')
+    new_event.append(3)
+    new_event.append(0)
+    new_event.append(0)
+    new_event.append(int(event[5])+int(event[4])+int(event[3])+int(event[2]))
+
+    return new_event
+
 def character_sheet_to_dict(url):
     sheet = Character_Sheet(url)
     
@@ -718,16 +730,16 @@ def character_sheet_to_dict(url):
     last_event = extract_recent_sesh(sheet)
     total_cp = sheet.character.acell('C7').value
 
+    next_event = create_next_event(last_event)
+
     session['gatherings_skills'] = {}
     session['character_details'] = char_details
     session['skills_added'] = skills
     session['legacy_discount'] = legacy
-    session['gatherings_table'] = [last_event,]
+    session['gatherings_table'] = [last_event,next_event]
     session['gathering'] = last_event[0]
     session['gatherings_skills'][last_event[0]] = skills.copy()
     session['total_cp'] = total_cp
-
-    print(char_details)
 
     return session
 
