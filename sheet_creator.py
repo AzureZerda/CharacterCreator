@@ -749,6 +749,10 @@ def character_sheet_to_dict(url):
     last_event = extract_recent_sesh(sheet)
     total_cp = sheet.character.acell('C7').value
 
+    if char_details['bloodline'].lower() == 'newborn dream':
+        SKILL_REF['Tethered'] = {'Max':1,'Cost':-10}
+        skills['Tethered'] = 1
+
     if 'Weapon Master' in skills:
         for weapon in constants.WEAPON_MASTER_SKILLS:
             if weapon not in skills:
