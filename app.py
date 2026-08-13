@@ -1,4 +1,8 @@
 from flask import Flask, render_template, request, session, jsonify, redirect, url_for, flash
+from google_auth_oauthlib.flow import Flow
+from google.auth.transport.requests import Request as GoogleRequest
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
 from bloodline_skills import BLOODLINE_SKILLS
 import re
 import os
@@ -19,6 +23,9 @@ from session_manager import (
     Update_Points,
 )
 from character_builder import create_char
+from dotenv import load_dotenv
+
+
 
 try:
     app
@@ -590,8 +597,6 @@ def load_existing_character():
 
 @app.route('/confirm_submission', methods=['POST'])
 def confirm_submission():
-    #sheet_creator.export_char(session)
-
     if session['character_details']['points']<0:
         raise exc.Too_Many_Points()
 
@@ -607,6 +612,8 @@ def confirm_submission():
         session.modified=True
         raise exc.UnspentPoints()
     
+    sheet_creator.export_char(session)
+
     return render_template("submission_placeholder.html")
 
 @app.route("/character_setup", methods=["GET"])
@@ -933,6 +940,114 @@ def reset():
     session.modified=True
     
     return maliks_idea()
+
+
+
+import os
+from flask import session, redirect, request, url_for, render_template
+
+from google_auth_oauthlib.flow import Flow
+from google.auth.transport.requests import Request as GoogleRequest
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+
+GOOGLE_CLIENT_CONFIG = {
+    "web": {
+        "client_id": os.environ["GOOGLE_CLIENT_ID"],
+        "client_secret": os.environ["GOOGLE_CLIENT_SECRET"],
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+    }
+}
+
+GOOGLE_SCOPES = [
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive.file",
+]
+
+os.environ.setdefault("OAUTHLIB_INSECURE_TRANSPORT", "1")
+
+
+def _creds_to_session_dict(creds):
+    return {
+        "token": creds.token,
+        "refresh_token": creds.refresh_token,
+        "token_uri": creds.token_uri,
+        "client_id": creds.client_id,
+        "client_secret": creds.client_secret,
+        "scopes": creds.scopes,
+    }
+
+
+def get_google_credentials():
+    if "google_credentials" not in session:
+        return None
+    creds = Credentials(**session["google_credentials"])
+    if creds.expired and creds.refresh_token:
+        creds.refresh(GoogleRequest())
+        session["google_credentials"] = _creds_to_session_dict(creds)
+    return creds
+
+
+@app.route("/google/login")
+def google_login():
+    flow = Flow.from_client_config(
+        GOOGLE_CLIENT_CONFIG,
+        scopes=GOOGLE_SCOPES,
+        redirect_uri=url_for("google_oauth2callback", _external=True),
+    )
+    auth_url, state = flow.authorization_url(
+        access_type="offline",
+        include_granted_scopes="true",
+        prompt="consent",
+    )
+    session["google_oauth_state"] = state
+    return redirect(auth_url)
+
+
+@app.route("/oauth2callback")
+def google_oauth2callback():
+    flow = Flow.from_client_config(
+        GOOGLE_CLIENT_CONFIG,
+        scopes=GOOGLE_SCOPES,
+        state=session["google_oauth_state"],
+        redirect_uri=url_for("google_oauth2callback", _external=True),
+    )
+    flow.fetch_token(authorization_response=request.url)
+    session["google_credentials"] = _creds_to_session_dict(flow.credentials)
+    return redirect(url_for("new_player_landing"))
+
+
+@app.route("/google/logout")
+def google_logout():
+    session.pop("google_credentials", None)
+    return redirect(url_for("your_existing_form_route"))
+
+
+def create_sheet_from_choices(title, rows):
+    creds = get_google_credentials()
+    if creds is None:
+        return None
+
+    sheets_service = build("sheets", "v4", credentials=creds)
+
+    spreadsheet = sheets_service.spreadsheets().create(
+        body={
+            "properties": {"title": title},
+            "sheets": [{"properties": {"title": "Sheet1"}}],
+        },
+        fields="spreadsheetId,spreadsheetUrl",
+    ).execute()
+
+    sheets_service.spreadsheets().values().update(
+        spreadsheetId=spreadsheet["spreadsheetId"],
+        range="Sheet1!A1",
+        valueInputOption="RAW",
+        body={"values": rows},
+    ).execute()
+
+    return spreadsheet["spreadsheetUrl"]
+
 
 skill_reference=None
 
