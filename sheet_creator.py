@@ -70,7 +70,7 @@ class Layout_Manager:
         self.merge_ranges=['B2:D2','B3:D3','B4:D4','B5:D5','F2:H2','F3:H3','E6:F6','A1:H1']
 
 class Character_Sheet:
-    def __init__(self,url):
+    def __init__(self,url,gc):
         self.workbook = gc.open_by_url(url)
 
         pages=['Character','Progression','History','Emergency']
@@ -317,7 +317,7 @@ class Existing_Sheet:
 
 class Templates:
     def __init__(self):
-        template_sh = gc.open_by_url('https://docs.google.com/spreadsheets/d/1S4jGc7nqan4eHvhuWuqbDKQJlKUd2FEe-g2JgSHsFlg/edit?gid=38564953#gid=38564953')
+        template_sh = template_gc.open_by_url('https://docs.google.com/spreadsheets/d/1S4jGc7nqan4eHvhuWuqbDKQJlKUd2FEe-g2JgSHsFlg/edit?gid=38564953#gid=38564953')
 
         self.character = template_sh.worksheet("Character")
 
@@ -411,16 +411,25 @@ def sheet_setup(sheet):
         result.update_title("Character")
 
 def export_char(session):
+    from google.oauth2.credentials import Credentials
+    creds = Credentials.from_authorized_user_info(
+        session["google_credentials"]
+    )
+    gc = gspread.authorize(creds)
 
     url = session.get('sheet_url')
 
     if url is None:
         sh = gc.create(f'{session['person_details']['name']} ({session['character_details']['name']})')
+        sh.share(
+    os.environ["SHARE_URL"],
+    perm_type="user",
+    role="writer"
+    )
         sheet_setup(sh)
     else:
         sh = gc.open_by_url(url)
-
-    gsheet = Character_Sheet(sh.url)
+    gsheet = Character_Sheet(sh.url,gc)
     
     sheet=Sheet_Constructor(session)
 
@@ -437,7 +446,10 @@ def export_char(session):
         gsheet.history.update_acell('A1',session['character_details']['backstory'])
 
 
-    gsheet.emergency.update_acell('A2',session['person_details']['emergency_contact'])
+    try:
+        gsheet.emergency.update_acell('A2',session['person_details']['emergency_contact'])
+    except AttributeError:
+        pass
 
     for cell in sheet.formula_cells:
         gsheet.character.update_acell(cell.coordinate,cell.value)
@@ -452,23 +464,37 @@ def export_char(session):
         for cell in sheet.formats[format]['cells']:
             gsheet.character.format(cell,sheet.formats[format]['format'])
 
-    NPL_sh = gc.open_by_url('https://docs.google.com/spreadsheets/d/1ArvwEyaAzGb3XvPSShNeEL_eHHrw2TfV9q4kbrY8Bwg/edit?gid=1599082411#gid=1599082411')
+    try:
+        worksheet = sh.worksheet('Sheet1')
+        sh.del_worksheet(worksheet)
+    except gspread.WorksheetNotFound:
+        pass
+
+    add_NPL_row(session,sh)
+
+def add_NPL_row(session,character):
+    template_creds = json.loads(os.environ["TEMPLATE_CREDS"])
+
+    gc = gspread.service_account_from_dict(template_creds)
+
+    NPL_sh = gc.open_by_url(os.environ["NPL_URL"])
     NPL_records = NPL_sh.worksheet("Demo")
 
     rows = NPL_records.get_all_values()
     num_rows = len(rows)
 
-    NPL_Rows=construct_NPL_Row(session,sh,num_rows+1)
+    NPL_Rows=construct_NPL_Row(session,character,num_rows+1)
 
     try:
         worksheet = NPL_sh.worksheet("Demo")
     
     except gspread.WorksheetNotFound:
-        worksheet = NPL_sh.add_worksheet(title="Demo", rows=100, cols=20)
-    
+        worksheet = NPL_sh.add_worksheet(title="", rows=100, cols=20)
+
+
     worksheet.update_cells(NPL_Rows)
 
-def construct_NPL_Row(session,sheet,row):
+def construct_NPL_Row(session,character_sheet,row):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     if 'second_culture' in session['character_details']:
         culture=f'{session['character_details']['culture']}/{session['character_details']['second_culture']}'
@@ -481,7 +507,7 @@ def construct_NPL_Row(session,sheet,row):
     character_name_cell=gspread.Cell(row,5,session['character_details']['name'])
     bloodline_name_cell=gspread.Cell(row,6,session['character_details']['bloodline'])
     culture_cell=gspread.Cell(row,7,culture)
-    sheet_cell=gspread.Cell(row,8,sheet.url)
+    sheet_cell=gspread.Cell(row,8,character_sheet.url)
     religion_cell=gspread.Cell(row,9,session['character_details']['faith'])
     backstory_cell=gspread.Cell(row,10,session['character_details']['backstory'])
     emergency_cell=gspread.Cell(row,11,'Jenny: 8675309')
@@ -789,10 +815,8 @@ def character_sheet_to_dict(url):
 
 from app import SKILL_REF
 
-#azzy needs to change this to use a service account
+template_creds = json.loads(os.environ["TEMPLATE_CREDS"])
 
-creds = json.loads(os.environ["GOOGLE_SERVICE_ACCOUNT_JSON"])
-
-gc = gspread.service_account_from_dict(creds)
+template_gc = gspread.service_account_from_dict(template_creds)
 
 templates=Templates()
