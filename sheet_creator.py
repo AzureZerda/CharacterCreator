@@ -317,7 +317,7 @@ class Existing_Sheet:
 
 class Templates:
     def __init__(self):
-        template_sh = template_gc.open_by_url('https://docs.google.com/spreadsheets/d/1S4jGc7nqan4eHvhuWuqbDKQJlKUd2FEe-g2JgSHsFlg/edit?gid=38564953#gid=38564953')
+        template_sh = template_gc.open_by_url(os.environ['TEMPLATE_URL'])
 
         self.character = template_sh.worksheet("Character")
 
