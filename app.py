@@ -1024,8 +1024,6 @@ def google_oauth2callback():
         redirect_uri=url_for("google_oauth2callback", _external=True),
     )
 
-    flow.code_verifier = session["google_code_verifier"]
-
     flow.fetch_token(authorization_response=request.url)
 
     return redirect(url_for("new_player_landing"))
