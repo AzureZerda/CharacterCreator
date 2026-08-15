@@ -998,8 +998,6 @@ def get_google_credentials():
 
 @app.route("/google/login")
 def google_login():
-    print("CLIENT ID:", GOOGLE_CLIENT_CONFIG["web"]["client_id"])
-    print("REDIRECT URI:", url_for("google_oauth2callback", _external=True))
     flow = Flow.from_client_config(
         GOOGLE_CLIENT_CONFIG,
         scopes=GOOGLE_SCOPES,
@@ -1011,6 +1009,7 @@ def google_login():
         prompt="consent",
     )
     session["google_oauth_state"] = state
+    session["google_code_verifier"] = flow.code_verifier
 
     return redirect(auth_url)
 
@@ -1023,6 +1022,7 @@ def google_oauth2callback():
         state=session["google_oauth_state"],
         redirect_uri=url_for("google_oauth2callback", _external=True),
     )
+    flow.code_verifier = session["google_code_verifier"]
 
     flow.fetch_token(authorization_response=request.url)
 
