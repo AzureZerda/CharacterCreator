@@ -1011,6 +1011,7 @@ def google_login():
         prompt="consent",
     )
     session["google_oauth_state"] = state
+    session["google_code_verifier"] = flow.code_verifier
     return redirect(auth_url)
 
 
@@ -1022,6 +1023,9 @@ def google_oauth2callback():
         state=session["google_oauth_state"],
         redirect_uri=url_for("google_oauth2callback", _external=True),
     )
+
+    flow.code_verifier = session["google_code_verifier"]
+
     flow.fetch_token(authorization_response=request.url)
     session["google_credentials"] = _creds_to_session_dict(flow.credentials)
     return redirect(url_for("new_player_landing"))
