@@ -1012,11 +1012,15 @@ def google_login():
     )
     session["google_oauth_state"] = state
     session["google_code_verifier"] = flow.code_verifier
+    print("LOGIN SESSION:", dict(session))
+    print("VERIFIER:", session.get("google_code_verifier"))
     return redirect(auth_url)
 
 
 @app.route("/oauth2callback")
 def google_oauth2callback():
+    print("CALLBACK SESSION:", dict(session))
+    print("VERIFIER:", session.get("google_code_verifier"))
     flow = Flow.from_client_config(
         GOOGLE_CLIENT_CONFIG,
         scopes=GOOGLE_SCOPES,
