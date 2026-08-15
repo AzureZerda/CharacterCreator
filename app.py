@@ -998,6 +998,8 @@ def get_google_credentials():
 
 @app.route("/google/login")
 def google_login():
+    print("CLIENT ID:", GOOGLE_CLIENT_CONFIG["web"]["client_id"])
+    print("REDIRECT URI:", url_for("google_oauth2callback", _external=True))
     flow = Flow.from_client_config(
         GOOGLE_CLIENT_CONFIG,
         scopes=GOOGLE_SCOPES,
