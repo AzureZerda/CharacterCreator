@@ -3,6 +3,7 @@ from google_auth_oauthlib.flow import Flow
 from google.auth.transport.requests import Request as GoogleRequest
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
+from werkzeug.middleware.proxy_fix import ProxyFix
 from bloodline_skills import BLOODLINE_SKILLS
 import re
 import os
@@ -32,6 +33,12 @@ try:
 except NameError:
     app = Flask(__name__)
     app.secret_key = os.getenv("SECRET_KEY")
+
+app.wsgi_app = ProxyFix(
+    app.wsgi_app,
+    x_proto=1,
+    x_host=1
+)
 
 def construct_display_dict(character): 
     display_dict = {}
