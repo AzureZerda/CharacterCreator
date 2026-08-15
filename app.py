@@ -1026,8 +1026,17 @@ def google_oauth2callback():
 
     flow.fetch_token(authorization_response=request.url)
 
-    return redirect(url_for("new_player_landing"))
+    creds = flow.credentials
+    session["google_credentials"] = {
+        "token": creds.token,
+        "refresh_token": creds.refresh_token,
+        "token_uri": creds.token_uri,
+        "client_id": creds.client_id,
+        "client_secret": creds.client_secret,
+        "scopes": creds.scopes,
+    }
 
+    return redirect(url_for("new_player_landing"))
 
 @app.route("/google/logout")
 def google_logout():
