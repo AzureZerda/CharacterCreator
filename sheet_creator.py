@@ -412,7 +412,6 @@ def sheet_setup(sheet):
 
 def export_char(session):
     from google.oauth2.credentials import Credentials
-    print(session['google_credentials'])
     creds_data = session["google_credentials"]
     creds = Credentials(**creds_data)
     gc = gspread.authorize(creds)
