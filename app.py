@@ -1036,6 +1036,8 @@ def google_oauth2callback():
         "scopes": creds.scopes,
     }
 
+    session.modified = True
+
     return redirect(url_for("new_player_landing"))
 
 @app.route("/google/logout")
