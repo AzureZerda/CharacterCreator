@@ -26,8 +26,6 @@ from session_manager import (
 from character_builder import create_char
 from dotenv import load_dotenv
 
-
-
 try:
     app
 except NameError:
@@ -68,7 +66,7 @@ def construct_display_dict(character):
 
 @app.route("/")
 def buttons():
-    return render_template('load_character_sheet.html')
+    return redirect(url_for('google_login'))
 
 def contains_google_doc_link(text):
     LINK_REGEX = re.compile(r"(https?://[^\s]+|www\.[^\s]+)", re.IGNORECASE)
@@ -1009,8 +1007,6 @@ def google_login():
         prompt="consent",
     )
     session["google_oauth_state"] = state
-    session["google_code_verifier"] = flow.code_verifier
-
     return redirect(auth_url)
 
 
@@ -1022,22 +1018,8 @@ def google_oauth2callback():
         state=session["google_oauth_state"],
         redirect_uri=url_for("google_oauth2callback", _external=True),
     )
-    flow.code_verifier = session["google_code_verifier"]
-
     flow.fetch_token(authorization_response=request.url)
-
-    creds = flow.credentials
-    session["google_credentials"] = {
-        "token": creds.token,
-        "refresh_token": creds.refresh_token,
-        "token_uri": creds.token_uri,
-        "client_id": creds.client_id,
-        "client_secret": creds.client_secret,
-        "scopes": creds.scopes,
-    }
-
-    session.modified = True
-
+    session["google_credentials"] = _creds_to_session_dict(flow.credentials)
     return redirect(url_for("new_player_landing"))
 
 @app.route("/google/logout")
