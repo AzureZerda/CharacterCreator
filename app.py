@@ -68,7 +68,7 @@ def construct_display_dict(character):
 
 @app.route("/")
 def buttons():
-    return redirect(url_for('google_login'))
+    return render_template('landing_page.html')
 
 def contains_google_doc_link(text):
     LINK_REGEX = re.compile(r"(https?://[^\s]+|www\.[^\s]+)", re.IGNORECASE)
@@ -994,7 +994,6 @@ def get_google_credentials():
         creds.refresh(GoogleRequest())
         session["google_credentials"] = _creds_to_session_dict(creds)
     return creds
-
 
 @app.route("/google/login")
 def google_login():
