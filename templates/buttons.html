@@ -1,0 +1,33 @@
+{% extends "layout.html" %}
+
+{% block page_head %}
+<style>
+    .button-container {
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .button-container button {
+        font-size: 28px;
+        padding: 20px 60px;
+        cursor: pointer;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block page_content %}
+<div class="button-container">
+
+    {% for text, destination in buttons.items() %}
+        <form action="{{ destination }}" method="get">
+            <button type="submit">{{ text }}</button>
+        </form>
+    {% endfor %}
+
+</div>
+{% endblock %}
