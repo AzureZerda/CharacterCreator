@@ -265,7 +265,6 @@ class Sheet_Constructor:
             self.boxes[SKILL_REF[skill]['sheet_box']][entry1]=entry2
             
         for skill in skills:
-            print(skill)
             if skill in BLOODLINE_SKILLS[self.session['character_details']['bloodline']]:
                 continue
             if skill in constants.FLAGS:
@@ -275,8 +274,6 @@ class Sheet_Constructor:
             if skill[:6] == 'Native' and self.native_discount is False:
                 entry2 = 0
                 self.native_discount = True
-            print('\nsquibblydee dee\n')
-            print(entry1,entry2)
             try:
                 self.boxes[SKILL_REF[skill]['sheet_box']][entry1]=entry2
             except KeyError:
@@ -502,7 +499,7 @@ def construct_NPL_Row(session,character_sheet,row):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
     timestamp_cell=gspread.Cell(row,1,timestamp)
-    type_cell=gspread.Cell(row,2,'Test Character')
+    type_cell=gspread.Cell(row,2,session['character_type'])
     player_name_cell=gspread.Cell(row,3,session['person_details']['name'])
     gmail_account_cell=gspread.Cell(row,4,session['person_details']['email'])
     character_name_cell=gspread.Cell(row,5,session['character_details']['name'])
