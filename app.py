@@ -117,8 +117,30 @@ def init_session():
     
     session.modified=True
 
+@app.route("/landing")
+def landing():
+    buttons={
+        'New Character':'/new_player_landing',
+        'Existing Character':'/start_planning'
+    }
+    return render_template("buttons.html", buttons=buttons)
+
 @app.route("/new_player_landing")
 def new_player_landing():
+    buttons={
+        'New Player':'/new_player_setup',
+        'Alt':'/alt_character'
+    }
+    return render_template("buttons.html", buttons=buttons)
+
+@app.route("/alt_character")
+def alt_character():
+    session['character_type'] = 'alt'
+    session.modified = True
+    return render_template('set_character.html')
+
+@app.route("/new_player_setup")
+def new_player_setup():
     session['character_type'] = 'new_character'
     session.modified = True
     return render_template('set_character.html')
@@ -1025,7 +1047,7 @@ def google_oauth2callback():
     flow.code_verifier = session["google_code_verifier"]
     flow.fetch_token(authorization_response=request.url)
     session["google_credentials"] = _creds_to_session_dict(flow.credentials)
-    return redirect(url_for("new_player_landing"))
+    return redirect(url_for("landing"))
 
 
 @app.route("/google/logout")
