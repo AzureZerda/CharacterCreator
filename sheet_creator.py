@@ -108,6 +108,7 @@ class cell_input:
 
 class Sheet_Constructor:
     def __init__(self,session):
+        self.native_discount = False
         self.session=session
         self.boxes={}
         for box in constants.SHEET_BOXES:
@@ -248,7 +249,6 @@ class Sheet_Constructor:
             self.cells.extend([cell1,cell2])
     
     def construct_skill_boxes(self,skills):
-        skills[f'Native Lore: {self.session['character_details']['culture']}']=0
         for skill in constants.DEFAULT_SKILLS:
             if skill in skills:
                 quantity=skills[skill]
@@ -265,13 +265,18 @@ class Sheet_Constructor:
             self.boxes[SKILL_REF[skill]['sheet_box']][entry1]=entry2
             
         for skill in skills:
+            print(skill)
             if skill in BLOODLINE_SKILLS[self.session['character_details']['bloodline']]:
                 continue
             if skill in constants.FLAGS:
                 continue
             entry1=self.add_quantity(skill,skills[skill])
             entry2=self.calculate_spend(skill,skills[skill])
-
+            if skill[:6] == 'Native' and self.native_discount is False:
+                entry2 = 0
+                self.native_discount = True
+            print('\nsquibblydee dee\n')
+            print(entry1,entry2)
             try:
                 self.boxes[SKILL_REF[skill]['sheet_box']][entry1]=entry2
             except KeyError:
@@ -495,17 +500,14 @@ def add_NPL_row(session,character):
 
 def construct_NPL_Row(session,character_sheet,row):
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    if 'second_culture' in session['character_details']:
-        culture=f'{session['character_details']['culture']}/{session['character_details']['second_culture']}'
-    else:
-        culture=session['character_details']['culture']
+    
     timestamp_cell=gspread.Cell(row,1,timestamp)
     type_cell=gspread.Cell(row,2,'Test Character')
     player_name_cell=gspread.Cell(row,3,session['person_details']['name'])
     gmail_account_cell=gspread.Cell(row,4,session['person_details']['email'])
     character_name_cell=gspread.Cell(row,5,session['character_details']['name'])
     bloodline_name_cell=gspread.Cell(row,6,session['character_details']['bloodline'])
-    culture_cell=gspread.Cell(row,7,culture)
+    culture_cell=gspread.Cell(row,7,session['character_details']['culture'])
     sheet_cell=gspread.Cell(row,8,character_sheet.url)
     religion_cell=gspread.Cell(row,9,session['character_details']['faith'])
     backstory_cell=gspread.Cell(row,10,session['character_details']['backstory'])
@@ -514,11 +516,12 @@ def construct_NPL_Row(session,character_sheet,row):
     sheet_shared_cell=gspread.Cell(row,13,'No')
     discord_cell=gspread.Cell(row,14,session['person_details']['name'])
 
-    if 'second_culture' in session['character_details']:
-        dual_culture='True'
+    if '/' in session['character_details']['culture']:
+        dual_flag_cell = True
     else:
-        dual_culture='False'
-    dual_flag_cell=gspread.Cell(row,15,dual_culture)
+        dual_flag_cell = False
+
+    dual_flag_cell=gspread.Cell(row,15,dual_flag_cell)
 
     rows=[timestamp_cell,type_cell,player_name_cell,gmail_account_cell,character_name_cell,
                     bloodline_name_cell,culture_cell,sheet_cell,religion_cell,
