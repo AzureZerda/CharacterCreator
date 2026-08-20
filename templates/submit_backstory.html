@@ -1,171 +1,136 @@
-{% extends "popup_handler.html" %}
+{% extends "character_nav.html" %}
 
-{% block title %}Submit Character{% endblock %}
+{% block title %}Skills Database{% endblock %}
 
-{% block head %}
+{% block page_content %}
+
+{% set existing_backstory = session.get('character_details', {}).get('backstory') %}
+
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        padding: 30px;
-        background: #f4f4f4;
-    }
-
-    .top-bar {
+    .rules {
         display: flex;
-        justify-content: flex-start;
-        margin-bottom: 20px;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+        font-size: 20px;
+        line-height: 1.8;
+        margin-bottom: 5px;
     }
 
-    .back-btn {
-        padding: 6px 12px;
-        cursor: pointer;
-        border: 1px solid #333;
-        background: white;
-        border-radius: 4px;
-    }
-
-    .back-btn:hover {
-        background: #eaeaea;
+    .rules ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+        line-height: 2;
     }
 
     .container {
-        max-width: 700px;
-        margin: auto;
+        max-width: 600px;
+        margin: 5px auto 40px auto;
     }
 
-    .title {
-        font-size: 22px;
-        font-weight: bold;
-        margin: 20px 0 10px;
-        border-bottom: 2px solid #000;
-        padding-bottom: 5px;
-    }
-
-    .box {
-        background: white;
-        border: 1px solid #333;
-        border-radius: 6px;
+    .notice {
+        background: #fff3cd;
+        border: 1px solid #ffeeba;
+        color: #856404;
         padding: 12px;
-        margin-bottom: 25px;
-    }
-
-    .item {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 10px;
-        border-bottom: 1px solid #ddd;
-    }
-
-    .item:last-child {
-        border-bottom: none;
-    }
-
-    .key {
+        border-radius: 6px;
+        margin-bottom: 20px;
+        text-align: center;
         font-weight: bold;
     }
 
-    .value {
-        color: #555;
+    textarea {
+        width: 100%;
+        height: 200px;
+        padding: 10px;
+        font-size: 14px;
+        resize: vertical;
+        box-sizing: border-box;
     }
 
-    .empty {
-        text-align: center;
-        color: #777;
-        padding: 15px;
-    }
-
-    .backstory-text {
-        white-space: pre-wrap;
-        color: #333;
-        line-height: 1.5;
-    }
-
-    .confirm-btn {
-        padding: 10px 28px;
-        font-size: 16px;
-        background-color: #2c7a2c;
-        color: white;
-        border: none;
-        border-radius: 6px;
+    button {
+        margin-top: 15px;
+        padding: 10px;
+        width: 100%;
         cursor: pointer;
     }
-
-    .confirm-btn:hover {
-        background-color: #245e24;
-    }
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="top-bar">
-    <form method="GET" action="{{ url_for('maliks_idea') }}">
-        <button class="back-btn" type="submit">Back</button>
-    </form>
+<div class="rules">
+    <div>
+        <ul>
+            <li>
+                A backstory must end with that character’s death. Your character is dead at the beginning of their first game… and you will find out, in game, what happens next.
+            </li>
+
+            <li>
+                Please use bullet points, be concise, and follow the rules for character creation found
+                <a href="https://docs.google.com/document/d/1GGG4T5-KaN-FOkCSyi27bF2puj4DPbg76Dng82CrJZA/edit?tab=t.0">
+                    here
+                </a>
+            </li>
+
+            <li><strong>Do not submit any links</strong></li>
+        </ul>
+    </div>
 </div>
 
 <div class="container">
-    <div class="title">Player Info</div>
-    <div class="box">
-        {% if player_info and player_info|length > 0 %}
-            {% for key, value in player_info.items() %}
-                <div class="item">
-                    <div class="key">{{ key }}</div>
-                    <div class="value">{{ value }}</div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty">No player data</div>
-        {% endif %}
-    </div>
 
-    <div class="title">Character Info</div>
-    <div class="box">
-        {% if char_info and char_info|length > 0 %}
-            {% for key, value in char_info.items() %}
-                <div class="item">
-                    <div class="key">{{ key }}</div>
-                    <div class="value">{{ value }}</div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty">No character data</div>
-        {% endif %}
+    {% if session.get('character_type') %}
+    <div class="notice">
+        Notice &ndash; Any changes to your backstory will require NPL approval.
     </div>
+    {% endif %}
 
-    <div class="title">Skill Info</div>
-    <div class="box">
-        {% if skill_info and skill_info|length > 0 %}
-            {% for skill, qty in skill_info.items() %}
-                <div class="item">
-                    <div class="key">{{ skill }}</div>
-                    <div class="value">x{{ qty }}</div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty">No skills selected</div>
-        {% endif %}
-    </div>
+    <h2>Enter Backstory</h2>
 
-    <div class="title">Backstory</div>
-    <div class="box">
-        {% if char_backstory %}
-            <div class="backstory-text">{{ char_backstory }}</div>
-        {% else %}
-            <div class="empty">No backstory provided</div>
-        {% endif %}
-    </div>
-</div>
+    <form id="backstoryForm">
 
-<div style="text-align: center; margin: 10px 0 40px;">
-    <button type="button" class="confirm-btn" onclick="confirmSubmission()">
-        Save to Google Drive
-    </button>
+        <textarea
+            name="backstory"
+            placeholder="Write your backstory here..."
+            required
+        >{{ existing_backstory or '' }}</textarea>
+
+        <button type="submit">
+            {{ "Update Backstory" if existing_backstory else "Submit Backstory" }}
+        </button>
+
+    </form>
+
 </div>
 
 <script>
-function confirmSubmission() {
-    window.location.href = "{{ url_for('google_login') }}";
-}
+document.getElementById("backstoryForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch("/submit_backstory", {
+        method: "POST",
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (!data.success) {
+            showPopup("ERROR", data.error || data.message || "Submission failed");
+            return;
+        }
+
+        showPopup("SUCCESS", data.message || "Backstory submitted successfully");
+
+        // Change button text after first successful submission
+        document.querySelector("#backstoryForm button").textContent = "Update Backstory";
+    })
+    .catch(err => {
+        console.error(err);
+        showPopup("NETWORK ERROR", "Request failed");
+    });
+});
 </script>
 
 {% endblock %}
