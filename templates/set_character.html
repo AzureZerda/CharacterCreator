@@ -1,171 +1,913 @@
-{% extends "popup_handler.html" %}
+{% extends "layout.html" %}
 
-{% block title %}Submit Character{% endblock %}
+{% block title %}Character Creation{% endblock %}
 
-{% block head %}
+{% block page_content %}
+
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        padding: 30px;
-        background: #f4f4f4;
-    }
 
-    .top-bar {
-        display: flex;
-        justify-content: flex-start;
-        margin-bottom: 20px;
-    }
+.page-container {
+    display:flex;
+    justify-content:center;
+    gap:40px;
+    flex-wrap:wrap;
+}
 
-    .back-btn {
-        padding: 6px 12px;
-        cursor: pointer;
-        border: 1px solid #333;
-        background: white;
-        border-radius: 4px;
-    }
+.form-container {
+    width:400px;
+    padding:20px;
+    border:2px solid #000;
+    border-radius:6px;
+    background:#f9f9f9;
+}
 
-    .back-btn:hover {
-        background: #eaeaea;
-    }
+.form-title {
+    font-size:20px;
+    font-weight:bold;
+    margin-bottom:15px;
+    border-bottom:2px solid #000;
+    padding-bottom:5px;
+}
 
-    .container {
-        max-width: 700px;
-        margin: auto;
-    }
+.field {
+    margin-bottom:15px;
+}
 
-    .title {
-        font-size: 22px;
-        font-weight: bold;
-        margin: 20px 0 10px;
-        border-bottom: 2px solid #000;
-        padding-bottom: 5px;
-    }
+label {
+    display:block;
+    font-weight:bold;
+    margin-bottom:5px;
+}
 
-    .box {
-        background: white;
-        border: 1px solid #333;
-        border-radius: 6px;
-        padding: 12px;
-        margin-bottom: 25px;
-    }
+input, select {
+    width:100%;
+    padding:8px;
+    font-size:14px;
+    box-sizing:border-box;
+}
 
-    .item {
-        display: flex;
-        justify-content: space-between;
-        padding: 8px 10px;
-        border-bottom: 1px solid #ddd;
-    }
+.checkbox-label {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-weight:bold;
+}
 
-    .item:last-child {
-        border-bottom: none;
-    }
+.checkbox-label input {
+    width:auto;
+}
 
-    .key {
-        font-weight: bold;
-    }
+.reminder {
+    background:#fff3cd;
+    border:1px solid #e0c36d;
+    padding:10px;
+    margin-bottom:10px;
+    font-size:14px;
+}
 
-    .value {
-        color: #555;
-    }
+.required {
+    color:red;
+}
 
-    .empty {
-        text-align: center;
-        color: #777;
-        padding: 15px;
-    }
+button {
+    padding:10px 15px;
+    cursor:pointer;
+    width:100%;
+    margin-top:20px;
+}
 
-    .backstory-text {
-        white-space: pre-wrap;
-        color: #333;
-        line-height: 1.5;
-    }
-
-    .confirm-btn {
-        padding: 10px 28px;
-        font-size: 16px;
-        background-color: #2c7a2c;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-    }
-
-    .confirm-btn:hover {
-        background-color: #245e24;
-    }
 </style>
-{% endblock %}
 
-{% block content %}
-<div class="top-bar">
-    <form method="GET" action="{{ url_for('maliks_idea') }}">
-        <button class="back-btn" type="submit">Back</button>
-    </form>
+
+<form id="combined-form">
+
+<div class="page-container">
+
+
+<div class="form-container">
+
+<div class="form-title">
+Player Information
 </div>
 
-<div class="container">
-    <div class="title">Player Info</div>
-    <div class="box">
-        {% if player_info and player_info|length > 0 %}
-            {% for key, value in player_info.items() %}
-                <div class="item">
-                    <div class="key">{{ key }}</div>
-                    <div class="value">{{ value }}</div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty">No player data</div>
-        {% endif %}
-    </div>
 
-    <div class="title">Character Info</div>
-    <div class="box">
-        {% if char_info and char_info|length > 0 %}
-            {% for key, value in char_info.items() %}
-                <div class="item">
-                    <div class="key">{{ key }}</div>
-                    <div class="value">{{ value }}</div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty">No character data</div>
-        {% endif %}
-    </div>
+<div class="field">
 
-    <div class="title">Skill Info</div>
-    <div class="box">
-        {% if skill_info and skill_info|length > 0 %}
-            {% for skill, qty in skill_info.items() %}
-                <div class="item">
-                    <div class="key">{{ skill }}</div>
-                    <div class="value">x{{ qty }}</div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="empty">No skills selected</div>
-        {% endif %}
-    </div>
+<label>
+Name <span class="required">*</span>
+</label>
 
-    <div class="title">Backstory</div>
-    <div class="box">
-        {% if char_backstory %}
-            <div class="backstory-text">{{ char_backstory }}</div>
-        {% else %}
-            <div class="empty">No backstory provided</div>
-        {% endif %}
-    </div>
+<input 
+type="text"
+name="player_name"
+required>
+
 </div>
 
-<div style="text-align: center; margin: 10px 0 40px;">
-    <button type="button" class="confirm-btn" onclick="confirmSubmission()">
-        Save to Google Drive
-    </button>
+
+
+<div class="field">
+
+<label>
+Email <span class="required">*</span>
+</label>
+
+<input
+type="email"
+name="email"
+required>
+
 </div>
+
+
+
+<div class="field">
+
+<label>
+Discord Username
+</label>
+
+<input
+type="text"
+name="discord">
+
+</div>
+
+
+
+<div class="field">
+
+<label>
+Emergency Contact <span class="required">*</span>
+</label>
+
+
+<div class="reminder">
+
+For safety, please list your emergency contact
+(name, contact number, and relation)
+
+</div>
+
+
+<input
+type="text"
+name="emergency_contact"
+required>
+
+</div>
+
+
+</div>
+
+
+
+
+<div class="form-container">
+
+
+<div class="form-title">
+Character Information
+</div>
+
+
+
+<div class="field">
+
+<label>
+Name
+</label>
+
+<input
+type="text"
+name="name"
+required>
+
+</div>
+
+
+
+
+
+<div class="field">
+
+<label>
+Culture
+</label>
+
+
+<select
+name="culture"
+id="culture-select">
+
+
+<option value="Castle Thorn">Castle Thorn</option>
+<option value="The Celestine Empire">Celestine</option>
+<option value="Cestral">Cestral</option>
+<option value="Cole">Cole</option>
+<option value="Dace">Dace</option>
+<option value="The Kingdom of Hastings">Hastings</option>
+<option value="The Nadine Empire">Nadine</option>
+<option value="The Vein">Vein</option>
+<option value="The Drir">Drir</option>
+<option value="The Ko'aat">Ko'aat</option>
+<option value="Myre">Myre</option>
+<option value="The Saek">Saek</option>
+<option value="The Trahazi">Trahazi</option>
+<option value="The Vicaul">Vicaul</option>
+<option value="Paradox: Dawn">Paradox: Dawn</option>
+<option value="Paradox: Dusk">Paradox: Dusk</option>
+<option value="Bastion">Bastion</option>
+<option value="The Breach">The Breach</option>
+<option value="Redemption">Redemption</option>
+<option value="The Citadel">Citadel</option>
+<option value="Endurant Tribes">Endurant Tribes</option>
+
+
+<option 
+value="Newborn Dream"
+id="newborn-culture"
+style="display:none;">
+Newborn Dream
+</option>
+
+
+<option value="Legacy">
+Legacy
+</option>
+
+
+<option value="Unlisted">
+Unlisted
+</option>
+
+
+</select>
+
+</div>
+
+<div class="field"
+id="legacy-container"
+style="display:none;">
+
+
+<label>
+Legacy Culture
+</label>
+
+
+<select
+id="legacy-select"
+disabled>
+
+
+<option value="Ad Decimum">
+Ad Decimum
+</option>
+
+<option value="Gael">
+Gael
+</option>
+
+<option value="Eerie">
+Eerie
+</option>
+
+<option value="Mandala">
+Mandala
+</option>
+
+
+</select>
+
+</div>
+
+
+
+
+
+<div class="field"
+id="unlisted-container"
+style="display:none;">
+
+
+<div class="reminder">
+
+<b>Note:</b>
+this option only exists for special cases pre-approved by NPLs/staff.
+Please do not make up your own culture.
+
+</div>
+
+
+<label>
+Unlisted Culture
+</label>
+
+
+<input
+type="text"
+id="unlisted-select"
+disabled>
+
+
+</div>
+
+
+
+
+
+<div class="field"
+id="second-culture-toggle">
+
+
+<label class="checkbox-label">
+
+<input
+type="checkbox"
+id="second-culture-check">
+
+
+Add second culture
+
+
+</label>
+
+</div>
+
+
+
+
+
+<div class="field"
+id="second-culture-container"
+style="display:none;">
+
+
+<div class="reminder">
+
+<b>Reminder:</b>
+your second culture must be justified in your backstory.
+Your second native lore will cost 4 character points.
+
+</div>
+
+
+<label>
+Second Culture
+</label>
+
+
+<select
+id="second-culture-select"
+disabled>
+
+
+<option value="Castle Thorn">Castle Thorn</option>
+<option value="The Celestine Empire">Celestine</option>
+<option value="Cestral">Cestral</option>
+<option value="Cole">Cole</option>
+<option value="Dace">Dace</option>
+<option value="The Kingdom of Hastings">Hastings</option>
+<option value="The Nadine Empire">Nadine</option>
+<option value="The Vein">Vein</option>
+<option value="The Drir">Drir</option>
+<option value="The Ko'aat">Ko'aat</option>
+<option value="Myre">Myre</option>
+<option value="The Saek">Saek</option>
+<option value="The Trahazi">Trahazi</option>
+<option value="The Vicaul">Vicaul</option>
+<option value="Endurant Tribes">Endurant Tribes</option>
+
+
+</select>
+
+</div>
+
+
+
+
+
+<div class="field">
+
+<label>
+Bloodline
+</label>
+
+
+<select
+name="bloodline"
+id="bloodline-select">
+
+
+<option value="human">Human</option>
+<option value="effendal">Effendal</option>
+<option value="fae-blooded">Fae-Blooded</option>
+<option value="celestial-blooded">Celestial-Blooded</option>
+<option value="demon-blooded">Demon-Blooded</option>
+<option value="dragon-blooded">Dragon-Blooded</option>
+<option value="newborn dream">Newborn Dream</option>
+
+
+</select>
+
+</div>
+
+
+
+<div class="field">
+
+<label>
+Faith
+</label>
+
+<input
+type="text"
+name="faith">
+
+</div>
+
+
+
+<div class="field">
+
+<label class="checkbox-label">
+
+<input
+type="checkbox"
+id="incentive-check">
+
+Add incentive points
+
+</label>
+
+</div>
+
+
+
+<div class="field"
+id="incentive-info"
+style="display:none;">
+
+
+<div class="reminder">
+
+<b>Note:</b>
+this is only for IP you have already earned.
+
+</div>
+
+
+</div>
+
+<div class="field"
+id="incentive-container"
+style="display:none;">
+
+
+<label>
+Incentive Points
+</label>
+
+
+<select name="incentive_points">
+
+
+{% for i in range(0,21) %}
+
+<option value="{{ i }}">
+{{ i }}
+</option>
+
+{% endfor %}
+
+
+</select>
+
+
+</div>
+
+
+
+</div>
+
+</div>
+
+
+
+
+
+<button type="submit">
+Submit All
+</button>
+
+
+
+</form>
+
+
+
+
 
 <script>
-function confirmSubmission() {
-    window.location.href = "{{ url_for('google_login') }}";
+
+
+const cultureSelect =
+document.getElementById("culture-select");
+
+
+const legacyContainer =
+document.getElementById("legacy-container");
+
+
+const legacySelect =
+document.getElementById("legacy-select");
+
+
+const unlistedContainer =
+document.getElementById("unlisted-container");
+
+
+const unlistedInput =
+document.getElementById("unlisted-select");
+
+
+const bloodlineSelect =
+document.getElementById("bloodline-select");
+
+
+const newbornCulture =
+document.getElementById("newborn-culture");
+
+
+const secondCultureToggle =
+document.getElementById("second-culture-toggle");
+
+
+const secondCultureContainer =
+document.getElementById("second-culture-container");
+
+
+const secondCultureCheck =
+document.getElementById("second-culture-check");
+
+
+const secondCultureSelect =
+document.getElementById("second-culture-select");
+
+
+
+
+
+cultureSelect.addEventListener("change", function(){
+
+
+    legacyContainer.style.display="none";
+    unlistedContainer.style.display="none";
+
+
+    legacySelect.disabled=true;
+    unlistedInput.disabled=true;
+
+
+    legacySelect.removeAttribute("name");
+    unlistedInput.removeAttribute("name");
+
+
+    this.name="culture";
+
+
+
+    if(this.value==="Legacy"){
+
+
+        legacyContainer.style.display="block";
+
+
+        legacySelect.disabled=false;
+
+
+        legacySelect.name="culture";
+
+
+        this.name="legacy";
+
+
+    }
+
+
+
+    else if(this.value==="Unlisted"){
+
+
+        unlistedContainer.style.display="block";
+
+
+        unlistedInput.disabled=false;
+
+
+        unlistedInput.name="culture";
+
+
+        this.name="unlisted";
+
+
+    }
+
+
+});
+
+
+
+
+
+
+
+bloodlineSelect.addEventListener("change", function(){
+
+
+    if(this.value==="newborn dream"){
+
+
+
+        newbornCulture.style.display="block";
+
+
+        cultureSelect.value = "Newborn Dream";
+
+
+        cultureSelect.style.pointerEvents = "none";
+        cultureSelect.style.backgroundColor = "#e9ecef";
+        cultureSelect.style.opacity = "0.85";
+
+
+
+        secondCultureToggle.style.display="none";
+
+
+        secondCultureContainer.style.display="none";
+
+
+        secondCultureCheck.checked=false;
+
+
+        secondCultureSelect.value="";
+        secondCultureSelect.disabled=true;
+        secondCultureSelect.removeAttribute("name");
+
+
+
+    }
+
+    else {
+
+
+
+        newbornCulture.style.display="none";
+
+
+        cultureSelect.style.pointerEvents = "";
+        cultureSelect.style.backgroundColor = "";
+        cultureSelect.style.opacity = "";
+
+
+        secondCultureToggle.style.display="block";
+
+
+    }
+
+
+
+});
+
+
+
+
+
+
+secondCultureCheck.addEventListener("change", function(){
+
+
+    if(this.checked){
+
+
+        secondCultureContainer.style.display="block";
+
+
+        secondCultureSelect.disabled=false;
+
+
+        secondCultureSelect.name="second_culture";
+
+
+    }
+
+    else {
+
+
+        secondCultureContainer.style.display="none";
+
+
+        secondCultureSelect.value="";
+
+
+        secondCultureSelect.disabled=true;
+
+
+        secondCultureSelect.removeAttribute("name");
+
+
+    }
+
+
+});
+
+document.getElementById("incentive-check")
+.addEventListener("change", function(){
+
+
+const container =
+document.getElementById("incentive-container");
+
+
+const info =
+document.getElementById("incentive-info");
+
+
+
+if(this.checked){
+
+
+    container.style.display="block";
+
+    info.style.display="block";
+
+
 }
+
+else {
+
+
+    container.style.display="none";
+
+    info.style.display="none";
+
+
+    document.querySelector(
+        'select[name="incentive_points"]'
+    ).value="0";
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+
+
+
+document.getElementById("combined-form")
+.addEventListener("submit", function(e){
+
+
+e.preventDefault();
+
+
+
+
+/*
+    Ensure unchecked second culture is completely absent
+    from FormData before sending.
+*/
+
+if(!secondCultureCheck.checked){
+
+
+    secondCultureSelect.value="";
+
+
+    secondCultureSelect.disabled=true;
+
+
+    secondCultureSelect.removeAttribute("name");
+
+
+}
+
+else {
+
+
+    secondCultureSelect.disabled=false;
+
+
+    secondCultureSelect.name="second_culture";
+
+
+}
+
+
+
+
+
+const formDict={};
+
+
+
+new FormData(this).forEach((value,key)=>{
+
+
+    formDict[key]=value;
+
+
+});
+
+
+
+
+
+fetch("{{ url_for('new_player') }}",{
+
+
+method:"POST",
+
+
+headers:{
+
+
+"Content-Type":"application/json"
+
+
+},
+
+
+body:JSON.stringify(formDict)
+
+
+
+})
+
+
+.then(async res=>{
+
+
+if(!res.ok){
+
+
+const text =
+await res.text();
+
+
+throw new Error(
+text || "Submission failed"
+);
+
+
+}
+
+
+return res;
+
+
+})
+
+
+.then(()=>{
+
+
+window.location.href="/make_choice";
+
+
+})
+
+
+.catch(err=>{
+
+
+console.error(err);
+
+
+showPopup(
+"ERROR",
+err.message
+);
+
+
+});
+
+
+
+});
+
+
+
 </script>
+
+
 
 {% endblock %}
