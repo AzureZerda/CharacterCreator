@@ -68,7 +68,7 @@ def construct_display_dict(character):
 
 @app.route("/")
 def buttons():
-    return render_template('landing_page.html')
+    return redirect(url_for("landing"))
 
 def contains_google_doc_link(text):
     LINK_REGEX = re.compile(r"(https?://[^\s]+|www\.[^\s]+)", re.IGNORECASE)
@@ -624,26 +624,26 @@ def load_existing_character():
 
     return gatherings_table()
 
-@app.route('/confirm_submission', methods=['POST'])
-def confirm_submission():
-    if session['character_details']['points']<0:
-        raise exc.Too_Many_Points()
-
-    try:
-        backstory=session['character_details']['backstory']
-    except KeyError:
-        raise exc.MissingBackstory()
-
-    points=session['character_details']['points']
-
-    if points>0 and session['flags']['points_warning_given'] is False:
-        session['flags']['points_warning_given']=True
-        session.modified=True
-        raise exc.UnspentPoints()
-    
-    sheet_creator.export_char(session)
-
-    return render_template("submission_placeholder.html")
+#@app.route('/confirm_submission', methods=['POST'])
+#def confirm_submission():
+#    if session['character_details']['points']<0:
+#        raise exc.Too_Many_Points()
+#
+#    try:
+#        backstory=session['character_details']['backstory']
+#    except KeyError:
+#        raise exc.MissingBackstory()
+#
+#    points=session['character_details']['points']
+#
+#    if points>0 and session['flags']['points_warning_given'] is False:
+#        session['flags']['points_warning_given']=True
+#        session.modified=True
+#        raise exc.UnspentPoints()
+#    
+#    sheet_creator.export_char(session)
+#
+#    return render_template("submission_placeholder.html")
 
 @app.route("/character_setup", methods=["GET"])
 def character_setup():
@@ -1017,23 +1017,49 @@ def get_google_credentials():
         session["google_credentials"] = _creds_to_session_dict(creds)
     return creds
 
-@app.route("/google/login")
+@app.route("/google/login", methods=["GET"])
 def google_login():
-    print("CLIENT ID:", GOOGLE_CLIENT_CONFIG["web"]["client_id"])
-    print("REDIRECT URI:", url_for("google_oauth2callback", _external=True))
     flow = Flow.from_client_config(
         GOOGLE_CLIENT_CONFIG,
         scopes=GOOGLE_SCOPES,
         redirect_uri=url_for("google_oauth2callback", _external=True),
     )
+
     auth_url, state = flow.authorization_url(
         access_type="offline",
         include_granted_scopes="true",
         prompt="consent",
     )
+
     session["google_oauth_state"] = state
     session["google_code_verifier"] = flow.code_verifier
+
     return redirect(auth_url)
+
+def _do_confirm_submission():
+    if session['character_details']['points'] < 0:
+        raise exc.Too_Many_Points()
+
+    try:
+        backstory = session['character_details']['backstory']
+    except KeyError:
+        raise exc.MissingBackstory()
+
+    points = session['character_details']['points']
+
+    #if points > 0 and session['flags']['points_warning_given'] is False:
+    #    session['flags']['points_warning_given'] = True
+    #    session.modified = True
+    #    raise exc.UnspentPoints()
+
+    sheet_creator.export_char(session)
+
+    return render_template("submission_placeholder.html")
+
+
+@app.route('/confirm_submission', methods=['POST'])
+def confirm_submission():
+    return _do_confirm_submission()
 
 
 @app.route("/oauth2callback")
@@ -1047,8 +1073,8 @@ def google_oauth2callback():
     flow.code_verifier = session["google_code_verifier"]
     flow.fetch_token(authorization_response=request.url)
     session["google_credentials"] = _creds_to_session_dict(flow.credentials)
-    return redirect(url_for("landing"))
 
+    return _do_confirm_submission()
 
 @app.route("/google/logout")
 def google_logout():
